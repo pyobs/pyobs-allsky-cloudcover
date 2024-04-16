@@ -40,4 +40,4 @@ jobs:
           cache: 'poetry'
 
       - run: poetry install --all-extras
-      - run: poetry run mypy
+      - run: poetry run mypy ./pyobs_cloudcover
