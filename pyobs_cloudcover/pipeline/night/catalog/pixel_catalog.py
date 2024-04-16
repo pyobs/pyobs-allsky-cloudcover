@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime
+from typing import cast
 
 import numpy as np
 import numpy.typing as npt
@@ -46,4 +47,8 @@ class PixelCatalog(object):
     def from_altaz_catalog(cls, altaz_catalog: AltAzCatalog, model: WorldModel) -> PixelCatalog:
         px, py = model.altaz_to_pix(np.deg2rad(altaz_catalog.alt), np.deg2rad(altaz_catalog.az))
 
-        return PixelCatalog(altaz_catalog.sao, px, py, altaz_catalog.v_mag)
+        return PixelCatalog(
+            altaz_catalog.sao,
+            cast(npt.NDArray[np.float_], px), cast(npt.NDArray[np.float_], py),
+            altaz_catalog.v_mag
+            )
