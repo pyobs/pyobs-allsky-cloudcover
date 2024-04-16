@@ -13,6 +13,9 @@ jobs:
       - name: Install poetry
         run: pipx install poetry
 
+      - name: Install maturin
+        run: pipx install maturin
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -20,6 +23,7 @@ jobs:
           cache: 'poetry'
 
       - run: poetry install --all-extras
+      - run: poetry run maturin develop --release
       - run: poetry run pytest -v
 
   mypy:
@@ -33,6 +37,9 @@ jobs:
       - name: Install poetry
         run: pipx install poetry
 
+      - name: Install maturin
+        run: pipx install maturin
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -40,4 +47,5 @@ jobs:
           cache: 'poetry'
 
       - run: poetry install --all-extras
+      - run: poetry run maturin develop --release
       - run: poetry run mypy ./pyobs_cloudcover
