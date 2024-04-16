@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 import numpy.typing as npt
 
@@ -11,11 +13,11 @@ class StareReverseMatcher(object):
         self._detector = detector
         self._window = window
 
-    def __call__(self, image: npt.NDArray[np.float_], catalog: PixelCatalog) -> npt.NDArray[np.bool_]:
+    def __call__(self, image: npt.NDArray[np.float_], catalog: PixelCatalog) -> List[bool]:
         self._window.set_image(image)
 
-        found = np.array([
+        found = [
             self._detector(self._window(px, py)) for px, py in zip(catalog.px, catalog.py)
-        ])
+        ]
 
         return found
