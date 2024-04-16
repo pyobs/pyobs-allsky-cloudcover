@@ -19,6 +19,7 @@ mypy = "1.9.0"
 
 [tool.mypy]
 ignore_missing_imports = true
+strict = true
 
 [build-system]
 requires = ["maturin>=1.5,<2.0"]
