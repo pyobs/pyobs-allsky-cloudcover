@@ -2,11 +2,9 @@ import datetime
 
 import numpy as np
 import numpy.typing as npt
-from cloudmap_rs.cloudmap_rs import Entry
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
-from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_info_calculator import CoverageInfoCalculator
 from pyobs_cloudcover.pipeline.night.cloud_map_generator import CloudMapGenerator
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
