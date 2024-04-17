@@ -14,7 +14,7 @@ class ZenithMasker(object):
         self._radius = np.sqrt(np.sum(np.square(self._zenith - offset)))
 
     def __call__(self, image: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
-        nx, ny = image.shape
+        ny, nx = image.shape
         x, y = np.arange(0, nx), np.arange(0, ny)
         x_coordinates, y_coordinates = np.meshgrid(x, y)
 

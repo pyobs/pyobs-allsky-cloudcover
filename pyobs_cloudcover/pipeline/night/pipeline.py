@@ -2,11 +2,9 @@ import datetime
 
 import numpy as np
 import numpy.typing as npt
-from cloudmap_rs.cloudmap_rs import Entry
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
-from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_info_calculator import CoverageInfoCalculator
 from pyobs_cloudcover.pipeline.night.cloud_map_generator import CloudMapGenerator
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
@@ -27,9 +25,12 @@ class NightPipeline(object):
         self._cloud_map_generator = cloud_map_generator
         self._coverage_info_calculator = coverage_info_calculator
 
-    def __call__(self, image: npt.NDArray[np.float_], obstime: datetime.datetime) -> CloudCoverageInfo:
+    def __call__(self, image: npt.NDArray[np.float_], obs_time: datetime.datetime) -> CloudCoverageInfo:
         preprocessed_image = self._preprocess(image)
-        catalog = self._catalog_constructor(obstime)
+        img_height, img_width = preprocessed_image.shape
+
+        catalog = self._catalog_constructor(obs_time, img_height, img_width)
         matches = self._star_reverse_matcher(preprocessed_image, catalog)
-        cloud_map = self._cloud_map_generator(catalog, matches, *image.shape)
+
+        cloud_map = self._cloud_map_generator(catalog, matches, img_height, img_width)
         return self._coverage_info_calculator(cloud_map)
