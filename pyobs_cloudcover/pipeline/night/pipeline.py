@@ -27,7 +27,10 @@ class NightPipeline(object):
 
     def __call__(self, image: npt.NDArray[np.float_], obstime: datetime.datetime) -> CloudCoverageInfo:
         preprocessed_image = self._preprocess(image)
-        catalog = self._catalog_constructor(obstime)
+        img_height, img_width = preprocessed_image.shape
+
+        catalog = self._catalog_constructor(obstime, img_height, img_width)
         matches = self._star_reverse_matcher(preprocessed_image, catalog)
-        cloud_map = self._cloud_map_generator(catalog, matches, *image.shape)
+
+        cloud_map = self._cloud_map_generator(catalog, matches, img_height, img_width)
         return self._coverage_info_calculator(cloud_map)

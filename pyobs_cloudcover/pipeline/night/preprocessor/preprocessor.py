@@ -13,8 +13,8 @@ class Preprocessor(object):
         self._background_remover = background_remover
 
     def __call__(self, image: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
-        binned_image = self._binner(image)
-        masked_image = self._masker(binned_image)
-        processed_image = self._background_remover(masked_image)
+        masked_image = self._masker(image)
+        binned_image = self._binner(masked_image)
+        processed_image = self._background_remover(binned_image)
 
         return processed_image
