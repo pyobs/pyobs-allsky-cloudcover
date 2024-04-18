@@ -18,10 +18,10 @@ class Influx(MeasurementLog):
         self._bucket = bucket
         self._org = org
 
-    def __call__(self, measurement: CloudCoverageInfo, obs_time: datetime.datetime) -> None:
+    def __call__(self, measurement: CloudCoverageInfo) -> None:
         data = influxdb_client.Point("measurement")
 
-        data.time(obs_time)
+        data.time(measurement.obs_time)
 
         data.field("total-cover", measurement.total_cover)
         data.field("zenith-cover", measurement.zenith_cover)

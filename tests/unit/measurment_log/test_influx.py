@@ -13,12 +13,12 @@ from influxdb_client.client.write_api import WriteApi
 def test_call():
     influxdb_client.client.write_api.WriteApi.write = Mock()
 
-    measurement = CloudCoverageInfo(np.array([]), 0, 1, 2)
     obs_time = datetime.datetime(2020, 1, 1, 0, 0, 0)
+    measurement = CloudCoverageInfo(np.array([]), 0, 1, 2, obs_time)
 
     measurement_log = Influx("", "bucket", "org", "token")
 
-    measurement_log(measurement, obs_time)
+    measurement_log(measurement)
 
     call_args = influxdb_client.client.write_api.WriteApi.write.call_args_list
 

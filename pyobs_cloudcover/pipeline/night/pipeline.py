@@ -33,4 +33,4 @@ class NightPipeline(object):
         matches = self._star_reverse_matcher(preprocessed_image, catalog)
 
         cloud_map = self._cloud_map_generator(catalog, matches, img_height, img_width)
-        return self._coverage_info_calculator(cloud_map)
+        return self._coverage_info_calculator(cloud_map, obs_time)
