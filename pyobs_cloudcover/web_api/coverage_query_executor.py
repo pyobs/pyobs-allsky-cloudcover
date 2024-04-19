@@ -8,7 +8,7 @@ from astropy.coordinates import SkyCoord
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.window import ImageWindow
-from pyobs_cloudcover.pipeline.night.world_model.world_model import WorldModel
+from pyobs_cloudcover.world_model import WorldModel
 
 
 class CoverageQueryExecutor(object):
@@ -23,6 +23,9 @@ class CoverageQueryExecutor(object):
         self._cloud_map = (measurement.cloud_cover_map, measurement.obs_time)
 
     def get_obs_time(self) -> float:
+        if self._cloud_map is None:
+            raise ValueError("Measurement has not been set yet!")
+
         obs_time: datetime.datetime = self._cloud_map[1]
         return obs_time.timestamp()
 
@@ -30,10 +33,10 @@ class CoverageQueryExecutor(object):
         if self._cloud_map is None:
             return None
 
-        cloud_map, _ = self._cloud_map
+        cloud_map, obs_time = self._cloud_map
         self._window.set_image(cloud_map)
 
-        alt, az = self._radec_to_altaz(ra, dec)
+        alt, az = self._radec_to_altaz(ra, dec, obs_time)
         px, py = self._model.altaz_to_pix(alt, az)
         cloud_area = self._window(cast(float, px), cast(float, py))
 
@@ -44,9 +47,7 @@ class CoverageQueryExecutor(object):
         else:
             return float(average_cover)
 
-    def _radec_to_altaz(self, ra: float, dec: float) -> Tuple[float, float]:
-        _, obs_time = self._cloud_map
-
+    def _radec_to_altaz(self, ra: float, dec: float, obs_time: datetime.datetime) -> Tuple[float, float]:
         coord = SkyCoord(ra, dec, unit='deg', frame="ircs", location=self._observer.location, obstime=obs_time)
         coord = coord.altaz
 

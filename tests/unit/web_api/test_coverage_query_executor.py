@@ -9,7 +9,7 @@ import astropy.units as u
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.window import ImageWindow
-from pyobs_cloudcover.pipeline.night.world_model.simple_model import SimpleModel
+from pyobs_cloudcover.world_model.simple_model import SimpleModel
 from pyobs_cloudcover.web_api.coverage_query_executor import CoverageQueryExecutor
 
 

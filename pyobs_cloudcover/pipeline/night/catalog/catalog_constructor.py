@@ -4,7 +4,7 @@ from astroplan import Observer
 
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
-from pyobs_cloudcover.pipeline.night.world_model.world_model import WorldModel
+from pyobs_cloudcover.world_model import WorldModel
 
 
 class CatalogConstructor(object):

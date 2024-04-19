@@ -22,7 +22,7 @@ from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.sigma_treshho
     SigmaThresholdDetector
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StareReverseMatcher
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.window import ImageWindow
-from pyobs_cloudcover.pipeline.night.world_model.simple_model import SimpleModel
+from pyobs_cloudcover.world_model.simple_model import SimpleModel
 
 
 def test_night_pipeline():

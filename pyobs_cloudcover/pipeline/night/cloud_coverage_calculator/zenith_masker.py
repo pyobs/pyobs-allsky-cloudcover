@@ -3,7 +3,7 @@ from copy import copy
 import numpy as np
 import numpy.typing as npt
 
-from pyobs_cloudcover.pipeline.night.world_model.world_model import WorldModel
+from pyobs_cloudcover.world_model import WorldModel
 
 
 class ZenithMasker(object):

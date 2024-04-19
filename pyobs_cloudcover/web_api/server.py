@@ -19,7 +19,7 @@ class Server(object):
         site = web.TCPSite(self._runner, 'localhost', self._port)
         await site.start()
 
-    async def query(self, request) -> web.Response:
+    async def query(self, request: web.Request) -> web.Response:
         ra = float(request.rel_url.query["ra"])
         dec = float(request.rel_url.query["dec"])
 
