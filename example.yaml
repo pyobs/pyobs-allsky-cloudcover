@@ -1,8 +1,24 @@
 class: pyobs_cloudcover.application.Application
 
+image_sender: "allskycam"
+
 model:
   class: pyobs_cloudcover.world_model.SimpleModel
-  args: [4.81426598e-03, 2.00000000e+00, 1.06352627e+03, 7.57115607e+02, 5.11194838e+02]
+  a0: 4.81426598e-03
+  F: 2.00000000e+00
+  R: 1.06352627e+03
+  c_x: 7.57115607e+02
+  c_y: 5.11194838e+02
+
+server:
+  url: "localhost"
+  port: 8080
+
+measurement_log:
+  url: ""
+  bucket: ""
+  org: ""
+  token: ""
 
 pipelines:
   night:
@@ -12,13 +28,13 @@ pipelines:
 
     options:
       preprocessor:
-        mask_filepath: ""
+        mask_filepath: "tests/integration/mask.npy"
         bin_size: 2
         bkg_sigma_clip: 3.0
         bkg_box_size: (5, 5)
 
       catalog:
-        filepath: ""
+        filepath: "tests/integration/catalog.csv"
         filter:
           alt: 30.0
           v_mag: 7.0

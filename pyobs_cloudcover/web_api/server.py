@@ -1,5 +1,6 @@
 from aiohttp import web
 
+from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.web_api.coverage_query_executor import CoverageQueryExecutor
 
 
@@ -13,6 +14,9 @@ class Server(object):
         app = web.Application()
         app.add_routes([web.get("/query", self.query)])
         self._runner = web.AppRunner(app)
+
+    def set_measurement(self, measurement: CloudCoverageInfo) -> None:
+        self._query_executor.set_measurement(measurement)
 
     async def start(self) -> None:
         await self._runner.setup()

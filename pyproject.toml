@@ -36,5 +36,21 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dynamic = ["version"]
+
+dependencies = [
+    "pyobs-core[full]>=1.13.0",
+    "influxdb-client>=1.42.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.11.1",
+    "pytest-asyncio>=0.21.1",
+    "mypy>=1.9.0"
+]
+
 [tool.maturin]
 features = ["pyo3/extension-module"]
+python-packages = ["pyobs_cloudcover"]
