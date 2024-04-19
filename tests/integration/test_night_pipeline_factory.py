@@ -54,6 +54,6 @@ def test_night_pipeline() -> None:
     }
 
     pipeline_options = NightPipelineOptions.from_dict(pipeline_kwargs)
-    pipeline_factory = NightPipelineFactory(observer, model, pipeline_options)
-    pipeline = pipeline_factory()
+    pipeline_factory = NightPipelineFactory(observer, model)
+    pipeline = pipeline_factory(pipeline_options)
     pipeline(image, obs_time)

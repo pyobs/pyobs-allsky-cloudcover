@@ -9,9 +9,10 @@ from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_info_cal
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
+from pyobs_cloudcover.pipeline.pipeline import Pipeline
 
 
-class NightPipeline(object):
+class NightPipeline(Pipeline):
     def __init__(self,
                  preprocess: Preprocessor,
                  catalog_constructor: CatalogConstructor,

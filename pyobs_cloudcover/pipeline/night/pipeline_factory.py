@@ -12,19 +12,22 @@ from pyobs_cloudcover.world_model import WorldModel
 
 
 class NightPipelineFactory(object):
-    def __init__(self, observer: Observer, model: WorldModel, options: NightPipelineOptions):
-        self._preprocessor_factory = PreprocessorFactory(options.preprocessor_options)
-        self._catalog_constructor_factory = CatalogConstructorFactory(options.catalog_options, model, observer)
-        self._reverse_matcher_factory = StarReverseMatcherFactory(options.star_matcher_options)
-        self._cloud_map_generator_factory = CloudMapGeneratorFactory(options.cloud_generator_options)
-        self._coverage_info_calculator_factory = CloudInfoCalculatorFactory(options.coverage_info_options, model)
+    def __init__(self, observer: Observer, model: WorldModel):
+        self._observer = observer
+        self._model = model
 
-    def __call__(self) -> NightPipeline:
-        preprocessor = self._preprocessor_factory()
-        catalog_constructor = self._catalog_constructor_factory()
-        star_reverse_matcher = self._reverse_matcher_factory()
-        cloud_map_generator = self._cloud_map_generator_factory()
-        coverage_info_calculator = self._coverage_info_calculator_factory()
+    def __call__(self, options: NightPipelineOptions) -> NightPipeline:
+        preprocessor_factory = PreprocessorFactory(options.preprocessor_options)
+        catalog_constructor_factory = CatalogConstructorFactory(options.catalog_options, self._model, self._observer)
+        reverse_matcher_factory = StarReverseMatcherFactory(options.star_matcher_options)
+        cloud_map_generator_factory = CloudMapGeneratorFactory(options.cloud_generator_options)
+        coverage_info_calculator_factory = CloudInfoCalculatorFactory(options.coverage_info_options, self._model)
+
+        preprocessor = preprocessor_factory()
+        catalog_constructor = catalog_constructor_factory()
+        star_reverse_matcher = reverse_matcher_factory()
+        cloud_map_generator = cloud_map_generator_factory()
+        coverage_info_calculator = coverage_info_calculator_factory()
 
         pipeline = NightPipeline(
             preprocessor,
