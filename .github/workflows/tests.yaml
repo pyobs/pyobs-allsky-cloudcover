@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'maturin'
+          cache: 'pip'
 
       #- run: poetry install --all-extras
       - run: poetry run maturin develop --release --all-features
@@ -44,7 +44,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: 'maturin'
+          cache: 'pip'
 
       #- run: poetry install --all-extras
       - run: poetry run maturin develop --release --all-features
