@@ -8,8 +8,8 @@ def test_upper_lower_bound():
 
 
 def test_upper_bound():
-    interval = Interval(start=None, end=10)
-    assert (-1 in interval) == True
+    interval = Interval(start=None, end=-18)
+    assert (-20 in interval) == True
     assert (11 in interval) == False
 
 

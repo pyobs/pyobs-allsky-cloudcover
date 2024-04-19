@@ -22,8 +22,7 @@ jobs:
           python-version: '3.11'
           cache: 'poetry'
 
-      - run: poetry install --all-extras
-      - run: poetry run maturin develop --release
+      - run: poetry run maturin develop --release --all-features
       - run: poetry run pytest -v
 
   mypy:
@@ -46,6 +45,5 @@ jobs:
           python-version: '3.11'
           cache: 'poetry'
 
-      - run: poetry install --all-extras
-      - run: poetry run maturin develop --release
+      - run: poetry run maturin develop --release --all-features
       - run: poetry run mypy ./pyobs_cloudcover

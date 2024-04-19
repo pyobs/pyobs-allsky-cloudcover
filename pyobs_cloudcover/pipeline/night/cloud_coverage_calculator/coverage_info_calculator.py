@@ -1,3 +1,4 @@
+import datetime
 from copy import copy
 
 import numpy as np
@@ -16,9 +17,9 @@ class CoverageInfoCalculator:
         self._coverage_change_calculator = coverage_change_calculator
         self._zenith_masker = zenith_masker
 
-    def __call__(self, cloud_map: npt.NDArray[np.float_]) -> CloudCoverageInfo:
+    def __call__(self, cloud_map: npt.NDArray[np.float_], obs_time: datetime.datetime) -> CloudCoverageInfo:
         change = self._coverage_change_calculator(cloud_map)
         coverage = self._coverage_calculator(cloud_map)
         zenith_coverage = self._coverage_calculator(self._zenith_masker(cloud_map))
 
-        return CloudCoverageInfo(copy(cloud_map), coverage, zenith_coverage, change)
+        return CloudCoverageInfo(copy(cloud_map), coverage, zenith_coverage, change, obs_time)

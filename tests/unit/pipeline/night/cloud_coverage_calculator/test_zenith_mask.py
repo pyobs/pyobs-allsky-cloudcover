@@ -4,7 +4,7 @@ import numpy as np
 from numpy import typing as npt
 
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_masker import ZenithMasker
-from pyobs_cloudcover.pipeline.night.world_model.world_model import WorldModel
+from pyobs_cloudcover.world_model import WorldModel
 
 
 class MockWorldModel(WorldModel):

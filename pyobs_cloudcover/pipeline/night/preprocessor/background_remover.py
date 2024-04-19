@@ -8,7 +8,7 @@ from photutils.background import MedianBackground, Background2D
 
 
 class BackgroundRemover(object):
-    def __init__(self, sigma_clip: float = 3.0, box_size: Tuple[int, int] = (5, 5)) -> None:
+    def __init__(self, sigma_clip: float, box_size: Tuple[int, int]) -> None:
         self._sigma_clip = sigma_clip
         self._box_size = box_size
 

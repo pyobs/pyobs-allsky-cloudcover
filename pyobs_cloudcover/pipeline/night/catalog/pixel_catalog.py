@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-import datetime
 from typing import cast
 
 import numpy as np
 import numpy.typing as npt
 
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog import AltAzCatalog
-from pyobs_cloudcover.pipeline.night.world_model.world_model import WorldModel
+from pyobs_cloudcover.world_model import WorldModel
 
 
 class PixelCatalog(object):

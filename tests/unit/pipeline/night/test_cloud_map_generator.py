@@ -1,10 +1,10 @@
 import numpy as np
 
 from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
-from pyobs_cloudcover.pipeline.night.cloud_map_generator import CloudMapGenerator
+from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
 
 
-def test_call():
+def test_call() -> None:
     cloud_map_generator = CloudMapGenerator(1)
 
     catalog = PixelCatalog(sao=np.array([0, 1]), px=np.array([1, 1]), py=np.array([1, 1]), v_mag=np.array([0, 1]))
