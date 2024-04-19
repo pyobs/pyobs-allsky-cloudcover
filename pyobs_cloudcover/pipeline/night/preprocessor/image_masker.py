@@ -1,3 +1,4 @@
+from __future__ import annotations
 from copy import copy
 
 import numpy as np
@@ -13,3 +14,8 @@ class ImageMasker(object):
         masked_image *= self._mask
 
         return masked_image
+
+    @classmethod
+    def from_npy_file(cls, file_path: str) -> ImageMasker:
+        mask = np.load(file_path)
+        return ImageMasker(mask)

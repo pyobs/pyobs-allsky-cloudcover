@@ -4,7 +4,7 @@ from pyobs_cloudcover.pipeline.night.preprocessor.background_remover import Back
 
 
 def test_background_remover():
-    remover = BackgroundRemover()
+    remover = BackgroundRemover(3.0, (5, 5))
     image = np.ones((10, 10))
 
     corr_image = remover(image)

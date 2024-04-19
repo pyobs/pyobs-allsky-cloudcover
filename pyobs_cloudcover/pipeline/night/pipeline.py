@@ -6,16 +6,16 @@ import numpy.typing as npt
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_info_calculator import CoverageInfoCalculator
-from pyobs_cloudcover.pipeline.night.cloud_map_generator import CloudMapGenerator
+from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
-from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StareReverseMatcher
+from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
 
 
 class NightPipeline(object):
     def __init__(self,
                  preprocess: Preprocessor,
                  catalog_constructor: CatalogConstructor,
-                 star_reverse_matcher: StareReverseMatcher,
+                 star_reverse_matcher: StarReverseMatcher,
                  cloud_map_generator: CloudMapGenerator,
                  coverage_info_calculator: CoverageInfoCalculator) -> None:
 

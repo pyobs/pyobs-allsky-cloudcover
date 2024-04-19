@@ -1,0 +1,36 @@
+class: pyobs_cloudcover.application.Application
+
+model:
+  class: pyobs_cloudcover.world_model.SimpleModel
+  args: [4.81426598e-03, 2.00000000e+00, 1.06352627e+03, 7.57115607e+02, 5.11194838e+02]
+
+pipelines:
+  night:
+    alt_interval:
+      start: None
+      end: -18
+
+    options:
+      preprocessor:
+        mask_filepath: ""
+        bin_size: 2
+        bkg_sigma_clip: 3.0
+        bkg_box_size: (5, 5)
+
+      catalog:
+        filepath: ""
+        filter:
+          alt: 30.0
+          v_mag: 7.0
+          distance: 0.0
+
+      reverse_matcher:
+        sigma_threshold: 3.0
+        window_size: 6.0
+
+      cloud_map:
+        radius: 50.0
+
+      coverage_info:
+        cloud_threshold: 0.5
+        zenith_radius: 20

@@ -42,12 +42,12 @@ def test_call_map(observer, obs_time, model):
 
     executor = CoverageQueryExecutor(model, observer, window)
     executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))
-    executor._model.altaz_to_pix = Mock(return_value=(1 , 1))
+    executor._model.altaz_to_pix = Mock(return_value=(1, 1))
 
     executor.set_measurement(CloudCoverageInfo(np.identity(3), 0, 0, 0, obs_time))
 
     assert executor(10, 10) == 1/3
-    executor._radec_to_altaz.assert_called_once_with(10, 10)
+    executor._radec_to_altaz.assert_called_once_with(10, 10, obs_time)
     executor._model.altaz_to_pix.assert_called_once_with(np.pi/2, 0)
 
 

@@ -8,7 +8,7 @@ from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.detector impo
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.window import ImageWindow
 
 
-class StareReverseMatcher(object):
+class StarReverseMatcher(object):
     def __init__(self, detector: StarDetector, window: ImageWindow):
         self._detector = detector
         self._window = window
