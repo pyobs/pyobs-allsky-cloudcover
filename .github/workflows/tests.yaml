@@ -10,9 +10,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      #- name: Install poetry
-      #  run: pipx install poetry
-
       - name: Install maturin
         run: pipx install maturin
 
@@ -22,9 +19,8 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      #- run: poetry install --all-extras
-      - run: poetry run maturin develop --release --all-features
-      - run: poetry run pytest -v
+      - run: maturin develop --release --all-features
+      - run: pytest -v
 
   mypy:
     runs-on: ubuntu-latest
@@ -34,9 +30,6 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      #- name: Install poetry
-      #  run: pipx install poetry
-
       - name: Install maturin
         run: pipx install maturin
 
@@ -46,6 +39,5 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
 
-      #- run: poetry install --all-extras
-      - run: poetry run maturin develop --release --all-features
-      - run: poetry run mypy ./pyobs_cloudcover
+      - run: maturin develop --release --all-features
+      - run: mypy ./pyobs_cloudcover
