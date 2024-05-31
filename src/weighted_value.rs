@@ -1,5 +1,5 @@
 
-#[derive(PartialEq, PartialOrd)]
+#[derive(PartialEq, PartialOrd, Debug)]
 pub struct WeightedValue
 {
     value: f64,

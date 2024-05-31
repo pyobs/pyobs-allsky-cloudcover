@@ -98,13 +98,13 @@ mod tests
     {
         let stars = 4;
         let n_visible = 2;
-        let visible_v_mags: Vec<f64> = vec![3.0, 2.0];
-        let n_visible_v_mags: Vec<f64> = vec![4.0, 5.0];
+        let visible_v_mags: Vec<WeightedValue> = vec![WeightedValue::new(3.0, 1.0), WeightedValue::new(3.0, 2.0)];
+        let n_visible_v_mags: Vec<WeightedValue> = vec![WeightedValue::new(4.0, 1.0), WeightedValue::new(5.0, 1.0)];
         let mut counter = StarCounter {stars, n_visible, visible_v_mags, n_visible_v_mags};
         let border_values = counter.calc_v_mag_border_values().unwrap();
 
-        assert_eq!(border_values[0].to_owned(), 3.0);
-        assert_eq!(border_values[1].to_owned(), 4.0);
+        assert_eq!(border_values[0].to_owned().get_value(), 3.0);
+        assert_eq!(border_values[1].to_owned().get_value(), 4.0);
     }
 
     #[test]
@@ -112,12 +112,12 @@ mod tests
     {
         let stars = 4;
         let n_visible = 2;
-        let visible_v_mags: Vec<f64> = vec![4.0, 2.0];
-        let n_visible_v_mags: Vec<f64> = vec![3.0, 5.0];
+        let visible_v_mags: Vec<WeightedValue> = vec![WeightedValue::new(4.0, 1.0), WeightedValue::new(3.0, 2.0)];
+        let n_visible_v_mags: Vec<WeightedValue> = vec![WeightedValue::new(3.0, 1.0), WeightedValue::new(5.0, 1.0)];
         let mut counter = StarCounter {stars, n_visible, visible_v_mags, n_visible_v_mags};
         let border_values = counter.calc_v_mag_border_values().unwrap();
 
-        assert_eq!(border_values[1].to_owned(), 3.0);
-        assert_eq!(border_values[0].to_owned(), 4.0);
+        assert_eq!(border_values[1].to_owned().get_value(), 3.0);
+        assert_eq!(border_values[0].to_owned().get_value(), 4.0);
     }
 }

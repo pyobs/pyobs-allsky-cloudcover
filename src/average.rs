@@ -61,7 +61,7 @@ mod tests
     #[test]
     fn test_calc_average()
     {
-        let values: Vec<&f64> = vec![&1.0, &3.0];
+        let values: Vec<f64> = vec![1.0, 3.0];
 
         let average_result = Average::calc(&values).unwrap();
 
