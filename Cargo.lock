@@ -9,6 +9,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1fdabc7756949593fe60f30ec81974b613357de856987752631dea1e3394c80"
 
 [[package]]
+name = "ball-tree"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de997ffdb01b0ff5078e22b60e482104ec391cfb9ecef9e4b3e08dc129628328"
+
+[[package]]
 name = "bitflags"
 version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -199,6 +205,7 @@ dependencies = [
 name = "pyobs-allsky-cloudcover"
 version = "0.1.0"
 dependencies = [
+ "ball-tree",
  "pyo3",
  "rayon",
 ]

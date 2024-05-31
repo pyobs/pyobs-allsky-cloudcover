@@ -10,4 +10,5 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = "0.20.0"
+ball-tree = "0.5.0"
 rayon = "1.10.0"
