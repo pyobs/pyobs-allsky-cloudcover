@@ -2,6 +2,13 @@ name: Tests
 on: push
 
 jobs:
+  cargo-test:
+    runs-on: rust:latest
+    steps:
+      - run: cargo build --verbose
+      - run: cargo test --verbose
+
+
   pytest:
     runs-on: ubuntu-latest
     timeout-minutes: 10
