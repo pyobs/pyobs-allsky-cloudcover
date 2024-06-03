@@ -1,5 +1,6 @@
 from astroplan import Observer
 
+from pyobs_cloudcover.pipeline.night.altaz_map_generator.altaz_map_generator_factory import AltAzMapGeneratorFactory
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_factory import CatalogConstructorFactory
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.cloud_info_calculator_factory import \
     CloudInfoCalculatorFactory
@@ -19,12 +20,14 @@ class NightPipelineFactory(object):
     def __call__(self, options: NightPipelineOptions) -> NightPipeline:
         preprocessor_factory = PreprocessorFactory(options.preprocessor_options)
         catalog_constructor_factory = CatalogConstructorFactory(options.catalog_options, self._model, self._observer)
+        altaz_map_generator_factory = AltAzMapGeneratorFactory(options.catalog_options, self._model)
         reverse_matcher_factory = StarReverseMatcherFactory(options.star_matcher_options)
         cloud_map_generator_factory = CloudMapGeneratorFactory(options.cloud_generator_options)
         coverage_info_calculator_factory = CloudInfoCalculatorFactory(options.coverage_info_options, self._model)
 
         preprocessor = preprocessor_factory()
         catalog_constructor = catalog_constructor_factory()
+        altaz_map_generator = altaz_map_generator_factory()
         star_reverse_matcher = reverse_matcher_factory()
         cloud_map_generator = cloud_map_generator_factory()
         coverage_info_calculator = coverage_info_calculator_factory()
@@ -32,6 +35,7 @@ class NightPipelineFactory(object):
         pipeline = NightPipeline(
             preprocessor,
             catalog_constructor,
+            altaz_map_generator,
             star_reverse_matcher,
             cloud_map_generator,
             coverage_info_calculator

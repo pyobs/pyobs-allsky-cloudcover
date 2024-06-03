@@ -130,6 +130,16 @@ mod tests
     }
 
     #[test]
+    fn test_distance_alt_eq()
+    {
+        let from = AltAzCoord::new(PI/2.0, 0.0);
+        let to1 = AltAzCoord::new(PI/4.0, 0.0);
+        let to2 = AltAzCoord::new(PI/4.0, PI);
+
+        assert!(from.distance(&to2) - from.distance(&to1) < 1e-10);
+    }
+
+    #[test]
     fn test_distance_az()
     {
         let from = AltAzCoord::new(0.0, 0.0);

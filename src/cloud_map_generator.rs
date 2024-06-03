@@ -9,17 +9,17 @@ use crate::star_counter::StarCounter;
 use crate::weighted_value::WeightedValue;
 
 #[pyclass]
-pub struct CloudMapGenerator
+pub struct MagnitudeMapGenerator
 {
     neighbours: Vec<Vec<Option<Vec<(usize, f64)>>>>,
     length: usize,
 }
 
 #[pymethods]
-impl CloudMapGenerator
+impl MagnitudeMapGenerator
 {
     #[new]
-    pub fn new(alt_az_coords: Vec<AltAzCoord>, image_alt_az_coords: Vec<Vec<Option<AltAzCoord>>>, distance: f64) -> CloudMapGenerator
+    pub fn new(alt_az_coords: Vec<AltAzCoord>, image_alt_az_coords: Vec<Vec<Option<AltAzCoord>>>, distance: f64) -> MagnitudeMapGenerator
     {
         let length = alt_az_coords.len();
         let indexes: Vec<usize> = (0..length).collect();
@@ -33,7 +33,7 @@ impl CloudMapGenerator
                 ).collect()
         ).collect();
 
-        CloudMapGenerator {neighbours, length}
+        MagnitudeMapGenerator {neighbours, length}
     }
 
     pub fn gen_cloud_map(&self, stars: Vec<Entry>) -> Vec<Vec<Option<Average>>>
@@ -87,4 +87,31 @@ fn calc_visibility(stars: &Vec<Entry>, neighbours: &Option<Vec<(usize, f64)>>) -
     }
 
     star_counter.calc_v_mag_border_value()
+}
+
+
+#[cfg(test)]
+mod tests
+{
+    use std::f64::consts::PI;
+    use super::*;
+
+
+    #[test]
+    fn test_gen_cloud_map()
+    {
+        let alt_az_list: Vec<Vec<Option<AltAzCoord>>> = vec![
+            vec![Some(AltAzCoord::new(PI/2.0, 0.0))]
+        ];
+
+        let alt_az_coords: Vec<AltAzCoord> = vec![AltAzCoord::new(PI/4.0, 0.0), AltAzCoord::new(PI/4.0, PI)];
+
+        let generator = MagnitudeMapGenerator::new(alt_az_coords, alt_az_list, PI/2.0);
+
+        let stars: Vec<Entry> = vec![Entry::new(1.0, false), Entry::new(0.0, true)];
+
+        let expected: Vec<Vec<Option<Average>>> = vec![vec![Average::calc_weighted(&vec![0.0, 1.0], &vec![1.0, 1.0])]];
+
+        assert_eq!(generator.gen_cloud_map(stars), expected);
+    }
 }

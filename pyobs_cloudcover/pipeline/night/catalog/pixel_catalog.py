@@ -10,15 +10,19 @@ from pyobs_cloudcover.world_model import WorldModel
 
 
 class PixelCatalog(object):
-    def __init__(self, sao: npt.NDArray[np.int_], px: npt.NDArray[np.float_], py: npt.NDArray[np.float_],
+    def __init__(self, sao: npt.NDArray[np.int_], alt: npt.NDArray[np.float_], az: npt.NDArray[np.float_], px: npt.NDArray[np.float_], py: npt.NDArray[np.float_],
                  v_mag: npt.NDArray[np.float_]) -> None:
         self.sao = sao
+        self.alt = alt
+        self.az = az
         self.px = px
         self.py = py
         self.v_mag = v_mag
 
     def _filter(self, condition: npt.NDArray[np.bool_]) -> None:
         self.sao = self.sao[condition]
+        self.alt = self.alt[condition]
+        self.az = self.az[condition]
         self.px = self.px[condition]
         self.py = self.py[condition]
         self.v_mag = self.v_mag[condition]
@@ -48,6 +52,7 @@ class PixelCatalog(object):
 
         return PixelCatalog(
             altaz_catalog.sao,
+            altaz_catalog.alt, altaz_catalog.az,
             cast(npt.NDArray[np.float_], px), cast(npt.NDArray[np.float_], py),
             altaz_catalog.v_mag
             )

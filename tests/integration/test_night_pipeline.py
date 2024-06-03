@@ -5,6 +5,7 @@ from astroplan import Observer
 
 import astropy.units as u
 
+from pyobs_cloudcover.pipeline.night.altaz_map_generator.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_calculator import CoverageCalculator
@@ -47,6 +48,8 @@ def test_night_pipeline() -> None:
     altaz_catalog_loader = AltAzCatalogLoader.from_csv("tests/integration/catalog.csv")
     catalog_constructor = CatalogConstructor(altaz_catalog_loader, model, observer, 0.0, 3.0, 0.0)
 
+    altaz_list_generator = AltAzMapGenerator(model, 0.0)
+
     reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0), ImageWindow(6.0))
 
     cloud_map_gem = CloudMapGenerator(50.0)
@@ -56,6 +59,6 @@ def test_night_pipeline() -> None:
     zenith_masker = ZenithMasker(80, model)
     cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator, zenith_masker)
 
-    pipeline = NightPipeline(preprocessor, catalog_constructor, reverse_matcher, cloud_map_gem, cloud_coverage_info_calculator)
+    pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher, cloud_map_gem, cloud_coverage_info_calculator)
 
     pipeline(image, obs_time)

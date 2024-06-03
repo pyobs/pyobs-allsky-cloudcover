@@ -1,6 +1,7 @@
 use pyo3::prelude::*;
 
 #[pyclass]
+#[derive(Debug)]
 pub struct Average
 {
     #[pyo3(get)]
@@ -30,16 +31,16 @@ impl Average
 
     pub fn calc_weighted(values: &Vec<f64>, weights: &Vec<f64>) -> Option<Average>
     {
-        let average = Self::calc(values)?;
 
         let norm: f64 = weights.iter().fold(0.0, |acc, x| acc + x);
 
         let sum: f64 = values.iter().zip(weights).fold(0.0, |acc, (x, w)| acc + x * w);
         let weighted_average: f64 = sum/norm;
 
-        let weighted_std: f64 = average.get_std() * weights.iter().fold(0.0, |acc, x| acc + x.powf(2.0)).sqrt();
+        let weighted_std: f64 = values.iter().zip(weights).map(|(x, w)| (weighted_average - x).powi(2)/w.powi(2)).sum();
+        let std: f64 = (weighted_std/((values.len() as f64 - 1.0) * weights.iter().map(|x| 1.0/x.powi(2)).sum::<f64>())).sqrt();
 
-        Some(Average {value: weighted_average, std: weighted_std})
+        Some(Average {value: weighted_average, std})
     }
 
     pub fn get_value(&self) -> f64
@@ -50,6 +51,13 @@ impl Average
     pub fn get_std(&self) -> f64
     {
         self.std
+    }
+}
+
+impl PartialEq for Average
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.value == other.value && self.std == other.std
     }
 }
 
