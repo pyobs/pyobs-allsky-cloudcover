@@ -3,8 +3,10 @@ on: push
 
 jobs:
   cargo-test:
-    runs-on: rust:latest
+    runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v3
+      - run: rustup update stable && rustup default stable
       - run: cargo build --verbose
       - run: cargo test --verbose
 
