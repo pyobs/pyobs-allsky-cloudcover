@@ -1,25 +1,19 @@
 from copy import copy
+from typing import List, Optional
 
 import numpy as np
 import numpy.typing as npt
-
-from pyobs_cloudcover.world_model import WorldModel
+from cloudmap_rs import AltAzCoord
 
 
 class ZenithMasker(object):
-    def __init__(self, altitude: float, model: WorldModel) -> None:
-        self._zenith = np.array(model.altaz_to_pix(0.0, 0))
-        offset = np.array(model.altaz_to_pix(np.deg2rad(altitude), 0.0))
+    def __init__(self, altitude: float) -> None:
+        self._altitude = altitude
 
-        self._radius = np.sqrt(np.sum(np.square(self._zenith - offset)))
+    def __call__(self, image: npt.NDArray[np.float_], alt_az_list: List[List[Optional[AltAzCoord]]]) -> npt.NDArray[np.float_]:
+        mask = [[entry.alt > self._altitude if entry is not None else False for entry in row] for row in alt_az_list]
 
-    def __call__(self, image: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
-        ny, nx = image.shape
-        x, y = np.arange(0, nx), np.arange(0, ny)
-        x_coordinates, y_coordinates = np.meshgrid(x, y)
-
-        circ_mask = (x_coordinates - self._zenith[0])**2 + (y_coordinates - self._zenith[1])**2 <= self._radius**2
         masked_image = copy(image)
-        masked_image[~circ_mask] = None
+        masked_image[mask] = None
 
         return masked_image

@@ -17,8 +17,8 @@ class CatalogConstructor(object):
         self._v_mag_limit = v_mag_limit
         self._distance_limit = distance_limit
 
-    def __call__(self, time: datetime.datetime, height: int, width: int) -> PixelCatalog:
-        altaz_catalog = self._catalog_loader(self._observer, time)
+    def __call__(self, obs_time: datetime.datetime, height: int, width: int) -> PixelCatalog:
+        altaz_catalog = self._catalog_loader(self._observer, obs_time)
         altaz_catalog.filter_alt(self._alt_limit)
         altaz_catalog.filter_v_mag(self._v_mag_limit)
 

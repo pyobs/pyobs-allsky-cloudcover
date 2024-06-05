@@ -16,19 +16,11 @@ class CloudMapGenerator(object):
 
         map_generator = MagnitudeMapGenerator(star_coords, alt_az_image_list, np.deg2rad(self._radius))
 
-        std_entries = [Entry(v_mag, True) for v_mag in catalog.v_mag]
-        av_std_vis_map = map_generator.gen_cloud_map(std_entries)
-        std_vis_map = self._convert_average_to_value(av_std_vis_map)
-
-        no_entries = [Entry(v_mag, False) for v_mag in catalog.v_mag]
-        av_no_vis_map = map_generator.gen_cloud_map(no_entries)
-        no_vis_map = self._convert_average_to_value(av_no_vis_map)
-
         match_entries = [Entry(v_mag, found) for v_mag, found in zip(catalog.v_mag, matches)]
         av_vis_map = map_generator.gen_cloud_map(match_entries)
         vis_map = self._convert_average_to_value(av_vis_map)
 
-        return (std_vis_map - vis_map) / (std_vis_map - no_vis_map)
+        return vis_map
 
     @staticmethod
     def _convert_average_to_value(average_map: List[List[Average]]) -> npt.NDArray[np.float_]:

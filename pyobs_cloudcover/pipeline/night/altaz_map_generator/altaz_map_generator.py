@@ -2,7 +2,6 @@ import functools
 from typing import List, Optional, Tuple
 
 import numpy as np
-import numpy.typing as npt
 from cloudmap_rs import AltAzCoord
 
 from pyobs_cloudcover.world_model import WorldModel

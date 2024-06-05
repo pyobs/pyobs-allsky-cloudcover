@@ -36,7 +36,16 @@ class NightPipeline(Pipeline):
         catalog = self._catalog_constructor(obs_time, img_height, img_width)
         matches = self._star_reverse_matcher(preprocessed_image, catalog)
 
+        '''
+        import matplotlib.pyplot as plt
+        from astropy.visualization import PercentileInterval
+        plt.imshow(PercentileInterval(99)(preprocessed_image), cmap="gray")
+        plt.scatter(catalog.px[matches], catalog.py[matches], alpha=0.2, c="green", s=6)
+        plt.scatter(catalog.px[~np.array(matches)], catalog.py[~np.array(matches)], alpha=0.2, c="red", s=6)
+        plt.show()
+        '''
+
         alt_az_list = self._alt_az_list_generator(img_height, img_width)
 
         cloud_map = self._cloud_map_generator(catalog, matches, alt_az_list)
-        return self._coverage_info_calculator(cloud_map, obs_time)
+        return self._coverage_info_calculator(cloud_map, obs_time, alt_az_list)
