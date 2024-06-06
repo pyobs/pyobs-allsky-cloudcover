@@ -12,10 +12,17 @@ class SigmaThresholdDetector(StarDetector):
 
     def __call__(self, image: npt.NDArray[np.float_]) -> bool:
         median = np.median(image)
-        average = np.average(image)
-        std = np.std(image)
 
         if median > self._median_limit:
             return False
 
-        return True in (image > average + self._sigma * std)
+        average = np.average(image)
+        std = np.std(image)
+
+        nx, ny = image.shape
+        center_x, center_y = (nx//2, ny//2)
+        x, y = np.arange(0, nx), np.arange(0, ny)
+        x_grid, y_grid = np.meshgrid(x, y)
+        circ_mask = (x_grid - center_x)**2 + (y_grid - center_y)**2 < self._distance**2
+
+        return True in (circ_mask.transpose() * image > average + self._sigma * std)

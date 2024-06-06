@@ -44,7 +44,7 @@ def test_call_map(observer, obs_time, model):
     executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))
     executor._model.altaz_to_pix = Mock(return_value=(1, 1))
 
-    executor.set_measurement(CloudCoverageInfo(np.identity(3), 0, 0, 0, obs_time))
+    executor.set_measurement(CloudCoverageInfo(np.identity(3), 0, 0, 0, 0, obs_time))
 
     assert executor(10, 10) == 1/3
     executor._radec_to_altaz.assert_called_once_with(10, 10, obs_time)
@@ -58,7 +58,7 @@ def test_call_map_out_of_bounds(observer, obs_time, model):
     executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))
     executor._model.altaz_to_pix = Mock(return_value=(5, 5))
 
-    executor.set_measurement(CloudCoverageInfo(np.identity(3), 0, 0, 0, obs_time))
+    executor.set_measurement(CloudCoverageInfo(np.identity(3), 0, 0, 0, 0, obs_time))
 
     assert executor(10, 10) is None
 
@@ -72,6 +72,6 @@ def test_call_map_nan(observer, obs_time, model):
 
     cloud_map = np.identity(3)
     cloud_map[0, 0] = np.nan
-    executor.set_measurement(CloudCoverageInfo(cloud_map, 0, 0, 0, obs_time))
+    executor.set_measurement(CloudCoverageInfo(cloud_map, 0, 0, 0, 0, obs_time))
 
     assert executor(10, 10) == 2/8

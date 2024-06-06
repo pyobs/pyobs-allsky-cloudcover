@@ -26,9 +26,9 @@ def test_zenith_mask() -> None:
     image = np.ones((3, 3))
 
     alt_az_list: List[List[Optional[AltAzCoord]]] = [
-        [AltAzCoord(70, 0), AltAzCoord(85, 0), AltAzCoord(70, 0)],
-        [AltAzCoord(85, 0), AltAzCoord(85, 0), AltAzCoord(85, 0)],
-        [AltAzCoord(70, 0), AltAzCoord(85, 0), AltAzCoord(70, 0)]
+        [AltAzCoord(np.deg2rad(70), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(70), 0)],
+        [AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(85), 0)],
+        [AltAzCoord(np.deg2rad(70), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(70), 0)],
     ]
 
     masked_image = masker(image, alt_az_list)
