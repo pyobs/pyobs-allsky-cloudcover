@@ -42,6 +42,8 @@ def test_night_pipeline() -> None:
         },
         "reverse_matcher": {
             "sigma_threshold": 3.0,
+            "distance": 3.0,
+            "median_limit": 9e3,
             "window_size": 6.0
         },
         "cloud_map": {

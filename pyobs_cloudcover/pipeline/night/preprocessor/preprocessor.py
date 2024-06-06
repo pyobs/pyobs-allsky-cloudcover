@@ -16,6 +16,6 @@ class Preprocessor(object):
         flipped_image = np.flip(image, axis=0)
         masked_image = self._masker(flipped_image)
         binned_image = self._binner(masked_image)
-        processed_image = self._background_remover(binned_image)
+        #processed_image = self._background_remover(binned_image)
 
         return binned_image

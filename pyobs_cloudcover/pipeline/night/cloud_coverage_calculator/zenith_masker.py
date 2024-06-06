@@ -11,7 +11,7 @@ class ZenithMasker(object):
         self._altitude = altitude
 
     def __call__(self, image: npt.NDArray[np.float_], alt_az_list: List[List[Optional[AltAzCoord]]]) -> npt.NDArray[np.float_]:
-        mask = [[entry.alt > self._altitude if entry is not None else False for entry in row] for row in alt_az_list]
+        mask = [[entry.alt < self._altitude if entry is not None else False for entry in row] for row in alt_az_list]
 
         masked_image = copy(image)
         masked_image[mask] = None

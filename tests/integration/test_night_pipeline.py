@@ -50,13 +50,13 @@ def test_night_pipeline() -> None:
 
     altaz_list_generator = AltAzMapGenerator(model, 0.0)
 
-    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0), ImageWindow(6.0))
+    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 8e3), ImageWindow(6.0))
 
     cloud_map_gem = CloudMapGenerator(50.0)
 
     coverage_calculator = CoverageCalculator(0.5)
     coverage_change_calculator = CoverageChangeCalculator()
-    zenith_masker = ZenithMasker(80, model)
+    zenith_masker = ZenithMasker(80)
     cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator, zenith_masker)
 
     pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher, cloud_map_gem, cloud_coverage_info_calculator)

@@ -1,6 +1,7 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, List, Optional
 
 import numpy as np
+from cloudmap_rs import AltAzCoord
 from numpy import typing as npt
 
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_masker import ZenithMasker
@@ -20,9 +21,15 @@ class MockWorldModel(WorldModel):
         return self._cords.pop(0)
 
 
-def test_zenith_mask():
-    masker = ZenithMasker(altitude=80, model=MockWorldModel())
+def test_zenith_mask() -> None:
+    masker = ZenithMasker(altitude=80)
     image = np.ones((3, 3))
 
-    masked_image = masker(image)
+    alt_az_list: List[List[Optional[AltAzCoord]]] = [
+        [AltAzCoord(70, 0), AltAzCoord(85, 0), AltAzCoord(70, 0)],
+        [AltAzCoord(85, 0), AltAzCoord(85, 0), AltAzCoord(85, 0)],
+        [AltAzCoord(70, 0), AltAzCoord(85, 0), AltAzCoord(70, 0)]
+    ]
+
+    masked_image = masker(image, alt_az_list)
     np.testing.assert_array_equal(masked_image, np.array([[None, 1, None], [1, 1, 1], [None, 1, None]]).astype(np.float_))

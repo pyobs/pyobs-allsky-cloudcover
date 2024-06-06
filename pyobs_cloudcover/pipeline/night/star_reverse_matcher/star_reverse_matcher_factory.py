@@ -10,7 +10,7 @@ class StarReverseMatcherFactory(object):
         self._options = options
 
     def __call__(self) -> StarReverseMatcher:
-        detector = SigmaThresholdDetector(self._options.sigma_threshold)
+        detector = SigmaThresholdDetector(self._options.sigma_threshold, self._options.distance, self._options.median_limit)
         window = ImageWindow(self._options.window_size)
         reverse_matcher = StarReverseMatcher(detector, window)
         return reverse_matcher

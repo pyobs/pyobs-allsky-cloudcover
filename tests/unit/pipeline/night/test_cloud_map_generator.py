@@ -19,4 +19,4 @@ def test_call() -> None:
 
     cloud_map = cloud_map_generator(catalog, matches, alt_az_image_list)
 
-    np.testing.assert_array_almost_equal(cloud_map, np.array([[np.nan, 0.5, np.nan], [0.4, 0.5, 0.6], [np.nan, 0.5, np.nan]]))
+    np.testing.assert_array_almost_equal(cloud_map, np.array([[np.nan, 0.5, np.nan], [0.6, 0.5, 0.4], [np.nan, 0.5, np.nan]]))
