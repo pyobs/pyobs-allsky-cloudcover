@@ -1,12 +1,11 @@
-import sys
 import datetime
+import sys
 
+import astropy.units as u
 import numpy as np
 from astroplan import Observer
-from astropy.visualization import PercentileInterval
-import astropy.units as u
-from pyobs.images import Image
 
+from data_loader.sun_alt_date_filter import SunAltDateFilter
 from pyobs_cloudcover.pipeline.night.altaz_map_generator.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
@@ -26,41 +25,42 @@ from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.sigma_treshho
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.window import ImageWindow
 from pyobs_cloudcover.world_model.wcs_model_loader import WCSModelLoader
+from scripts.data_loader.date_indexed import DateIndexedImageLoader
+from scripts.data_loader.image_iterator import ImageIterator
 
 
 def main() -> None:
-    import matplotlib.pyplot as plt
-
-    wcs_file, catalog_file, good_image_file, bad_image_file = sys.argv[1:]
-
-    good_image = Image.from_file(good_image_file)
-    good_obs_time = datetime.datetime.fromisoformat(good_image.header["DATE-OBS"])
-
-    pipeline = build_pipeline(wcs_file, catalog_file, good_image.data.shape)
-    good_coverage_info = pipeline(good_image.data, good_obs_time)
-
-    bad_image = Image.from_file(bad_image_file)
-    bad_obs_time = datetime.datetime.fromisoformat(bad_image.header["DATE-OBS"])
-    bad_coverage_info = pipeline(bad_image.data, bad_obs_time)
-
-    cutoff = 5.8
-
-    plt.figure(figsize=(20, 10))
-    plt.subplot(121)
-    plt.imshow(PercentileInterval(99)(ImageBinner(2)(good_image.data)), cmap="gray")
-    plt.imshow(good_coverage_info.cloud_cover_map, alpha=(good_coverage_info.cloud_cover_map < cutoff).astype(np.float_))
-    plt.colorbar()
-
-    plt.subplot(122)
-    plt.imshow(PercentileInterval(99)(ImageBinner(2)(bad_image.data)), cmap="gray")
-    plt.imshow(bad_coverage_info.cloud_cover_map, alpha=(bad_coverage_info.cloud_cover_map < cutoff).astype(np.float_))
-    plt.colorbar()
-
-    plt.show()
-
-def build_pipeline(wcs_file, catalog_file, image_shape) -> NightPipeline:
+    wcs_file, catalog_file, index_file, start, end, output = sys.argv[1:]
     observer = Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)
 
+    sun_alt_filter = SunAltDateFilter(observer)
+    loader = DateIndexedImageLoader(index_file)
+    loader.load()
+    dates, file_paths = loader(interval=(datetime.datetime(2024, 3, 4), datetime.datetime(2024, 3, 31)))
+
+    filtered_dates = sun_alt_filter(dates)
+    filtered_file_paths = file_paths[np.isin(dates, filtered_dates)]
+    image_loader = ImageIterator(filtered_file_paths)
+
+    pipeline = build_pipeline(wcs_file, catalog_file, observer, (2080, 3096))
+
+    coverage = []
+    zenith_coverage = []
+    zenith_average = []
+    dates = []
+    for image in image_loader:
+        obs_time = datetime.datetime.fromisoformat(image.header["DATE-OBS"])
+        coverage_info = pipeline(image.data, obs_time)
+
+        zenith_coverage.append(coverage_info.zenith_cover)
+        zenith_average.append(coverage_info.zenith_average)
+        coverage.append(coverage_info.total_cover)
+        dates.append(coverage_info.obs_time)
+
+    write_to_file(output, zenith_coverage, zenith_average, coverage, dates)
+
+
+def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeline:
     wcs_model_factory = WCSModelLoader(wcs_file)
     model = wcs_model_factory()
 
@@ -74,11 +74,11 @@ def build_pipeline(wcs_file, catalog_file, image_shape) -> NightPipeline:
 
     altaz_list_generator = AltAzMapGenerator(model, 30.0)
 
-    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 3.0, 8e3), ImageWindow(6.0))
+    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 7e3), ImageWindow(10.0))
 
     cloud_map_gem = CloudMapGenerator(7.0)
 
-    coverage_calculator = CoverageCalculator(0.5)
+    coverage_calculator = CoverageCalculator(5.5)
     coverage_change_calculator = CoverageChangeCalculator()
     zenith_masker = ZenithMasker(80)
     cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator,
@@ -88,6 +88,17 @@ def build_pipeline(wcs_file, catalog_file, image_shape) -> NightPipeline:
                              cloud_coverage_info_calculator)
 
     return pipeline
+
+
+def write_to_file(output_file: str, zenith_coverages, zenith_averages, coverages, dates) -> None:
+    lines = [
+        f"{date.isoformat()},{coverage},{zenith_coverage},{zenith_average}\n"
+        for coverage, zenith_coverage, zenith_average, date in zip(coverages, zenith_coverages, zenith_averages, dates)
+    ]
+
+    with open(output_file, 'w+') as file:
+        file.writelines(lines)
+
 
 if __name__ == '__main__':
     main()
