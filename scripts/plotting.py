@@ -36,7 +36,7 @@ def main() -> None:
     good_image = Image.from_file(good_image_file)
     good_obs_time = datetime.datetime.fromisoformat(good_image.header["DATE-OBS"])
 
-    pipeline = build_pipeline(wcs_file, catalog_file, good_image.data.shape)
+    pipeline, preprocessor = build_pipeline(wcs_file, catalog_file, good_image.data.shape)
 
     start = datetime.datetime.now()
     good_coverage_info = pipeline(good_image.data, good_obs_time)
@@ -50,22 +50,32 @@ def main() -> None:
 
     print(good_coverage_info.zenith_cover, bad_coverage_info.zenith_cover)
 
-    cutoff = 5.8
+    cutoff = 5.5
 
-    plt.figure(figsize=(20, 10))
-    plt.subplot(121)
-    plt.imshow(PercentileInterval(99)(ImageBinner(2)(good_image.data)), cmap="gray")
+    plt.figure(figsize=(20, 20))
+    plt.subplot(221)
+    plt.title(good_obs_time.isoformat())
+    plt.imshow(PercentileInterval(99)(preprocessor(good_image.data)), cmap="gray")
     plt.imshow(good_coverage_info.cloud_cover_map, alpha=(good_coverage_info.cloud_cover_map < cutoff).astype(np.float_))
     plt.colorbar()
 
-    plt.subplot(122)
-    plt.imshow(PercentileInterval(99)(ImageBinner(2)(bad_image.data)), cmap="gray")
+    plt.subplot(222)
+    plt.title(bad_obs_time.isoformat())
+    plt.imshow(PercentileInterval(99)(preprocessor(bad_image.data)), cmap="gray")
     plt.imshow(bad_coverage_info.cloud_cover_map, alpha=(bad_coverage_info.cloud_cover_map < cutoff).astype(np.float_))
     plt.colorbar()
 
+    plt.subplot(223)
+    plt.imshow(PercentileInterval(99)(preprocessor(good_image.data)), cmap="gray")
+
+
+    plt.subplot(224)
+    plt.imshow(PercentileInterval(99)(preprocessor(bad_image.data)), cmap="gray")
+
+
     plt.show()
 
-def build_pipeline(wcs_file, catalog_file, image_shape) -> NightPipeline:
+def build_pipeline(wcs_file, catalog_file, image_shape) -> (NightPipeline, Preprocessor):
     observer = Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)
 
     wcs_model_factory = WCSModelLoader(wcs_file)
@@ -81,7 +91,7 @@ def build_pipeline(wcs_file, catalog_file, image_shape) -> NightPipeline:
 
     altaz_list_generator = AltAzMapGenerator(model, 30.0)
 
-    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 7e3), ImageWindow(10.0))
+    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 7e5), ImageWindow(10.0))
 
     cloud_map_gem = CloudMapGenerator(7.0)
 
@@ -94,7 +104,7 @@ def build_pipeline(wcs_file, catalog_file, image_shape) -> NightPipeline:
     pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher, cloud_map_gem,
                              cloud_coverage_info_calculator)
 
-    return pipeline
+    return pipeline, preprocessor
 
 
 if __name__ == '__main__':

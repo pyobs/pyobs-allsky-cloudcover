@@ -23,8 +23,12 @@ class CoverageInfoCalculator:
         coverage = self._coverage_calculator(limiting_mag_map)
         change = self._coverage_change_calculator(limiting_mag_map)
 
+        average = float(np.mean(limiting_mag_map, where=~np.isnan(limiting_mag_map)))
+        std = float(np.std(limiting_mag_map, where=~np.isnan(limiting_mag_map)))
+
         zenith = self._zenith_masker(limiting_mag_map, alt_az_list)
         zenith_coverage = self._coverage_calculator(zenith)
         zenith_average = float(np.mean(zenith, where=~np.isnan(zenith)))
+        zenith_std = float(np.std(zenith, where=~np.isnan(zenith)))
 
-        return CloudCoverageInfo(copy(limiting_mag_map), coverage, zenith_coverage, zenith_average, change, obs_time)
+        return CloudCoverageInfo(copy(limiting_mag_map), coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, obs_time)
