@@ -14,7 +14,7 @@ def test_call():
     influxdb_client.client.write_api.WriteApi.write = Mock()
 
     obs_time = datetime.datetime(2020, 1, 1, 0, 0, 0)
-    measurement = CloudCoverageInfo(np.array([]), 0, 1, 2, 2.0, obs_time)
+    measurement = CloudCoverageInfo(np.array([]), 0, 1, 2, 1.0, 1, 2, 0.1, obs_time)
 
     measurement_log = Influx("", "bucket", "org", "token")
 
@@ -30,5 +30,5 @@ def test_call():
     assert data._time == obs_time
     assert data._fields["total-cover"] == 0
     assert data._fields["zenith-cover"] == 1
-    assert data._fields["change"] == 2
+    assert data._fields["change"] == 0.1
 

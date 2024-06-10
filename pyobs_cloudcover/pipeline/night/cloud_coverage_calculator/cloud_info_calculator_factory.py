@@ -15,7 +15,7 @@ class CloudInfoCalculatorFactory(object):
 
     def __call__(self) -> CoverageInfoCalculator:
         coverage_calculator = CoverageCalculator(self._options.cloud_threshold)
-        coverage_change_calculator = CoverageChangeCalculator()
+        coverage_change_calculator = CoverageChangeCalculator(self._options.cloud_threshold)
         zenith_masker = ZenithMasker(self._options.altitude_limit)
         cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator,
                                                                 zenith_masker)

@@ -6,15 +6,15 @@ from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_change_c
 
 def test_fist():
     cloud_map = np.ones((2, 2))
-    calculator = CoverageChangeCalculator()
+    calculator = CoverageChangeCalculator(threshold=0.5)
     assert calculator(cloud_map) is None
 
 
 def test_call():
-    calculator = CoverageChangeCalculator()
-    calculator._last_map = np.array([2, 2, 2])
+    calculator = CoverageChangeCalculator(threshold=0.5)
+    calculator._last_map = np.identity(2)
 
     cloud_map = np.ones((2, 2))
-    cloud_map[0, 0] = None
+    cloud_map[0, 0] = np.nan
 
-    assert calculator(cloud_map) == 1.0
+    assert calculator(cloud_map) == 2/3

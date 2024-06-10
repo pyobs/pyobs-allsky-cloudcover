@@ -55,7 +55,7 @@ def test_night_pipeline() -> None:
     cloud_map_gem = CloudMapGenerator(50.0)
 
     coverage_calculator = CoverageCalculator(0.5)
-    coverage_change_calculator = CoverageChangeCalculator()
+    coverage_change_calculator = CoverageChangeCalculator(0.5)
     zenith_masker = ZenithMasker(80)
     cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator, zenith_masker)
 

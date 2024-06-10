@@ -19,15 +19,16 @@ class CoverageInfoCalculator:
         self._coverage_change_calculator = coverage_change_calculator
         self._zenith_masker = zenith_masker
 
-    def __call__(self, cloud_map: npt.NDArray[np.float_], obs_time: datetime.datetime, alt_az_list: List[List[Optional[AltAzCoord]]]) -> CloudCoverageInfo:
-        change = self._coverage_change_calculator(cloud_map)
-        coverage = self._coverage_calculator(cloud_map)
-        average = float(np.mean(cloud_map, where=~np.isnan(cloud_map)))
-        std = float(np.std(cloud_map, where=~np.isnan(cloud_map)))
+    def __call__(self, limiting_mag_map: npt.NDArray[np.float_], obs_time: datetime.datetime, alt_az_list: List[List[Optional[AltAzCoord]]]) -> CloudCoverageInfo:
+        coverage = self._coverage_calculator(limiting_mag_map)
+        change = self._coverage_change_calculator(limiting_mag_map)
 
-        zenith = self._zenith_masker(cloud_map, alt_az_list)
+        average = float(np.mean(limiting_mag_map, where=~np.isnan(limiting_mag_map)))
+        std = float(np.std(limiting_mag_map, where=~np.isnan(limiting_mag_map)))
+
+        zenith = self._zenith_masker(limiting_mag_map, alt_az_list)
         zenith_coverage = self._coverage_calculator(zenith)
         zenith_average = float(np.mean(zenith, where=~np.isnan(zenith)))
         zenith_std = float(np.std(zenith, where=~np.isnan(zenith)))
 
-        return CloudCoverageInfo(copy(cloud_map), coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, obs_time)
+        return CloudCoverageInfo(copy(limiting_mag_map), coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, obs_time)
