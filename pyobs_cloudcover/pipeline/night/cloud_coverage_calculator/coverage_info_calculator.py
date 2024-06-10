@@ -22,9 +22,12 @@ class CoverageInfoCalculator:
     def __call__(self, cloud_map: npt.NDArray[np.float_], obs_time: datetime.datetime, alt_az_list: List[List[Optional[AltAzCoord]]]) -> CloudCoverageInfo:
         change = self._coverage_change_calculator(cloud_map)
         coverage = self._coverage_calculator(cloud_map)
+        average = float(np.mean(cloud_map, where=~np.isnan(cloud_map)))
+        std = float(np.std(cloud_map, where=~np.isnan(cloud_map)))
 
         zenith = self._zenith_masker(cloud_map, alt_az_list)
         zenith_coverage = self._coverage_calculator(zenith)
         zenith_average = float(np.mean(zenith, where=~np.isnan(zenith)))
+        zenith_std = float(np.std(zenith, where=~np.isnan(zenith)))
 
-        return CloudCoverageInfo(copy(cloud_map), coverage, zenith_coverage, zenith_average, change, obs_time)
+        return CloudCoverageInfo(copy(cloud_map), coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, obs_time)

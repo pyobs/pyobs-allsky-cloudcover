@@ -36,7 +36,7 @@ def main() -> None:
     sun_alt_filter = SunAltDateFilter(observer)
     loader = DateIndexedImageLoader(index_file)
     loader.load()
-    dates, file_paths = loader(interval=(datetime.datetime(2024, 3, 4), datetime.datetime(2024, 3, 31)))
+    dates, file_paths = loader(interval=(datetime.datetime(2024, 4, 1), datetime.datetime(2024, 4, 30)))
 
     filtered_dates = sun_alt_filter(dates)
     filtered_file_paths = file_paths[np.isin(dates, filtered_dates)]
@@ -45,19 +45,25 @@ def main() -> None:
     pipeline = build_pipeline(wcs_file, catalog_file, observer, (2080, 3096))
 
     coverage = []
+    average = []
+    std = []
     zenith_coverage = []
     zenith_average = []
+    zenith_std = []
     dates = []
     for image in image_loader:
         obs_time = datetime.datetime.fromisoformat(image.header["DATE-OBS"])
         coverage_info = pipeline(image.data, obs_time)
 
+        coverage.append(coverage_info.total_cover)
+        average.append(coverage_info.average)
+        std.append(coverage_info.std)
         zenith_coverage.append(coverage_info.zenith_cover)
         zenith_average.append(coverage_info.zenith_average)
-        coverage.append(coverage_info.total_cover)
+        zenith_std.append(coverage_info.zenith_std)
         dates.append(coverage_info.obs_time)
 
-    write_to_file(output, zenith_coverage, zenith_average, coverage, dates)
+    write_to_file(output, coverage, average, std, zenith_coverage, zenith_average, zenith_std, dates)
 
 
 def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeline:
@@ -90,10 +96,11 @@ def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeli
     return pipeline
 
 
-def write_to_file(output_file: str, zenith_coverages, zenith_averages, coverages, dates) -> None:
+def write_to_file(output_file: str, coverages, averages, stds, zenith_coverages, zenith_averages, zenith_stds, dates) -> None:
     lines = [
-        f"{date.isoformat()},{coverage},{zenith_coverage},{zenith_average}\n"
-        for coverage, zenith_coverage, zenith_average, date in zip(coverages, zenith_coverages, zenith_averages, dates)
+        f"{date.isoformat()},{coverage},{average},{std},{zenith_coverage},{zenith_average},{zenith_std}\n"
+        for coverage, average, std, zenith_coverage, zenith_average, zenith_std, date in
+        zip(coverages, averages, stds, zenith_coverages, zenith_averages, zenith_stds, dates)
     ]
 
     with open(output_file, 'w+') as file:
