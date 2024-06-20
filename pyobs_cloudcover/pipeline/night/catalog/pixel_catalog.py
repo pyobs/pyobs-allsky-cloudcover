@@ -93,3 +93,17 @@ class PixelCatalog(object):
             cast(npt.NDArray[np.float_], px), cast(npt.NDArray[np.float_], py),
             altaz_catalog.v_mag
             )
+
+    @classmethod
+    def default(cls) -> PixelCatalog:
+        return PixelCatalog(np.array([]), np.array([]), np.array([]), np.array([]), np.array([]), np.array([]))
+
+    def __add__(self, other: PixelCatalog) -> PixelCatalog:
+        return PixelCatalog(
+            np.concatenate([self.sao, other.sao]),
+            np.concatenate([self.alt, other.alt]),
+            np.concatenate([self.az, other.az]),
+            np.concatenate([self.px, other.px]),
+            np.concatenate([self.py, other.py]),
+            np.concatenate([self.v_mag, other.v_mag]),
+        )

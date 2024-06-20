@@ -71,7 +71,8 @@ def main() -> None:
 
     plt.subplot(224)
     plt.imshow(PercentileInterval(99)(preprocessor(bad_image.data)), cmap="gray")
-
+    plt.imshow(good_coverage_info.cloud_cover_map,
+               alpha=np.logical_xor((good_coverage_info.cloud_cover_map < cutoff), (bad_coverage_info.cloud_cover_map < cutoff)).astype(np.float_))
 
     plt.show()
 
@@ -96,7 +97,7 @@ def build_pipeline(wcs_file, catalog_file, image_shape) -> (NightPipeline, Prepr
     cloud_map_gem = CloudMapGenerator(7.0)
 
     coverage_calculator = CoverageCalculator(5.5)
-    coverage_change_calculator = CoverageChangeCalculator()
+    coverage_change_calculator = CoverageChangeCalculator(5.5)
     zenith_masker = ZenithMasker(80)
     cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator,
                                                             zenith_masker)

@@ -36,7 +36,8 @@ def main() -> None:
     sun_alt_filter = SunAltDateFilter(observer)
     loader = DateIndexedImageLoader(index_file)
     loader.load()
-    dates, file_paths = loader(interval=(datetime.datetime(2024, 4, 1), datetime.datetime(2024, 4, 30)))
+
+    dates, file_paths = loader(interval=(parse_datetime(start), parse_datetime(end)))
 
     filtered_dates = sun_alt_filter(dates)
     filtered_file_paths = file_paths[np.isin(dates, filtered_dates)]
@@ -50,9 +51,11 @@ def main() -> None:
     zenith_coverage = []
     zenith_average = []
     zenith_std = []
+    change = []
     dates = []
     for image in image_loader:
         obs_time = datetime.datetime.fromisoformat(image.header["DATE-OBS"])
+        print(obs_time)
         coverage_info = pipeline(image.data, obs_time)
 
         coverage.append(coverage_info.total_cover)
@@ -61,9 +64,10 @@ def main() -> None:
         zenith_coverage.append(coverage_info.zenith_cover)
         zenith_average.append(coverage_info.zenith_average)
         zenith_std.append(coverage_info.zenith_std)
+        change.append(coverage_info.change)
         dates.append(coverage_info.obs_time)
 
-    write_to_file(output, coverage, average, std, zenith_coverage, zenith_average, zenith_std, dates)
+    write_to_file(output, coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, dates)
 
 
 def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeline:
@@ -85,7 +89,7 @@ def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeli
     cloud_map_gem = CloudMapGenerator(7.0)
 
     coverage_calculator = CoverageCalculator(5.5)
-    coverage_change_calculator = CoverageChangeCalculator()
+    coverage_change_calculator = CoverageChangeCalculator(5.5)
     zenith_masker = ZenithMasker(80)
     cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator,
                                                             zenith_masker)
@@ -96,11 +100,16 @@ def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeli
     return pipeline
 
 
-def write_to_file(output_file: str, coverages, averages, stds, zenith_coverages, zenith_averages, zenith_stds, dates) -> None:
+def parse_datetime(datetime_str: str) -> datetime.datetime:
+    date = datetime.datetime.fromisoformat(datetime_str)
+    date = date.replace(tzinfo=None)
+    return date
+
+def write_to_file(output_file: str, coverages, averages, stds, zenith_coverages, zenith_averages, zenith_stds, changes, dates) -> None:
     lines = [
-        f"{date.isoformat()},{coverage},{average},{std},{zenith_coverage},{zenith_average},{zenith_std}\n"
-        for coverage, average, std, zenith_coverage, zenith_average, zenith_std, date in
-        zip(coverages, averages, stds, zenith_coverages, zenith_averages, zenith_stds, dates)
+        f"{date.isoformat()},{coverage},{average},{std},{zenith_coverage},{zenith_average},{zenith_std},{change}\n"
+        for coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, date in
+        zip(coverages, averages, stds, zenith_coverages, zenith_averages, zenith_stds, changes, dates)
     ]
 
     with open(output_file, 'w+') as file:
