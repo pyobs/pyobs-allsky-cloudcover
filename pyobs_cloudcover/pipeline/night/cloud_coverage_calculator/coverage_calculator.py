@@ -10,6 +10,6 @@ class CoverageCalculator(object):
         cloud_map_values = cloud_map[~np.isnan(cloud_map)]
 
         clouds = np.sum((cloud_map_values <= self._threshold).astype(np.uint8))
-        free_space = np.sum((cloud_map_values >= 0.0).astype(np.uint8))
+        free_space = cloud_map_values.size
 
         return float(clouds / free_space)
