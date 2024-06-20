@@ -27,23 +27,18 @@ def test_call() -> None:
 def test_get_integrated_frame() -> None:
     cloud_map_generator = CloudMapGenerator(20, 2)
 
-    sao = np.array([0])
-    alt = np.array([0])
-    az = np.array([0])
-    px = np.array([0])
-    py = np.array([0])
-    v_mag = np.array([0])
+    sao = np.array([0, 1])
+    alt = np.array([0] * 2)
+    az = np.array([0] * 2)
+    px = np.array([0] * 2)
+    py = np.array([0] * 2)
+    v_mag = np.array([0] * 2)
 
-    cloud_map_generator._update_integration_frame(PixelCatalog(sao, alt, az, px, py, v_mag), [True])
-    cloud_map_generator._update_integration_frame(PixelCatalog(sao, alt, az, px, py, v_mag), [False])
     cloud_map_generator._update_integration_frame(PixelCatalog.default(), [])
+    cloud_map_generator._update_integration_frame(PixelCatalog(sao, alt, az, px, py, v_mag), [True, True])
+    cloud_map_generator._update_integration_frame(PixelCatalog(sao, alt, az, px, py, v_mag), [False, True])
 
-    integrated_catalog, integrated_matches = cloud_map_generator._get_integrated_frame()
-    np.testing.assert_array_equal(integrated_catalog.sao, sao)
-    np.testing.assert_array_equal(integrated_catalog.alt, alt)
-    np.testing.assert_array_equal(integrated_catalog.az, az)
-    np.testing.assert_array_equal(integrated_catalog.px, px)
-    np.testing.assert_array_equal(integrated_catalog.py, py)
-    np.testing.assert_array_equal(integrated_catalog.v_mag, v_mag)
 
-    np.testing.assert_array_equal(integrated_matches, [False])
+    integrated_matches = cloud_map_generator._get_integrated_frame()
+
+    np.testing.assert_array_equal(integrated_matches, [False, True])
