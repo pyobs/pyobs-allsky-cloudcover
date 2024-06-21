@@ -23,6 +23,6 @@ class CoverageChangeCalculator(object):
         changed_pixels = np.logical_xor(clouds, last_clouds)
         change = np.sum(changed_pixels)/pixel_count
 
-        self._last_clouds = limiting_mag_map
+        self._last_map = limiting_mag_map
 
         return float(change)
