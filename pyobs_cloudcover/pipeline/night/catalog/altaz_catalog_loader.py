@@ -29,6 +29,6 @@ class AltAzCatalogLoader(object):
 
     @classmethod
     def from_csv(cls, file: str) -> AltAzCatalogLoader:
-        catalog_file = np.loadtxt(file, skiprows=1, delimiter=";")
+        catalog_file = np.loadtxt(file, skiprows=1, delimiter=";", comments=["#"])
 
         return cls(catalog_file[:, 1].astype(np.int_), catalog_file[:, 2], catalog_file[:, 3], catalog_file[:, 4])

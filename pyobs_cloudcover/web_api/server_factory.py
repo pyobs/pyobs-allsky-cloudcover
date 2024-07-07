@@ -10,7 +10,7 @@ from pyobs_cloudcover.world_model import WorldModel
 
 class ServerFactory(object):
     def __init__(self, observer: Observer, model: WorldModel) -> None:
-        window = ImageWindow(10)
+        window = ImageWindow(3)
         self._executor = CoverageQueryExecutor(model, observer, window)
 
     def __call__(self, config: Dict[str, Any]) -> Server:
