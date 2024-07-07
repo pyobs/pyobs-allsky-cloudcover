@@ -45,8 +45,9 @@ pipelines:
         window_size: 6.0
 
       cloud_map:
-        radius: 50.0
+        radius: 7.0
+        integration_length: 1
 
       coverage_info:
-        cloud_threshold: 0.5
+        cloud_threshold: 5.5
         zenith_radius: 20

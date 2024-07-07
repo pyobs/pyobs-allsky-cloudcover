@@ -53,6 +53,7 @@ modules:
 
           cloud_map:
             radius: 7.0
+            integration_length: 1
 
           coverage_info:
             cloud_threshold: 5.5

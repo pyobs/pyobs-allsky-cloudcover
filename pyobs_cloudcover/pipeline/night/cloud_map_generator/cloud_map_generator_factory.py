@@ -7,4 +7,4 @@ class CloudMapGeneratorFactory(object):
         self._options = options
 
     def __call__(self) -> CloudMapGenerator:
-        return CloudMapGenerator(self._options.radius)
+        return CloudMapGenerator(self._options.radius, self._options.integration_length)
