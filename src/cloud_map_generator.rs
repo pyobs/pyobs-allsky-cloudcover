@@ -76,7 +76,7 @@ fn calc_visibility(stars: &Vec<Entry>, neighbours: &Option<Vec<(usize, f64)>>) -
 
             let entry = &stars[*index];
 
-            let weighted_vmag = WeightedValue::new(entry.get_v_mag(), (-distance * PI/(7.0 * 180.0))); //*distance
+            let weighted_vmag = WeightedValue::new(entry.get_v_mag(), (-distance * PI/(7.0 * 180.0)).exp()); //*distance
             if entry.get_found()
             {
                 star_counter.add_visible_v_mag(weighted_vmag)

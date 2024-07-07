@@ -23,7 +23,7 @@ measurement_log:
 pipelines:
   night:
     alt_interval:
-      start: None
+      start:
       end: -18
 
     options:

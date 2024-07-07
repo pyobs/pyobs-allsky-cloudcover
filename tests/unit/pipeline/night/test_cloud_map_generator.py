@@ -6,7 +6,7 @@ from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator imp
 
 
 def test_call() -> None:
-    cloud_map_generator = CloudMapGenerator(20)
+    cloud_map_generator = CloudMapGenerator(10)
 
     catalog = PixelCatalog(sao=np.array([0, 1]), alt=np.array([85, 85]), az=np.array([0.0, 180]), px=np.array([1, 1]),
                            py=np.array([1, 1]), v_mag=np.array([0, 1]))
@@ -21,7 +21,7 @@ def test_call() -> None:
     cloud_map = cloud_map_generator(catalog, matches, alt_az_image_list)
 
     np.testing.assert_array_almost_equal(cloud_map,
-                                         np.array([[np.nan, 0.5, np.nan], [0.6, 0.5, 0.4], [np.nan, 0.5, np.nan]]))
+                                         np.array([[np.nan, 0.5, np.nan], [0.5, 0.5, 0.5], [np.nan, 0.5, np.nan]]), 2)
 
 
 def test_get_integrated_frame() -> None:

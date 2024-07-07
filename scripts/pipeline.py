@@ -86,7 +86,7 @@ def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeli
 
     reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 7e3), ImageWindow(10.0))
 
-    cloud_map_gem = CloudMapGenerator(7.0)
+    cloud_map_gem = CloudMapGenerator(7.0, integration_length=3)
 
     coverage_calculator = CoverageCalculator(5.5)
     coverage_change_calculator = CoverageChangeCalculator(5.5)

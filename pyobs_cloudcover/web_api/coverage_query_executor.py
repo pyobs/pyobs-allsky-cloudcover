@@ -38,17 +38,17 @@ class CoverageQueryExecutor(object):
 
         alt, az = self._radec_to_altaz(ra, dec, obs_time)
         px, py = self._model.altaz_to_pix(alt, az)
-        cloud_area = self._window(cast(float, px), cast(float, py))
+        map_area = self._window(cast(float, px), cast(float, py))
 
-        average_cover = np.average(cloud_area[~np.isnan(cloud_area)])
+        average_lim_magnitude = np.average(map_area[~np.isnan(map_area)])
 
-        if np.isnan(average_cover):
+        if np.isnan(average_lim_magnitude):
             return None
         else:
-            return float(average_cover)
+            return float(average_lim_magnitude)
 
     def _radec_to_altaz(self, ra: float, dec: float, obs_time: datetime.datetime) -> Tuple[float, float]:
-        coord = SkyCoord(ra, dec, unit='deg', frame="ircs", location=self._observer.location, obstime=obs_time)
+        coord = SkyCoord(ra, dec, unit='deg', frame="icrs", location=self._observer.location, obstime=obs_time)
         coord = coord.altaz
 
         return coord.alt.rad, coord.az.rad

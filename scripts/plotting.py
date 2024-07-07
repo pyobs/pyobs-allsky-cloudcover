@@ -92,7 +92,7 @@ def build_pipeline(wcs_file, catalog_file, image_shape) -> (NightPipeline, Prepr
 
     altaz_list_generator = AltAzMapGenerator(model, 30.0)
 
-    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 7e5), ImageWindow(10.0))
+    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(4.0, 4.0, 7e5), ImageWindow(10.0))
 
     cloud_map_gem = CloudMapGenerator(7.0)
 
