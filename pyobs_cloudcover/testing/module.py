@@ -91,6 +91,6 @@ class TestModule(Module):
             async with session.get(f"http://{url}:{port}/query?ra=0.0&dec=90.0") as resp:
                 data = await resp.json()
 
-        np.testing.assert_almost_equal(data["value"], 6.0, 1)
+        np.testing.assert_almost_equal(data["value"], 6.2, 1)
 
         log.info("SERVER TEST SUCCESS!")

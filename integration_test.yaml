@@ -13,12 +13,8 @@ modules:
     image_sender: "tester"
 
     model:
-      class: pyobs_cloudcover.world_model.SimpleModel
-      a0: 4.81426598e-03
-      F: 2.00000000e+00
-      R: 1.06352627e+03
-      c_x: 7.57115607e+02
-      c_y: 5.11194838e+02
+      class: pyobs_cloudcover.world_model.WCSModel
+      file_path: "data/test_wcs.fits"
 
     server:
       url: "localhost"

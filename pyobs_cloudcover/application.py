@@ -4,12 +4,12 @@ from typing import Dict, Any
 
 from pyobs.events import NewImageEvent, Event
 from pyobs.modules import Module
-from pyobs.object import get_object
 
 from pyobs_cloudcover.measurement_log.influx import Influx
 from pyobs_cloudcover.pipeline.pipeline_controller_factory import PipelineControllerFactory
 from pyobs_cloudcover.web_api.server_factory import ServerFactory
 from pyobs_cloudcover.world_model import WorldModel
+from pyobs_cloudcover.world_model.world_model_factory import WorldModelFactory
 
 log = logging.getLogger(__name__)
 
@@ -26,7 +26,8 @@ class Application(Module):
 
         self._image_sender = image_sender
 
-        world_model: WorldModel = get_object(model, WorldModel)
+        world_model_factory = WorldModelFactory(self.observer)
+        world_model: WorldModel = world_model_factory(model)
 
         server_factory = ServerFactory(self.observer, world_model)
         self._server = server_factory(server)

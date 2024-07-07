@@ -1,3 +1,5 @@
+from typing import cast
+
 from pyobs_cloudcover.pipeline.night.preprocessor.background_remover import BackgroundRemover
 from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
@@ -11,7 +13,7 @@ class PreprocessorFactory(object):
 
     def __call__(self) -> Preprocessor:
         if self._options.mask_file_path == "":
-            mask = lambda x: x
+            mask = cast(ImageMasker, lambda x: x)
         else:
             mask = ImageMasker.from_npy_file(self._options.mask_file_path)
 
