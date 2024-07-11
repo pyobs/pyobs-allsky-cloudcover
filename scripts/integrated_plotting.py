@@ -17,7 +17,7 @@ from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_info_cal
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_masker import ZenithMasker
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
-from pyobs_cloudcover.pipeline.night.preprocessor.background_remover import BackgroundRemover
+
 from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
@@ -67,8 +67,7 @@ def build_pipeline(wcs_file, catalog_file, image_shape, integration_size) -> (Ni
 
     mask = ImageMasker(np.ones(image_shape).astype(np.bool_))
     binner = ImageBinner(2)
-    background_remover = BackgroundRemover(3.0, (5, 5))
-    preprocessor = Preprocessor(mask, binner, background_remover)
+    preprocessor = Preprocessor(mask, binner)
 
     altaz_catalog_loader = AltAzCatalogLoader.from_csv(catalog_file)
     catalog_constructor = CatalogConstructor(altaz_catalog_loader, model, observer, 30.0, 7.0, 4.0)

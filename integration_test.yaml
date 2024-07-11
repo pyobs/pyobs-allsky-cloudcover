@@ -37,8 +37,6 @@ modules:
           preprocessor:
             mask_filepath: ""
             bin_size: 2
-            bkg_sigma_clip: 3.0
-            bkg_box_size: (5, 5)
 
           catalog:
             filepath: "data/catalog_v50.csv"

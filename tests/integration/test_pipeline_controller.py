@@ -33,9 +33,7 @@ def test_night_pipeline() -> None:
                     {
                         "preprocessor": {
                             "mask_filepath": "tests/integration/mask.npy",
-                            "bin_size": 2,
-                            "bkg_sigma_clip": 3.0,
-                            "bkg_box_size": (5, 5),
+                            "bin_size": 2
                         },
                         "catalog": {
                             "filepath": "tests/integration/catalog.csv",
