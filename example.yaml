@@ -1,7 +1,17 @@
 class: pyobs_cloudcover.application.Application
 
+# Camera which images are used for cloud detection
 image_sender: "allskycam"
 
+# Astronomical solution
+# Possible models:
+#   Simple Model
+#     class: pyobs_cloudcover.world_model.SimpleModel
+#     parameters: (a0, F, R, c_x, c_y) see https://ui.adsabs.harvard.edu/abs/2019A&A...626A.105B
+#   WCS Model
+#     class: pyobs_cloudcover.world_model.WCSModel
+#     parameters:
+#       file_path: Path to FITS file containing WCS
 model:
   class: pyobs_cloudcover.world_model.SimpleModel
   a0: 4.81426598e-03
@@ -10,44 +20,66 @@ model:
   c_x: 7.57115607e+02
   c_y: 5.11194838e+02
 
+# Web Service
 server:
+  # Host Name
   url: "localhost"
+  # Port
   port: 8080
 
+# Influx DB
 measurement_log:
   url: ""
   bucket: ""
   org: ""
   token: ""
 
+# Different image analysis pipelines can be used for different solar altitude intervals
+# Currently only the "night" pipeline is available, which works best after the astronomical dawn
 pipelines:
   night:
+    # Solar altitude interval (in degree), in which this pipeline should be used
     alt_interval:
       start:
       end: -18
 
     options:
       preprocessor:
+        # Filepath to the image mask
         mask_filepath: "tests/integration/mask.npy"
+        # Which image binning should be applied
         bin_size: 2
-        bkg_sigma_clip: 3.0
-        bkg_box_size: (5, 5)
 
       catalog:
-        filepath: "tests/integration/catalog.csv"
+        # Filepath to the star catalog
+        filepath: "data/catalog_v50.csv"
         filter:
+          # Lower altitude boundary (in degree)
           alt: 30.0
+          # Upper magnitude boundary (in mag)
           v_mag: 7.0
+          # Minimum allowed distance between stars (in px after binning)
           distance: 0.0
 
+      # Determines the visibility of a star
       reverse_matcher:
+        # How many standard deviations a signal has to be over the average brightness to count as a star detection
         sigma_threshold: 3.0
+        # Maximum allowed distance between a signal and the calculated position of the star (in px)
+        distance: 4.0
+        # Maximum allowed median brightness of the window
+        median_limit: 8e3
+        # Rectangle around the calculated star position with 2 * window_size + 1 length, in which the star searched for (in px)
         window_size: 6.0
 
       cloud_map:
+        # Radius in which to use stars for estimating the limiting magnitude (in degree)
         radius: 7.0
+        # Number of consecutive images in which a star has to be visible to be considered visible for the limiting magnitude estimation
         integration_length: 1
 
       coverage_info:
+        # Under which limiting magnitude a pixel is considered cloudy (in mag)
         cloud_threshold: 5.5
+        # Radius around the zenith to average for the zenith cloud fraction measurement (in degree)
         zenith_radius: 20
