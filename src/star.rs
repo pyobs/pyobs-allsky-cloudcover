@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 #[pyclass]
 #[pyo3(text_signature = "(sao, px, py, found, /)")]
 #[derive(Clone)]
-pub struct Entry
+pub struct Star
 {
     #[pyo3(get, set)]
     v_mag: f64,
@@ -12,15 +12,15 @@ pub struct Entry
 
 }
 #[pymethods]
-impl Entry
+impl Star
 {
     #[new]
     pub fn new(v_mag: f64, found: bool) -> Self {
-        Entry {v_mag, found }
+        Star {v_mag, found }
     }
 }
 
-impl Entry
+impl Star
 {
     pub fn get_v_mag(&self) -> f64
     {

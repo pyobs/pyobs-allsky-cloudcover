@@ -1,4 +1,4 @@
-mod entry;
+mod star;
 mod star_counter;
 mod average;
 mod weighted_value;
@@ -11,13 +11,13 @@ use crate::alt_az_coord::AltAzCoord;
 use crate::average::Average;
 use crate::cloud_map_generator::MagnitudeMapGenerator;
 
-use crate::entry::Entry;
+use crate::star::Star;
 
 
 
 #[pymodule]
 fn cloudmap_rs(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
-    m.add_class::<Entry>()?;
+    m.add_class::<Star>()?;
     m.add_class::<Average>()?;
     m.add_class::<AltAzCoord>()?;
     m.add_class::<MagnitudeMapGenerator>()?;

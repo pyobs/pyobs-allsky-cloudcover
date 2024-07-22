@@ -1,9 +1,9 @@
 from collections import deque, defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Any
 
 import numpy as np
 import numpy.typing as npt
-from cloudmap_rs import Entry, Average, MagnitudeMapGenerator, AltAzCoord
+from cloudmap_rs import Star, Average, MagnitudeMapGenerator, AltAzCoord
 
 from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
 
@@ -18,14 +18,14 @@ class CloudMapGenerator(object):
         integrated_matches = self._get_integrated_frame()
 
         star_coords = [AltAzCoord(np.deg2rad(alt), np.deg2rad(az)) for alt, az in zip(catalog.alt, catalog.az)]
+        match_entries = [Star(v_mag, found) for v_mag, found in zip(catalog.v_mag, integrated_matches)]
 
-        map_generator = MagnitudeMapGenerator(star_coords, alt_az_image_list, np.deg2rad(self._radius))
+        map_generator = MagnitudeMapGenerator(star_coords, match_entries)
 
-        match_entries = [Entry(v_mag, found) for v_mag, found in zip(catalog.v_mag, integrated_matches)]
-        av_vis_map = map_generator.gen_cloud_map(match_entries)
+        av_vis_map = map_generator.query_many([entry for row in alt_az_image_list for entry in row], self._radius)
         vis_map = self._convert_average_to_value(av_vis_map)
 
-        return vis_map
+        return vis_map.reshape(np.shape(alt_az_image_list))
 
     def _update_integration_frame(self, catalog: PixelCatalog, matches: List[bool]) -> None:
         self._integration_frame.append((catalog, matches))
@@ -44,7 +44,7 @@ class CloudMapGenerator(object):
         return [all(match_dict[sao]) for sao in catalogs[-1].sao]
 
     @staticmethod
-    def _convert_average_to_value(average_map: List[List[Average]]) -> npt.NDArray[np.float_]:
+    def _convert_average_to_value(average_map: List[Average]) -> npt.NDArray[np.float_]:
         return np.array(
-            [[x.value if x is not None else np.nan for x in row] for row in average_map]
+            [x.value if x is not None else np.nan for x in average_map]
         )

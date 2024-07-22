@@ -1,5 +1,5 @@
 mod star_counter;
-mod entry;
+mod star;
 mod average;
 mod weighted_value;
 

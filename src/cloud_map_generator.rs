@@ -1,83 +1,46 @@
 use std::f64::consts::PI;
-use ball_tree::{BallTree, Query};
+
+use ball_tree::BallTree;
 use pyo3::prelude::*;
 use rayon::prelude::*;
 
 use crate::alt_az_coord::AltAzCoord;
 use crate::average::Average;
-use crate::entry::Entry;
+use crate::star::Star;
 use crate::star_counter::StarCounter;
 use crate::weighted_value::WeightedValue;
 
 #[pyclass]
 pub struct MagnitudeMapGenerator
 {
-    neighbours: Vec<Vec<Option<Vec<(usize, f64)>>>>,
-    length: usize,
+    ball_tree: BallTree<AltAzCoord, Star>,
 }
 
 #[pymethods]
 impl MagnitudeMapGenerator
 {
     #[new]
-    pub fn new(alt_az_coords: Vec<AltAzCoord>, image_alt_az_coords: Vec<Vec<Option<AltAzCoord>>>, distance: f64) -> MagnitudeMapGenerator
+    pub fn new(star_positions: Vec<AltAzCoord>, stars: Vec<Star>) -> MagnitudeMapGenerator
     {
-        let length = alt_az_coords.len();
-        let indexes: Vec<usize> = (0..length).collect();
-
-        let ball_tree = BallTree::new(alt_az_coords, indexes);
-
-        let neighbours:  Vec<Vec<Option<Vec<(usize, f64)>>>> = image_alt_az_coords.into_par_iter().map(
-            |image_row_alt_az|
-                image_row_alt_az.into_par_iter().map(
-                    |coord| calc_neighbours(&ball_tree, &coord, &distance)
-                ).collect()
-        ).collect();
-
-        MagnitudeMapGenerator {neighbours, length}
+        let ball_tree = BallTree::new(star_positions, stars);
+        MagnitudeMapGenerator{ball_tree}
     }
 
-    pub fn gen_cloud_map(&self, stars: Vec<Entry>) -> Vec<Vec<Option<Average>>>
+    pub fn query(&self, position: AltAzCoord, distance: f64) -> Option<Average>
     {
-        assert_eq!(stars.len(), self.length, "Stars length must match length of coordinates!");
+        let mut query = self.ball_tree.query();
 
-        let vis_map: Vec<Vec<Option<Average>>> = (&self.neighbours).into_par_iter().map(
-            |image_row_alt_az|
-                image_row_alt_az.into_par_iter().map(
-                    |neighbours| calc_visibility(&stars, neighbours)
-                ).collect()
-        ).collect();
+        let nn_result = query.nn_within(&position, distance);
 
-        vis_map
-    }
-}
+        let mut star_counter = StarCounter::default();
 
-fn calc_neighbours(ball_tree: &BallTree<AltAzCoord, usize>, coord: &Option<AltAzCoord>, distance: &f64) -> Option<Vec<(usize, f64)>>
-{
-    let mut query = ball_tree.query();
-    if let Some(altazcoord) = coord
-    {
-        let indices = query.nn_within(altazcoord, *distance).map(|(_, distance, index)| (*index, distance)).collect();
-        return Some(indices)
-    }
 
-    return None
-}
-
-fn calc_visibility(stars: &Vec<Entry>, neighbours: &Option<Vec<(usize, f64)>>) -> Option<Average>
-{
-    let mut star_counter = StarCounter::default();
-
-    if let Some(neighbours) = neighbours
-    {
-        for (index, distance) in neighbours
+        for (_, distance, star) in nn_result
         {
             star_counter.increment_stars();
 
-            let entry = &stars[*index];
-
-            let weighted_vmag = WeightedValue::new(entry.get_v_mag(), (-distance * PI/(7.0 * 180.0))); //*distance
-            if entry.get_found()
+            let weighted_vmag = WeightedValue::new(star.get_v_mag(), (-distance * PI/(7.0 * 180.0))); //*distance
+            if star.get_found()
             {
                 star_counter.add_visible_v_mag(weighted_vmag)
             }else {
@@ -85,9 +48,26 @@ fn calc_visibility(stars: &Vec<Entry>, neighbours: &Option<Vec<(usize, f64)>>) -
                 star_counter.add_n_visible_v_mag(weighted_vmag)
             }
         }
+
+        star_counter.calc_v_mag_border_value()
     }
 
-    star_counter.calc_v_mag_border_value()
+    pub fn query_many(&self, positions: Vec<Option<AltAzCoord>>, distance: f64) -> Vec<Option<Average>>
+    {
+        positions.into_par_iter().map(|x| self.query_optional(x, distance)).collect()
+    }
+}
+
+impl MagnitudeMapGenerator
+{
+    fn query_optional(&self, position: Option<AltAzCoord>, distance: f64) -> Option<Average>
+    {
+        match position
+        {
+            Some(pos) => self.query(pos, distance),
+            None => None
+        }
+    }
 }
 
 
@@ -95,24 +75,24 @@ fn calc_visibility(stars: &Vec<Entry>, neighbours: &Option<Vec<(usize, f64)>>) -
 mod tests
 {
     use std::f64::consts::PI;
-    use super::*;
 
+    use super::*;
 
     #[test]
     fn test_gen_cloud_map()
     {
-        let alt_az_list: Vec<Vec<Option<AltAzCoord>>> = vec![
-            vec![Some(AltAzCoord::new(PI/2.0, 0.0))]
-        ];
+        let distance = PI/2.0;
 
         let alt_az_coords: Vec<AltAzCoord> = vec![AltAzCoord::new(PI/4.0, 0.0), AltAzCoord::new(PI/4.0, PI)];
+        let stars: Vec<Star> = vec![Star::new(1.0, false), Star::new(0.0, true)];
 
-        let generator = MagnitudeMapGenerator::new(alt_az_coords, alt_az_list, PI/2.0);
+        let alt_az_list: Vec<Option<AltAzCoord>> = vec![
+            Some(AltAzCoord::new(PI/2.0, 0.0))
+        ];
 
-        let stars: Vec<Entry> = vec![Entry::new(1.0, false), Entry::new(0.0, true)];
+        let generator = MagnitudeMapGenerator::new(alt_az_coords, stars);
+        let expected: Vec<Option<Average>> = vec![Average::calc_weighted(&vec![0.0, 1.0], &vec![1.0, 1.0])];
 
-        let expected: Vec<Vec<Option<Average>>> = vec![vec![Average::calc_weighted(&vec![0.0, 1.0], &vec![1.0, 1.0])]];
-
-        assert_eq!(generator.gen_cloud_map(stars), expected);
+        assert_eq!(generator.query_many(alt_az_list, distance), expected);
     }
 }
