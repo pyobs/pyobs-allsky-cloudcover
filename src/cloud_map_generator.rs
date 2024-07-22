@@ -34,17 +34,13 @@ impl MagnitudeMapGenerator
 
         let mut star_counter = StarCounter::default();
 
-
         for (_, distance, star) in nn_result
         {
-            star_counter.increment_stars();
-
-            let weighted_vmag = WeightedValue::new(star.get_v_mag(), (-distance * PI/(7.0 * 180.0))); //*distance
+            let weighted_vmag = WeightedValue::new(star.get_v_mag(), -distance * PI / (7.0 * 180.0));
             if star.get_found()
             {
                 star_counter.add_visible_v_mag(weighted_vmag)
             }else {
-                star_counter.increment_n_visible();
                 star_counter.add_n_visible_v_mag(weighted_vmag)
             }
         }

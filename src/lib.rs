@@ -5,7 +5,6 @@ mod weighted_value;
 mod alt_az_coord;
 mod cloud_map_generator;
 
-use pyo3::impl_::wrap::OkWrap;
 use pyo3::prelude::*;
 use crate::alt_az_coord::AltAzCoord;
 use crate::average::Average;

@@ -1,9 +1,9 @@
 use std::f64::consts::PI;
+
 use ball_tree::Point;
 use pyo3::{pyclass, pymethods};
 
 #[pyclass]
-#[pyo3(text_signature = "(alt, az)")]
 #[derive(Clone, Debug)]
 pub struct AltAzCoord
 {
@@ -102,7 +102,6 @@ fn dot_product((x1, y1, z1): (f64, f64, f64), (x2, y2, z2): (f64, f64, f64)) -> 
 mod tests
 {
     use super::*;
-    use ball_tree::BallTree;
 
     #[test]
     fn test_equal()
@@ -195,14 +194,5 @@ mod tests
 
         assert!(result.az - PI/4.0 < 1e-10);
         assert!(result.alt - 0.0 < 1e-10);
-    }
-
-    #[test]
-    fn test_bn_tree()
-    {
-        let points: Vec<AltAzCoord> = vec![AltAzCoord::new(0.0, 0.0), AltAzCoord::new(1.0, 0.0)];
-        let values: Vec<f64> = vec![1.0, 2.0];
-
-        let ball_tree = BallTree::new(points, values);
     }
 }

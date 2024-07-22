@@ -1,7 +1,6 @@
 use pyo3::prelude::*;
 
 #[pyclass]
-#[pyo3(text_signature = "(sao, px, py, found, /)")]
 #[derive(Clone)]
 pub struct Star
 {
