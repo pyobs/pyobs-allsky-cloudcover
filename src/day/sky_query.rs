@@ -25,7 +25,18 @@ impl SkyPixelQuery
     {
         self.pixels = pixels;
     }
+    
+    pub fn query_nearest_coordinate(&self, coordinate: AltAzCoord) -> Option<bool>
+    {
+        let mut query = self.ball_tree.query();
 
+        match query.nn(&coordinate).next()
+        {
+            Some((_, _, index)) => self.pixels.get(*index).unwrap().to_owned(),
+            None => None
+        }
+    }
+    
     pub fn query_radius(&self, coordinate: AltAzCoord, radius: f64) -> Option<f64>
     {
         let mut query = self.ball_tree.query();
@@ -63,6 +74,18 @@ mod tests
 
     use super::*;
 
+    #[test]
+    fn query_nearest_coordinate()
+    {
+        let alt_az_coords: Vec<AltAzCoord> = vec![AltAzCoord::new(0.0, 0.0), AltAzCoord::new(PI/4.0, PI)];
+
+        let pixels: Vec<Option<bool>> = vec![Some(true), Some(false)];
+
+        let sky_pixels = SkyPixelQuery::new(alt_az_coords, pixels);
+
+        assert_eq!(sky_pixels.query_nearest_coordinate(AltAzCoord::new(PI/2.0, 0.0)), Some(false));
+    }
+    
     #[test]
     fn test_query_radius()
     {
