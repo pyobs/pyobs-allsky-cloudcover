@@ -4,11 +4,11 @@ use ball_tree::BallTree;
 use pyo3::prelude::*;
 use rayon::prelude::*;
 
-use crate::alt_az_coord::AltAzCoord;
-use crate::average::Average;
-use crate::star::Star;
-use crate::star_counter::StarCounter;
-use crate::weighted_value::WeightedValue;
+use crate::night::alt_az_coord::AltAzCoord;
+use crate::night::average::Average;
+use crate::night::star::Star;
+use crate::night::star_counter::StarCounter;
+use crate::night::weighted_value::WeightedValue;
 
 #[pyclass]
 pub struct MagnitudeMapGenerator

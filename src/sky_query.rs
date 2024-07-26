@@ -1,7 +1,7 @@
 use ball_tree::BallTree;
 use pyo3::{pyclass, pymethods};
 
-use crate::alt_az_coord::AltAzCoord;
+use crate::night::alt_az_coord::AltAzCoord;
 
 #[pyclass]
 pub struct SkyPixelQuery

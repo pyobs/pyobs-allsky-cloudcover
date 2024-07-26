@@ -1,5 +1,5 @@
-use crate::average::Average;
-use crate::weighted_value::WeightedValue;
+use crate::night::average::Average;
+use crate::night::weighted_value::WeightedValue;
 
 #[derive(Default)]
 pub struct StarCounter
