@@ -25,7 +25,7 @@ class CloudMapGenerator(object):
         av_vis_map = map_generator.query_many([entry for row in alt_az_image_list for entry in row], self._radius)
         vis_map = self._convert_average_to_value(av_vis_map)
 
-        return vis_map.reshape(np.shape(alt_az_image_list))
+        return vis_map.reshape(np.shape(alt_az_image_list))  # type: ignore
 
     def _update_integration_frame(self, catalog: PixelCatalog, matches: List[bool]) -> None:
         self._integration_frame.append((catalog, matches))
