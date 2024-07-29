@@ -39,7 +39,8 @@ dynamic = ["version"]
 
 dependencies = [
     "pyobs-core[full]>=1.13.0",
-    "influxdb-client>=1.42.0"
+    "influxdb-client>=1.42.0",
+    "opencv-python>= 4.8.0.76"
 ]
 
 [project.optional-dependencies]
