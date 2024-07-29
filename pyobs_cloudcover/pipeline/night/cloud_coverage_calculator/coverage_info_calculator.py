@@ -16,11 +16,9 @@ class CoverageInfoCalculator:
         self._coverage_change_calculator = coverage_change_calculator
         self._zenith_coverage = zenith_coverage
 
-    def __call__(self, cloudy_pixels: List[Optional[bool]], altaz_coords: List[AltAzCoord], obs_time: datetime.datetime) -> CloudCoverageInfo:
-        sky_query = SkyPixelQuery(altaz_coords, cloudy_pixels)
-
+    def __call__(self, sky_query: SkyPixelQuery, obs_time: datetime.datetime) -> CloudCoverageInfo:
         coverage = sky_query.query_radius(AltAzCoord(np.pi/2, 0), np.pi/2)
-        change = self._coverage_change_calculator(cloudy_pixels)
+        change = self._coverage_change_calculator(sky_query.get_pixels())
 
         zenith_coverage = self._zenith_coverage(sky_query)
 

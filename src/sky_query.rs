@@ -26,6 +26,10 @@ impl SkyPixelQuery
         self.pixels = pixels;
     }
     
+    pub fn get_pixels(&self) -> Vec<Option<bool>>{
+        self.pixels.clone()
+    }
+    
     pub fn query_nearest_coordinate(&self, coordinate: AltAzCoord) -> Option<bool>
     {
         let mut query = self.ball_tree.query();
