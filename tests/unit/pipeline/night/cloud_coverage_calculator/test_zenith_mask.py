@@ -1,35 +1,22 @@
-from typing import Union, Tuple, List, Optional
+from typing import List, Optional
 
 import numpy as np
-from cloudmap_rs import AltAzCoord
-from numpy import typing as npt
+from cloudmap_rs import AltAzCoord, SkyPixelQuery
 
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_masker import ZenithMasker
-from pyobs_cloudcover.world_model import WorldModel
-
-
-class MockWorldModel(WorldModel):
-    def __init__(self):
-        self._cords = [(1, 1), (1, 2)]
-
-    def pix_to_altaz(self, x: Union[npt.NDArray[np.float_], float], y: Union[npt.NDArray[np.float_], float]) -> \
-            Union[Tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]], Tuple[float, float]]:
-        pass
-
-    def altaz_to_pix(self, alt: Union[npt.NDArray[np.float_], float], az: Union[npt.NDArray[np.float_], float]) -> \
-            Union[Tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]], Tuple[float, float]]:
-        return self._cords.pop(0)
+from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_cloud_coverage_calculator import \
+    ZenithCloudCoverageCalculator
 
 
 def test_zenith_mask() -> None:
-    masker = ZenithMasker(altitude=80)
-    image = np.ones((3, 3))
+    calculator = ZenithCloudCoverageCalculator(altitude=80)
 
-    alt_az_list: List[List[Optional[AltAzCoord]]] = [
-        [AltAzCoord(np.deg2rad(70), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(70), 0)],
-        [AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(85), 0)],
-        [AltAzCoord(np.deg2rad(70), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(70), 0)],
+    alt_az_list: List[Optional[AltAzCoord]] = [
+        AltAzCoord(np.deg2rad(70), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(70), 0),
+        AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(85), 0),
+        AltAzCoord(np.deg2rad(70), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(70), 0),
     ]
 
-    masked_image = masker(image, alt_az_list)
-    np.testing.assert_array_equal(masked_image, np.array([[None, 1, None], [1, 1, 1], [None, 1, None]]).astype(np.float_))
+    pixels = [True] * 9
+
+    sky_query = SkyPixelQuery(alt_az_list, pixels)
+    assert calculator(sky_query) == 1

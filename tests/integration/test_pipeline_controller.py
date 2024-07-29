@@ -51,12 +51,18 @@ def test_night_pipeline() -> None:
                             "median_limit": 9e3,
                             "window_size": 6.0
                         },
-                        "cloud_map": {
+                        "altaz_grid": {
+                            "point_number": 10,
+                            "limiting_altitude": 30
+                        },
+                        "lim_mag_map": {
                             "radius": 50.0
                         },
+                        "cloud_map": {
+                            "threshold": 0.5
+                        },
                         "coverage_info": {
-                            "cloud_threshold": 0.5,
-                            "zenith_radius": 20
+                            "altitude_limit": 80
                         }
                     }
             }

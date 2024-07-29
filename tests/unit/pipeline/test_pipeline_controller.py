@@ -17,15 +17,15 @@ class MockPipeline(Pipeline):
 
     def __call__(self, image: npt.NDArray[np.float_], obs_time: datetime.datetime) -> CloudCoverageInfo:
         time = datetime.datetime(2024, 1, 1, 0, 0, 0)
-        return CloudCoverageInfo(np.array([]), 0, 1, 2, 0.0, 1, 2, 0.1, time)
+        return CloudCoverageInfo(np.array([]),  0.0, 1, 0.1, time)
 
 
 @pytest.fixture()
-def observer():
+def observer() -> Observer:
     return Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)
 
 
-def test_invalid_init_args_list(observer):
+def test_invalid_init_args_list(observer) -> None:
     pipelines = [MockPipeline()]
     interval = []
 
@@ -33,7 +33,7 @@ def test_invalid_init_args_list(observer):
         PipelineController(pipelines, interval, observer)
 
 
-def test_invalid_init_overlapping_intervals(observer):
+def test_invalid_init_overlapping_intervals(observer) -> None:
     pipelines = [MockPipeline(), MockPipeline()]
     interval = [Interval(None, 10), Interval(0, None)]
 
@@ -41,7 +41,7 @@ def test_invalid_init_overlapping_intervals(observer):
         PipelineController(pipelines, interval, observer)
 
 
-def test_pipeline_call_outside_interval(mocker, observer):
+def test_pipeline_call_outside_interval(mocker, observer) -> None:
     mocker.patch.object(observer, "sun_altaz", return_value=SkyCoord(alt=10, az=0, frame="altaz", unit="deg"))
 
     pipelines = [MockPipeline()]
@@ -51,7 +51,7 @@ def test_pipeline_call_outside_interval(mocker, observer):
     assert controller(np.array([]), datetime.datetime.now()) is None
 
 
-def test_pipeline_call_inside_interval(mocker, observer):
+def test_pipeline_call_inside_interval(mocker, observer) -> None:
     mocker.patch.object(observer, "sun_altaz", return_value=SkyCoord(alt=5, az=0, frame="altaz", unit="deg"))
 
     pipelines = [MockPipeline()]

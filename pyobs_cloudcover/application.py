@@ -26,7 +26,7 @@ class Application(Module):
 
         world_model: WorldModel = get_object(model, WorldModel)
 
-        server_factory = ServerFactory(self.observer, world_model)
+        server_factory = ServerFactory(self.observer)
         self._server = server_factory(server)
 
         self._measurement_log = Influx(**measurement_log)

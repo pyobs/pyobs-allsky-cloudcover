@@ -1,34 +1,27 @@
 import datetime
-from copy import copy
 from typing import List, Optional
 
 import numpy as np
-import numpy.typing as npt
-from cloudmap_rs import AltAzCoord
+from cloudmap_rs import AltAzCoord, SkyPixelQuery
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_calculator import CoverageCalculator
 from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_change_calculator import \
     CoverageChangeCalculator
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_masker import ZenithMasker
+from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_cloud_coverage_calculator import \
+    ZenithCloudCoverageCalculator
 
 
 class CoverageInfoCalculator:
-    def __init__(self, coverage_calculator: CoverageCalculator, coverage_change_calculator: CoverageChangeCalculator, zenith_masker: ZenithMasker) -> None:
-        self._coverage_calculator = coverage_calculator
+    def __init__(self, coverage_change_calculator: CoverageChangeCalculator, zenith_coverage: ZenithCloudCoverageCalculator) -> None:
         self._coverage_change_calculator = coverage_change_calculator
-        self._zenith_masker = zenith_masker
+        self._zenith_coverage = zenith_coverage
 
-    def __call__(self, limiting_mag_map: npt.NDArray[np.float_], obs_time: datetime.datetime, alt_az_list: List[List[Optional[AltAzCoord]]]) -> CloudCoverageInfo:
-        coverage = self._coverage_calculator(limiting_mag_map)
-        change = self._coverage_change_calculator(limiting_mag_map)
+    def __call__(self, cloudy_pixels: List[Optional[bool]], altaz_coords: List[AltAzCoord], obs_time: datetime.datetime) -> CloudCoverageInfo:
+        sky_query = SkyPixelQuery(altaz_coords, cloudy_pixels)
 
-        average = float(np.mean(limiting_mag_map, where=~np.isnan(limiting_mag_map)))
-        std = float(np.std(limiting_mag_map, where=~np.isnan(limiting_mag_map)))
+        coverage = sky_query.query_radius(AltAzCoord(np.pi/2, 0), np.pi/2)
+        change = self._coverage_change_calculator(cloudy_pixels)
 
-        zenith = self._zenith_masker(limiting_mag_map, alt_az_list)
-        zenith_coverage = self._coverage_calculator(zenith)
-        zenith_average = float(np.mean(zenith, where=~np.isnan(zenith)))
-        zenith_std = float(np.std(zenith, where=~np.isnan(zenith)))
+        zenith_coverage = self._zenith_coverage(sky_query)
 
-        return CloudCoverageInfo(copy(limiting_mag_map), coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, obs_time)
+        return CloudCoverageInfo(sky_query, coverage, zenith_coverage, change, obs_time)
