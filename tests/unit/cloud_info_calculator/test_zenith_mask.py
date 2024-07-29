@@ -3,7 +3,7 @@ from typing import List, Optional
 import numpy as np
 from cloudmap_rs import AltAzCoord, SkyPixelQuery
 
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_cloud_coverage_calculator import \
+from pyobs_cloudcover.cloud_info_calculator import \
     ZenithCloudCoverageCalculator
 
 

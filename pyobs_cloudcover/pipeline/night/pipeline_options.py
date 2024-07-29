@@ -4,7 +4,7 @@ from typing import Dict, Any
 
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_grid_options import AltAzGridOptions
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_options import CatalogConstructorOptions
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.cloud_info_calculator_options import \
+from pyobs_cloudcover.cloud_info_calculator.cloud_info_calculator_options import \
     CloudInfoCalculatorOptions
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_options import CloudMapGeneratorOptions
 from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator_options import LimMagnitudeMapGeneratorOptions

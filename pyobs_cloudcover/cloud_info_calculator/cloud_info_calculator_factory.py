@@ -1,10 +1,9 @@
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.cloud_info_calculator_options import \
+from pyobs_cloudcover.cloud_info_calculator.cloud_info_calculator_options import \
     CloudInfoCalculatorOptions
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_calculator import CoverageCalculator
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_change_calculator import \
+from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import \
     CoverageChangeCalculator
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_info_calculator import CoverageInfoCalculator
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_cloud_coverage_calculator import ZenithCloudCoverageCalculator
+from pyobs_cloudcover.cloud_info_calculator.coverage_info_calculator import CoverageInfoCalculator
+from pyobs_cloudcover.cloud_info_calculator.zenith_cloud_coverage_calculator import ZenithCloudCoverageCalculator
 from pyobs_cloudcover.world_model import WorldModel
 
 

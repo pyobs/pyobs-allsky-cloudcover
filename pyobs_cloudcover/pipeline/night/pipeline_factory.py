@@ -1,10 +1,8 @@
 from astroplan import Observer
 
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_map_generator_factory import AltAzMapGeneratorFactory
-from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_factory import CatalogConstructorFactory
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.cloud_info_calculator_factory import \
-    CloudInfoCalculatorFactory
+from pyobs_cloudcover.cloud_info_calculator import CloudInfoCalculatorFactory
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_factory import CloudMapGeneratorFactory
 from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator_factory import LimMagnitudeMapGeneratorFactory
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline

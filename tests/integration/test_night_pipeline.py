@@ -1,26 +1,23 @@
 import datetime
 
+import astropy.units as u
 import numpy as np
 from astroplan import Observer
 
-import astropy.units as u
-
-from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_calculator import CoverageCalculator
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_change_calculator import \
-    CoverageChangeCalculator
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_info_calculator import CoverageInfoCalculator
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.zenith_cloud_coverage_calculator import ZenithCloudCoverageCalculator
+from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import CoverageChangeCalculator
+from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
+from pyobs_cloudcover.cloud_info_calculator import ZenithCloudCoverageCalculator
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import LimMagnitudeMapGenerator
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import \
+    LimMagnitudeMapGenerator
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
+from pyobs_cloudcover.pipeline.night.preprocessor.background_remover import BackgroundRemover
+from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
-from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
-from pyobs_cloudcover.pipeline.night.preprocessor.background_remover import BackgroundRemover
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.sigma_treshhold_detector import \
     SigmaThresholdDetector
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher

@@ -1,6 +1,4 @@
-import numpy as np
-
-from pyobs_cloudcover.pipeline.night.cloud_coverage_calculator.coverage_change_calculator import \
+from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import \
     CoverageChangeCalculator
 
 
