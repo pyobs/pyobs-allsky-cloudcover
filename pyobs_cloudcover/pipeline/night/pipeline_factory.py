@@ -24,7 +24,7 @@ class NightPipelineFactory(object):
         reverse_matcher_factory = StarReverseMatcherFactory(options.star_matcher_options)
         lim_mag_map_generator_factory = LimMagnitudeMapGeneratorFactory(options.lim_mag_map_generator_options)
         cloud_map_generator_factory = CloudMapGeneratorFactory(options.cloud_generator_options)
-        coverage_info_calculator_factory = CloudInfoCalculatorFactory(options.coverage_info_options, self._model)
+        coverage_info_calculator_factory = CloudInfoCalculatorFactory(options.coverage_info_options)
 
         preprocessor = preprocessor_factory()
         catalog_constructor = catalog_constructor_factory()
