@@ -3,8 +3,14 @@ from typing import Dict
 
 
 class CloudMapGeneratorOptions(object):
+<<<<<<< HEAD
     def __init__(self, threshold: float):
         self.threshold = threshold
+=======
+    def __init__(self, radius: float = 5.0, integration_length: int = 1) -> None:
+        self.radius = radius
+        self.integration_length = integration_length
+>>>>>>> main
 
     @classmethod
     def from_dict(cls, options: Dict[str, float]) -> CloudMapGeneratorOptions:

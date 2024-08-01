@@ -1,15 +1,15 @@
 import datetime
+import logging
 from typing import Dict, Any
 
 from pyobs.events import NewImageEvent, Event
 from pyobs.modules import Module
-from pyobs.object import get_object
 
 from pyobs_cloudcover.measurement_log.influx import Influx
 from pyobs_cloudcover.pipeline.pipeline_controller_factory import PipelineControllerFactory
-from pyobs_cloudcover.web_api.server import Server
 from pyobs_cloudcover.web_api.server_factory import ServerFactory
-from pyobs_cloudcover.world_model import WorldModel
+
+log = logging.getLogger(__name__)
 
 
 class Application(Module):
@@ -17,9 +17,9 @@ class Application(Module):
                  image_sender: str,
                  server: Dict[str, Any],
                  measurement_log: Dict[str, Any],
-                 pipelines: Dict[str, Dict[str, Any]]) -> None:
+                 pipelines: Dict[str, Dict[str, Any]], *args: Any, **kwargs: Any) -> None:
 
-        super(Application, self).__init__()
+        super().__init__(*args, **kwargs)
 
         self._image_sender = image_sender
 
@@ -44,11 +44,16 @@ class Application(Module):
         if sender != self._image_sender:
             return
 
+        log.info("Received new image!")
+
         image = await self.vfs.read_image(event.filename)
 
         obs_time = datetime.datetime.strptime(image.header["DATE-OBS"], "%Y-%m-%dT%H:%M:%S.%f")
 
         measurement = self._pipeline_controller(image.data, obs_time)
 
+        log.info("Finished measurement!")
+
         if measurement is not None:
             self._server.set_measurement(measurement)
+            self._measurement_log(measurement)

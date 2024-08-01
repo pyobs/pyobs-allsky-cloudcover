@@ -41,7 +41,7 @@ class CoverageQueryExecutor(object):
             return bool(cloudiness)
 
     def _radec_to_altaz(self, ra: float, dec: float, obs_time: datetime.datetime) -> Tuple[float, float]:
-        coord = SkyCoord(ra, dec, unit='deg', frame="ircs", location=self._observer.location, obstime=obs_time)
+        coord = SkyCoord(ra, dec, unit='deg', frame="icrs", location=self._observer.location, obstime=obs_time)
         coord = coord.altaz
 
         return coord.alt.rad, coord.az.rad

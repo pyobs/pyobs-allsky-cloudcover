@@ -18,6 +18,10 @@ from pyobs_cloudcover.pipeline.night.preprocessor.background_remover import Back
 from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
+<<<<<<< HEAD
+=======
+from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
+>>>>>>> main
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.sigma_treshhold_detector import \
     SigmaThresholdDetector
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
@@ -41,8 +45,7 @@ def test_night_pipeline() -> None:
 
     mask = ImageMasker(np.ones((2*1040, 2*1548)).astype(np.bool_))
     binner = ImageBinner(2)
-    background_remover = BackgroundRemover(3.0, (5, 5))
-    preprocessor = Preprocessor(mask, binner, background_remover)
+    preprocessor = Preprocessor(mask, binner)
 
     altaz_catalog_loader = AltAzCatalogLoader.from_csv("tests/integration/catalog.csv")
     catalog_constructor = CatalogConstructor(altaz_catalog_loader, model, observer, 0.0, 3.0, 0.0)

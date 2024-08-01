@@ -17,7 +17,6 @@ from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
 from pyobs_cloudcover.cloud_info_calculator import ZenithCloudCoverageCalculator
 from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import LimMagnitudeMapGenerator
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
-from pyobs_cloudcover.pipeline.night.preprocessor.background_remover import BackgroundRemover
 from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
@@ -84,15 +83,14 @@ def build_pipeline(wcs_file, catalog_file, image_shape) -> (NightPipeline, Prepr
 
     mask = ImageMasker(np.ones(image_shape).astype(np.bool_))
     binner = ImageBinner(2)
-    background_remover = BackgroundRemover(3.0, (5, 5))
-    preprocessor = Preprocessor(mask, binner, background_remover)
+    preprocessor = Preprocessor(mask, binner)
 
     altaz_catalog_loader = AltAzCatalogLoader.from_csv(catalog_file)
     catalog_constructor = CatalogConstructor(altaz_catalog_loader, model, observer, 30.0, 7.0, 4.0)
 
     altaz_list_generator = AltAzMapGenerator(model, 30.0)
 
-    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 7e5), ImageWindow(10.0))
+    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(4.0, 4.0, 7e5), ImageWindow(10.0))
 
     cloud_map_gem = LimMagnitudeMapGenerator(7.0)
 
