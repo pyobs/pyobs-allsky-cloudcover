@@ -11,6 +11,7 @@ from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOption
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor_factory import PreprocessorFactory
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher_factory import StarReverseMatcherFactory
 from pyobs_cloudcover.world_model import WorldModel
+from pyobs_cloudcover.world_model.world_model_factory import WorldModelFactory
 
 
 class NightPipelineFactory(object):
@@ -18,7 +19,9 @@ class NightPipelineFactory(object):
         self._observer = observer
 
     def __call__(self, options: NightPipelineOptions) -> NightPipeline:
-        model = get_object(options.model_options, WorldModel)
+        world_model_factory = WorldModelFactory(self._observer)
+        model: WorldModel = world_model_factory(options.model_options)
+
         preprocessor_factory = PreprocessorFactory(options.preprocessor_options)
         catalog_constructor_factory = CatalogConstructorFactory(options.catalog_options, model, self._observer)
         altaz_map_generator_factory = AltAzMapGeneratorFactory(options.altaz_grid_options)

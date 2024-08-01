@@ -12,10 +12,6 @@ modules:
 
     image_sender: "tester"
 
-    model:
-      class: pyobs_cloudcover.world_model.WCSModel
-      file_path: "data/test_wcs.fits"
-
     server:
       url: "localhost"
       port: 8080
@@ -34,6 +30,10 @@ modules:
           end: -18
 
         options:
+          world_model:
+            class: pyobs_cloudcover.world_model.WCSModel
+            file_path: "data/test_wcs.fits"
+
           preprocessor:
             mask_filepath: ""
             bin_size: 2
@@ -48,14 +48,17 @@ modules:
           reverse_matcher:
             sigma_threshold: 4.0
             window_size: 10.0
-
-          cloud_map:
+          altaz_grid:
+            point_number: 100000
+            limiting_altitude: 30
+          lim_mag_map:
             radius: 7.0
             integration_length: 1
+          cloud_map:
+            threshold: 5.5
 
           coverage_info:
-            cloud_threshold: 5.5
-            zenith_radius: 20
+            zenith_range: 80
 
     comm:
       class: pyobs.comm.local.LocalComm
@@ -64,6 +67,9 @@ modules:
   tester:
     class: pyobs_cloudcover.testing.TestModule
     image_path: "data/test_image.fits"
+    total_fraction: 0.1
+    zenith_fraction: 0.0
+    zenith_value: False
 
     comm:
       class: pyobs.comm.local.LocalComm

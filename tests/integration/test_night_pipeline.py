@@ -46,7 +46,7 @@ def test_night_pipeline() -> None:
     altaz_catalog_loader = AltAzCatalogLoader.from_csv("tests/integration/catalog.csv")
     catalog_constructor = CatalogConstructor(altaz_catalog_loader, model, observer, 0.0, 3.0, 0.0)
 
-    altaz_list_generator = SphericalAltAzGenerator(10, 0.0)
+    altaz_list_generator = SphericalAltAzGenerator(100, 30.0)
 
     reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 8e3), ImageWindow(6.0))
 

@@ -38,3 +38,5 @@ def test_day_pipeline() -> None:
     result = pipeline(image, obs_time)
 
     np.testing.assert_almost_equal(result.total_cover, 1.0, decimal=3)
+    np.testing.assert_almost_equal(result.zenith_cover, 1.0, decimal=3)
+

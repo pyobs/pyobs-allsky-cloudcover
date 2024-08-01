@@ -16,7 +16,7 @@ def test_zenith_mask() -> None:
         AltAzCoord(np.deg2rad(70), 0), AltAzCoord(np.deg2rad(85), 0), AltAzCoord(np.deg2rad(70), 0),
     ]
 
-    pixels = [True] * 9
+    pixels = [False, True, False, True, True, True, False, True, False]
 
     sky_query = SkyPixelQuery(alt_az_list, pixels)
     assert calculator(sky_query) == 1

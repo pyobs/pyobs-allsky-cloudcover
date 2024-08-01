@@ -57,7 +57,7 @@ def test_night_pipeline() -> None:
             "threshold": 0.5
         },
         "coverage_info": {
-            "altitude_limit": 80
+            "zenith_range": 80
         }
     }
 

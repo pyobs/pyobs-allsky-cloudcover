@@ -22,7 +22,7 @@ class LimMagnitudeMapGenerator(object):
 
         map_generator = MagnitudeMapGenerator(star_coords, match_entries)
 
-        av_vis_map = map_generator.query_many(alt_az_image_list, self._radius)
+        av_vis_map = map_generator.query_many(alt_az_image_list, np.deg2rad(self._radius))
         vis_map = self._convert_average_to_value(av_vis_map)
 
         return vis_map

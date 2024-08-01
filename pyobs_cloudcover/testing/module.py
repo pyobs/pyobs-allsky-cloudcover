@@ -20,14 +20,20 @@ class TestModule(Module):
     _INFLUX_ORG = "IAG"
     _INFLUX_BUCKET = "allsky"
 
-    def __init__(self, image_path: str, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, image_path: str, total_fraction: float, zenith_fraction: float, zenith_value: bool, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._image_path = image_path
 
-        self.add_background_task(self.start, restart=False, autostart=True)
+        self._total_fraction = total_fraction
+        self._zenith_fraction = zenith_fraction
+        self._zenith_value = zenith_value
+
+        #self.add_background_task(self.start, restart=False, autostart=True)
 
     async def open(self) -> None:
         await Module.open(self)
+
+        await self.start()
 
     async def start(self) -> None:
         with InfluxDb2Container(
@@ -77,8 +83,8 @@ class TestModule(Module):
         total_cover_table = result[0].records
         zenith_cover_table = result[1].records
 
-        np.testing.assert_almost_equal(total_cover_table[0].get_value(), 0.2, 1)
-        np.testing.assert_almost_equal(zenith_cover_table[0].get_value(), 0.0, 1)
+        np.testing.assert_almost_equal(total_cover_table[0].get_value(), self._total_fraction, 1)
+        np.testing.assert_almost_equal(zenith_cover_table[0].get_value(), self._zenith_fraction, 1)
 
         log.info("INFLUX TEST SUCCESS!")
 
@@ -91,6 +97,6 @@ class TestModule(Module):
             async with session.get(f"http://{url}:{port}/query?ra=0.0&dec=90.0") as resp:
                 data = await resp.json()
 
-        np.testing.assert_almost_equal(data["value"], 6.2, 1)
+        assert data["value"] == self._zenith_value
 
         log.info("SERVER TEST SUCCESS!")

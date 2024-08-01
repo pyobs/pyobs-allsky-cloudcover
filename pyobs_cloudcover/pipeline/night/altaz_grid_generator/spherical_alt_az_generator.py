@@ -1,6 +1,7 @@
 import functools
 from typing import List
 
+import numpy as np
 from cloudmap_rs import AltAzCoord
 from pyobs.utils.grids import SphericalGrid
 
@@ -12,8 +13,8 @@ class SphericalAltAzGenerator:
 
     @functools.lru_cache(maxsize=None)
     def __call__(self) -> List[AltAzCoord]:
-        points = SphericalGrid.equidistributed(self._point_number)
-        coords = [AltAzCoord(x, y) for x, y in points]
-        filtered_coords = [coord for coord in coords if coord.alt >= self._limiting_altitude]
+        points = np.deg2rad(SphericalGrid.equidistributed(self._point_number))
+        coords = [AltAzCoord(y, x) for x, y in points]
+        filtered_coords = [coord for coord in coords if coord.alt >= np.deg2rad(self._limiting_altitude)]
 
         return filtered_coords
