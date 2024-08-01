@@ -15,7 +15,6 @@ from pyobs_cloudcover.world_model import WorldModel
 class Application(Module):
     def __init__(self,
                  image_sender: str,
-                 model: Dict[str, Any],
                  server: Dict[str, Any],
                  measurement_log: Dict[str, Any],
                  pipelines: Dict[str, Dict[str, Any]]) -> None:
@@ -24,14 +23,12 @@ class Application(Module):
 
         self._image_sender = image_sender
 
-        world_model: WorldModel = get_object(model, WorldModel)
-
         server_factory = ServerFactory(self.observer)
         self._server = server_factory(server)
 
         self._measurement_log = Influx(**measurement_log)
 
-        pipeline_controller_factory = PipelineControllerFactory(self.observer, world_model)
+        pipeline_controller_factory = PipelineControllerFactory(self.observer)
         self._pipeline_controller = pipeline_controller_factory(pipelines)
 
     async def open(self) -> None:

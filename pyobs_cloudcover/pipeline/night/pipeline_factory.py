@@ -1,4 +1,5 @@
 from astroplan import Observer
+from pyobs.object import get_object
 
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_map_generator_factory import AltAzMapGeneratorFactory
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_factory import CatalogConstructorFactory
@@ -13,13 +14,13 @@ from pyobs_cloudcover.world_model import WorldModel
 
 
 class NightPipelineFactory(object):
-    def __init__(self, observer: Observer, model: WorldModel):
+    def __init__(self, observer: Observer):
         self._observer = observer
-        self._model = model
 
     def __call__(self, options: NightPipelineOptions) -> NightPipeline:
+        model = get_object(options.model_options, WorldModel)
         preprocessor_factory = PreprocessorFactory(options.preprocessor_options)
-        catalog_constructor_factory = CatalogConstructorFactory(options.catalog_options, self._model, self._observer)
+        catalog_constructor_factory = CatalogConstructorFactory(options.catalog_options, model, self._observer)
         altaz_map_generator_factory = AltAzMapGeneratorFactory(options.altaz_grid_options)
         reverse_matcher_factory = StarReverseMatcherFactory(options.star_matcher_options)
         lim_mag_map_generator_factory = LimMagnitudeMapGeneratorFactory(options.lim_mag_map_generator_options)

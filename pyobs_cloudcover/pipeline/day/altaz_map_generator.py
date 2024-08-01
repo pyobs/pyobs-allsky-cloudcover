@@ -30,7 +30,7 @@ class AltAzMapGenerator:
             ]
 
     def _alt_az_convert(self, alt_az_coords: Tuple[float, float]) -> Optional[AltAzCoord]:
-        if alt_az_coords[0] < np.deg2rad(self._limiting_altitude):
+        if alt_az_coords[0] < np.deg2rad(self._limiting_altitude) or np.isnan(alt_az_coords[0]) or np.isnan(alt_az_coords[1]):
             return None
         else:
             return AltAzCoord(*alt_az_coords)

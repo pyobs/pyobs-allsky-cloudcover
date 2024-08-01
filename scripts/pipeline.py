@@ -6,7 +6,7 @@ import numpy as np
 from astroplan import Observer
 
 from data_loader.sun_alt_date_filter import SunAltDateFilter
-from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_map_generator import AltAzMapGenerator
+from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
 from pyobs_cloudcover.cloud_info_calculator import CoverageCalculator

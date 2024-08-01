@@ -7,7 +7,7 @@ from astroplan import Observer
 
 
 class SunMasker:
-    SUN_APPARENT_SIZE = np.rad2deg(0.54)
+    SUN_APPARENT_SIZE = np.deg2rad(0.54)
 
     def __init__(self, observer: Observer):
         self._observer = observer

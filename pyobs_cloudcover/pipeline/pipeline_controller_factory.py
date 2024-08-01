@@ -13,10 +13,10 @@ from pyobs_cloudcover.world_model import WorldModel
 
 
 class PipelineControllerFactory(object):
-    def __init__(self, observer: Observer, model: WorldModel):
+    def __init__(self, observer: Observer):
         self._observer = observer
-        self._night_pipeline_factory = NightPipelineFactory(observer, model)
-        self._day_pipeline_factory = DayPipelineFactory(model, observer)
+        self._night_pipeline_factory = NightPipelineFactory(observer)
+        self._day_pipeline_factory = DayPipelineFactory(observer)
 
     def __call__(self, pipline_configs: Dict[str, Dict[str, Any]]) -> PipelineController:
         pipelines: List[Pipeline] = []

@@ -15,9 +15,6 @@ def test_night_pipeline() -> None:
     observer = Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)
     obs_time = datetime.datetime(2024, 3, 9, 1, 48, 48, 297970)
 
-    model_parameters = [4.81426598e-03, 2.00000000e+00, 1.06352627e+03, 7.57115607e+02, 5.11194838e+02]
-    model = SimpleModel(*model_parameters)
-
     stars = np.loadtxt('tests/integration/matches_small_20240308.csv', delimiter=",")
 
     image = np.zeros((2*1040, 2*1548))
@@ -26,6 +23,14 @@ def test_night_pipeline() -> None:
         image[int(star[2]), int(star[1])] = 10
 
     pipeline_kwargs = {
+        "world_model": {
+            "class": "pyobs_cloudcover.world_model.SimpleModel",
+            "a0": 4.81426598e-03,
+            "F": 2.00000000e+00,
+            "R": 1.06352627e+03,
+            "c_x": 7.57115607e+02,
+            "c_y": 5.11194838e+02
+        },
         "preprocessor": {
             "mask_filepath": "tests/integration/mask.npy",
             "bin_size": 2,
@@ -62,6 +67,6 @@ def test_night_pipeline() -> None:
     }
 
     pipeline_options = NightPipelineOptions.from_dict(pipeline_kwargs)
-    pipeline_factory = NightPipelineFactory(observer, model)
+    pipeline_factory = NightPipelineFactory(observer)
     pipeline = pipeline_factory(pipeline_options)
     pipeline(image, obs_time)

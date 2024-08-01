@@ -7,7 +7,7 @@ from astropy.visualization import PercentileInterval
 import astropy.units as u
 from pyobs.images import Image
 
-from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_map_generator import AltAzMapGenerator
+from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
 from pyobs_cloudcover.cloud_info_calculator import CoverageCalculator
