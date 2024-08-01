@@ -1,14 +1,11 @@
 import datetime
 
+import astropy.units as u
 import numpy as np
 from astroplan import Observer
 
-import astropy.units as u
-
-from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
 from pyobs_cloudcover.pipeline.night.pipeline_factory import NightPipelineFactory
 from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
-from pyobs_cloudcover.world_model import SimpleModel
 
 
 def test_night_pipeline() -> None:
