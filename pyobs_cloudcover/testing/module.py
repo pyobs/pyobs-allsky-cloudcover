@@ -28,12 +28,11 @@ class TestModule(Module):
         self._zenith_fraction = zenith_fraction
         self._zenith_value = zenith_value
 
-        #self.add_background_task(self.start, restart=False, autostart=True)
+        self.add_background_task(self.start, restart=False, autostart=True)
 
     async def open(self) -> None:
         await Module.open(self)
 
-        await self.start()
 
     async def start(self) -> None:
         with InfluxDb2Container(
