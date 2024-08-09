@@ -11,17 +11,17 @@ class Server(object):
         self._url = url
         self._port = port
 
-        app = web.Application()
-        app.add_routes([web.get("/query/point", self._point_query)])
-        app.add_routes([web.get("/query/area", self._area_query)])
-        self._runner = web.AppRunner(app)
+        self._app = web.Application()
+        self._app.add_routes([web.get("/query/point", self._point_query)])
+        self._app.add_routes([web.get("/query/area", self._area_query)])
 
     def set_measurement(self, measurement: CloudCoverageInfo) -> None:
         self._query_executor.set_measurement(measurement)
 
     async def start(self) -> None:
-        await self._runner.setup()
-        site = web.TCPSite(self._runner, 'localhost', self._port)
+        runner = web.AppRunner(self._app)
+        await runner.setup()
+        site = web.TCPSite(runner, 'localhost', self._port)
         await site.start()
 
     async def _point_query(self, request: web.Request) -> web.Response:

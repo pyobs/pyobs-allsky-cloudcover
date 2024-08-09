@@ -10,12 +10,6 @@ from cloudmap_rs import AltAzCoord, SkyPixelQuery
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.web_api.coverage_query_executor import CoverageQueryExecutor
 
-
-@pytest.fixture()
-def observer():
-    return Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)
-
-
 @pytest.fixture()
 def obs_time():
     return datetime.datetime(2024, 3, 9, 1, 48, 48, 297970)

@@ -16,6 +16,7 @@ pytest = "^7.4.0"
 pytest-cov = "^4.1.0"
 pytest-mock = "^3.11.1"
 pytest-asyncio = "^0.21.1"
+pytest-aiohttp = "^1.0.5"
 mypy = "1.9.0"
 
 [tool.mypy]
@@ -49,6 +50,7 @@ test = [
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.11.1",
     "pytest-asyncio>=0.21.1",
+    "pytest-aiohttp>=1.0.5",
     "mypy>=1.9.0",
     "testcontainers[influxdb]>=4.7.1",
     "matplotlib"
