@@ -52,9 +52,10 @@ class Application(Module):
 
         measurement = self._pipeline_controller(image.data, obs_time)
 
-        log.debug(f"{measurement.total_cover}, {measurement.zenith_cover}, {measurement.change}")
-        log.info("Finished measurement!")
-
         if measurement is not None:
+            log.debug(f"{measurement.total_cover}, {measurement.zenith_cover}, {measurement.change}")
+
             self._server.set_measurement(measurement)
             self._measurement_log(measurement)
+
+        log.info("Finished measurement!")
