@@ -14,7 +14,7 @@ This pipeline estimates the limiting magnitude of each pixel based on the visibi
 
 ### Point Query
 Returns the cloudiness value of the analyzed sky position closest to the requested position. <br>
-**Route**: <br>
+**Routes**: <br>
 `/query/point?ra={Right ascension in degree}&dec={Declination in degree}` or <br>
 `/query/point?alt={Altitude in degree}&dec={Altitude in degree}`
 
@@ -32,9 +32,9 @@ Returns the cloudiness value of the analyzed sky position closest to the request
 ### Area Query
 Returns the cloud fraction within the requested great circle. 
 
-**Route**: <br>
-`/query/area?ra={Right ascension in degree}&dec={Declination in degree}&radius={Radius of the great circle in degree}` or <br>
-`/query/area?alt={Altitude in degree}&dec={Altitude in degree}&radius={Radius of the great circle in degree}`
+**Routes**: <br>
+`/query/area?ra={Right ascension in degree}&dec={Declination in degree}&radius={Radius in degree}` or <br>
+`/query/area?alt={Altitude in degree}&dec={Altitude in degree}&radius={Radius in degree}`
 
 **Example:** <br>
 `/query/area?alt=90.0&dec=0.0&radius=10.0`
