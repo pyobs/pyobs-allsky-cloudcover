@@ -3,23 +3,6 @@ class: pyobs_cloudcover.application.Application
 # Camera which images are used for cloud detection
 image_sender: "allskycam"
 
-# Astronomical solution
-# Possible models:
-#   Simple Model
-#     class: pyobs_cloudcover.world_model.SimpleModel
-#     parameters: (a0, F, R, c_x, c_y) see https://ui.adsabs.harvard.edu/abs/2019A&A...626A.105B
-#   WCS Model
-#     class: pyobs_cloudcover.world_model.WCSModel
-#     parameters:
-#       file_path: Path to FITS file containing WCS
-model:
-  class: pyobs_cloudcover.world_model.SimpleModel
-  a0: 4.81426598e-03
-  F: 2.00000000e+00
-  R: 1.06352627e+03
-  c_x: 7.57115607e+02
-  c_y: 5.11194838e+02
-
 # Web Service
 server:
   # Host Name
@@ -37,6 +20,39 @@ measurement_log:
 # Different image analysis pipelines can be used for different solar altitude intervals
 # Currently only the "night" pipeline is available, which works best after the astronomical dawn
 pipelines:
+  day:
+    alt_interval:
+      start: 18
+      end:
+
+    options:
+      # Astronomical solution
+      # Possible models:
+      #   Simple Model
+      #     class: pyobs_cloudcover.world_model.SimpleModel
+      #     parameters: (a0, F, R, c_x, c_y) see https://ui.adsabs.harvard.edu/abs/2019A&A...626A.105B
+      #   WCS Model
+      #     class: pyobs_cloudcover.world_model.WCSModel
+      #     parameters:
+      #       file_path: Path to FITS file containing WCS
+      world_model:
+        class: pyobs_cloudcover.world_model.SimpleModel
+        a0: 4.81426598e-03
+        F: 2.00000000e+00
+        R: 1.06352627e+03
+        c_x: 7.57115607e+02
+        c_y: 5.11194838e+02
+
+      # Filepath to the image mask
+      mask_filepath: "data/mask.npy"
+
+      cloud_map:
+        # Under which color ratio a pixel is considered cloudy (blue/red + blue/green)
+        threshold: 3.5
+
+      coverage_info:
+        # Altitude which is considered to be the lower boundary of the zenith to average for the zenith cloud fraction measurement (in degree)
+        zenith_altitude: 80
   night:
     # Solar altitude interval (in degree), in which this pipeline should be used
     alt_interval:
@@ -44,6 +60,23 @@ pipelines:
       end: -18
 
     options:
+      # Astronomical solution
+      # Possible models:
+      #   Simple Model
+      #     class: pyobs_cloudcover.world_model.SimpleModel
+      #     parameters: (a0, F, R, c_x, c_y) see https://ui.adsabs.harvard.edu/abs/2019A&A...626A.105B
+      #   WCS Model
+      #     class: pyobs_cloudcover.world_model.WCSModel
+      #     parameters:
+      #       file_path: Path to FITS file containing WCS
+      world_model:
+        class: pyobs_cloudcover.world_model.SimpleModel
+        a0: 4.81426598e-03
+        F: 2.00000000e+00
+        R: 1.06352627e+03
+        c_x: 7.57115607e+02
+        c_y: 5.11194838e+02
+
       preprocessor:
         # Filepath to the image mask
         mask_filepath: "tests/integration/mask.npy"
@@ -72,14 +105,23 @@ pipelines:
         # Rectangle around the calculated star position with 2 * window_size + 1 length, in which the star searched for (in px)
         window_size: 6.0
 
-      cloud_map:
+      # Determines at which celestial positions the limiting magnitude is evaluated
+      altaz_grid:
+        # Number of equidistant points on the hole celestial sphere
+        point_number: 100000
+        # Lower boundary for altitude
+        limiting_altitude: 30
+
+      lim_mag_map:
         # Radius in which to use stars for estimating the limiting magnitude (in degree)
         radius: 7.0
         # Number of consecutive images in which a star has to be visible to be considered visible for the limiting magnitude estimation
         integration_length: 1
 
-      coverage_info:
+      cloud_map:
         # Under which limiting magnitude a pixel is considered cloudy (in mag)
-        cloud_threshold: 5.5
-        # Radius around the zenith to average for the zenith cloud fraction measurement (in degree)
-        zenith_radius: 20
+        threshold: 5.5
+
+      coverage_info:
+        # Altitude which is considered to be the lower boundary of the zenith to average for the zenith cloud fraction measurement (in degree)
+        zenith_altitude: 80

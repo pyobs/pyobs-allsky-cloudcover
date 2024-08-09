@@ -12,7 +12,7 @@ class CloudInfoCalculatorFactory(object):
 
     def __call__(self) -> CoverageInfoCalculator:
         coverage_change_calculator = CoverageChangeCalculator()
-        zenith_masker = ZenithCloudCoverageCalculator(self._options.zenith_range)
+        zenith_masker = ZenithCloudCoverageCalculator(self._options.zenith_altitude)
         cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_change_calculator, zenith_masker)
 
         return cloud_coverage_info_calculator

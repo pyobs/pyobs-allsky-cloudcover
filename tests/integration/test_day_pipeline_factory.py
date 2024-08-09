@@ -35,7 +35,7 @@ def test_day_pipeline() -> None:
             "threshold": 3.5
         },
         "coverage_info": {
-            "zenith_range": 80
+            "zenith_altitude": 80
         }
     }
 
