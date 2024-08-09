@@ -39,7 +39,7 @@ class CoverageQueryExecutor(object):
         coord = SkyCoord(ra, dec, unit='deg', frame="icrs", location=self._observer.location, obstime=obs_time)
         coord = coord.altaz
 
-        return coord.alt.rad, coord.az.rad
+        return coord.alt.deg, coord.az.deg
 
     def point_query_altaz(self, alt: float, az: float) -> Optional[bool]:
         if self._cloud_query_info is None:
@@ -47,9 +47,30 @@ class CoverageQueryExecutor(object):
 
         cloud_query, obs_time = self._cloud_query_info
 
-        cloudiness = cloud_query.query_nearest_coordinate(AltAzCoord(alt, az))
+        cloudiness = cloud_query.query_nearest_coordinate(AltAzCoord(np.deg2rad(alt), np.deg2rad(az)))
 
         if cloudiness is None:
             return None
         else:
             return bool(cloudiness)
+
+    def area_query_radec(self, ra: float, dec: float, radius: float) -> Optional[float]:
+        if self._cloud_query_info is None:
+            return None
+        cloud_query, obs_time = self._cloud_query_info
+
+        alt, az = self._radec_to_altaz(ra, dec, obs_time)
+
+        return self.area_query_altaz(alt, az, radius)
+
+    def area_query_altaz(self, alt: float, az: float, radius: float) -> Optional[float]:
+        if self._cloud_query_info is None:
+            return None
+        cloud_query, obs_time = self._cloud_query_info
+
+        cloudiness = cloud_query.query_radius(AltAzCoord(np.deg2rad(alt), np.deg2rad(az)), np.deg2rad(radius))
+
+        if cloudiness is None:
+            return None
+        else:
+            return float(cloudiness)

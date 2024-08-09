@@ -22,13 +22,13 @@ def obs_time():
 
 
 
-def test_call_no_map(observer, obs_time):
+def test_point_radec_no_map(observer, obs_time):
     executor = CoverageQueryExecutor(observer)
 
     assert executor.point_query_radec(10, 10) is None
 
 
-def test_call(observer, obs_time) -> None:
+def test_point_radec(observer, obs_time) -> None:
     executor = CoverageQueryExecutor(observer)
     executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))  # type: ignore
 
@@ -38,7 +38,7 @@ def test_call(observer, obs_time) -> None:
     assert executor.point_query_radec(10, 10) is True
 
 
-def test_call_nan(observer, obs_time) -> None:
+def test_point_radec_nan(observer, obs_time) -> None:
     executor = CoverageQueryExecutor(observer)
     executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))  # type: ignore
 
@@ -46,3 +46,23 @@ def test_call_nan(observer, obs_time) -> None:
     executor.set_measurement(CloudCoverageInfo(cloud_query,  1, 2, 0.1, obs_time))
 
     assert executor.point_query_radec(10, 10) is None
+
+
+def test_area_radec(observer, obs_time) -> None:
+    executor = CoverageQueryExecutor(observer)
+    executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))  # type: ignore
+
+    cloud_query = SkyPixelQuery([AltAzCoord(0, 0)], [True])
+    executor.set_measurement(CloudCoverageInfo(cloud_query,  1, 2, 0.1, obs_time))
+
+    assert executor.area_query_radec(10, 10, 90) == 1.0
+
+
+def test_area_radec_nan(observer, obs_time) -> None:
+    executor = CoverageQueryExecutor(observer)
+    executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))  # type: ignore
+
+    cloud_query = SkyPixelQuery([AltAzCoord(0, 0)], [None])
+    executor.set_measurement(CloudCoverageInfo(cloud_query,  1, 2, 0.1, obs_time))
+
+    assert executor.area_query_radec(10, 10, 90) is None

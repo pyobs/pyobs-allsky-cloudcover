@@ -70,6 +70,7 @@ modules:
     total_fraction: 0.1
     zenith_fraction: 0.0
     zenith_value: False
+    zenith_average: 0.0
 
     comm:
       class: pyobs.comm.local.LocalComm
