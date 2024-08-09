@@ -103,11 +103,11 @@ class TestModule(Module):
             async with session.get(f"http://{url}:{port}/query/point?az=0.0&alt=90.0") as resp:
                 data = await resp.json()
 
-        np.testing.assert_almost_equal(data["value"], self._zenith_value, 2, err_msg="Wrong point query result!")
+        np.testing.assert_almost_equal(data["value"], self._zenith_value, 1, err_msg="Wrong point query result!")
 
     async def _check_area_query(self, url: str, port: int) -> None:
         async with aiohttp.ClientSession() as session:
             async with session.get(f"http://{url}:{port}/query/area?az=0.0&alt=90.0&radius=10.0") as resp:
                 data = await resp.json()
 
-        np.testing.assert_almost_equal(data["value"], self._zenith_average, 2, err_msg="Wrong area query result!")
+        np.testing.assert_almost_equal(data["value"], self._zenith_average, 1, err_msg="Wrong area query result!")

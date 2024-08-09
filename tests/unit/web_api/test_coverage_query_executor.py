@@ -49,7 +49,7 @@ def test_area_radec(observer, obs_time) -> None:
     cloud_query = SkyPixelQuery([AltAzCoord(0, 0)], [True])
     executor.set_measurement(CloudCoverageInfo(cloud_query,  1, 2, 0.1, obs_time))
 
-    assert executor.area_query_radec(10, 10, 90) == 1.0
+    assert executor.area_query_radec(10, 10, 90) == 100.0
 
 
 def test_area_radec_nan(observer, obs_time) -> None:

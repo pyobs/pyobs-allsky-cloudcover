@@ -44,7 +44,7 @@ Returns the cloud fraction within the requested great circle.
 | Field    | Type  | Description                                      |
 |----------|-------|--------------------------------------------------|
 | obs_time | float | Observation Unix time of the last analyzed image |
-| value    | float | Cloud fraction in the requested area             |
+| value    | float | Cloud fraction in the requested area in percent  |
 
 
 ## Configuration

@@ -73,4 +73,5 @@ class CoverageQueryExecutor(object):
         if cloudiness is None:
             return None
         else:
-            return float(cloudiness)
+            cloud_fraction = 100.0 * float(cloudiness)
+            return cloud_fraction
