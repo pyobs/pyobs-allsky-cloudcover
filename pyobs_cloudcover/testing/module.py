@@ -20,7 +20,8 @@ class TestModule(Module):
     _INFLUX_ORG = "IAG"
     _INFLUX_BUCKET = "allsky"
 
-    def __init__(self, image_path: str, total_fraction: float, zenith_fraction: float, zenith_value: bool, *args: Any, **kwargs: Any) -> None:
+    def __init__(self, image_path: str, total_fraction: float, zenith_fraction: float, zenith_value: bool, *args: Any,
+                 **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         self._image_path = image_path
 
@@ -33,17 +34,15 @@ class TestModule(Module):
     async def open(self) -> None:
         await Module.open(self)
 
-
     async def start(self) -> None:
         with InfluxDb2Container(
-            init_mode="setup",
-            admin_token=self._INFLUX_TOKEN,
-            org_name=self._INFLUX_ORG,
-            bucket=self._INFLUX_BUCKET,
-            username="test",
-            password="5_B2D_Y-Y7hL"  # "Valid" pwd needed here, otherwise the Container won't start
+                init_mode="setup",
+                admin_token=self._INFLUX_TOKEN,
+                org_name=self._INFLUX_ORG,
+                bucket=self._INFLUX_BUCKET,
+                username="test",
+                password="5_B2D_Y-Y7hL"  # "Valid" pwd needed here, otherwise the Container won't start
         ) as influx:
-
             self._override_measurement_log(influx)
 
             await self._submit_image()
@@ -93,7 +92,7 @@ class TestModule(Module):
         port = cloud_cover._server._port
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"http://{url}:{port}/query?ra=0.0&dec=90.0") as resp:
+            async with session.get(f"http://{url}:{port}/query/point?ra=0.0&dec=90.0") as resp:
                 data = await resp.json()
 
         assert data["value"] == self._zenith_value

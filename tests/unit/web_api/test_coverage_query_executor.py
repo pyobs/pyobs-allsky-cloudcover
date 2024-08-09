@@ -25,7 +25,7 @@ def obs_time():
 def test_call_no_map(observer, obs_time):
     executor = CoverageQueryExecutor(observer)
 
-    assert executor(10, 10) is None
+    assert executor.point_query_radec(10, 10) is None
 
 
 def test_call(observer, obs_time) -> None:
@@ -35,7 +35,7 @@ def test_call(observer, obs_time) -> None:
     cloud_query = SkyPixelQuery([AltAzCoord(0, 0)], [True])
     executor.set_measurement(CloudCoverageInfo(cloud_query,  1, 2, 0.1, obs_time))
 
-    assert executor(10, 10) is True
+    assert executor.point_query_radec(10, 10) is True
 
 
 def test_call_nan(observer, obs_time) -> None:
@@ -45,4 +45,4 @@ def test_call_nan(observer, obs_time) -> None:
     cloud_query = SkyPixelQuery([AltAzCoord(0, 0)], [None])
     executor.set_measurement(CloudCoverageInfo(cloud_query,  1, 2, 0.1, obs_time))
 
-    assert executor(10, 10) is None
+    assert executor.point_query_radec(10, 10) is None

@@ -25,7 +25,7 @@ class CoverageQueryExecutor(object):
         obs_time: datetime.datetime = self._cloud_query_info[1]
         return obs_time.timestamp()
 
-    def __call__(self, ra: float, dec: float) -> Optional[bool]:
+    def point_query_radec(self, ra: float, dec: float) -> Optional[bool]:
         if self._cloud_query_info is None:
             return None
 
@@ -33,15 +33,23 @@ class CoverageQueryExecutor(object):
 
         alt, az = self._radec_to_altaz(ra, dec, obs_time)
 
-        cloudiness = cloud_query.query_nearest_coordinate(AltAzCoord(alt, az))
-
-        if cloudiness is None:
-            return None
-        else:
-            return bool(cloudiness)
+        return self.point_query_altaz(alt, az)
 
     def _radec_to_altaz(self, ra: float, dec: float, obs_time: datetime.datetime) -> Tuple[float, float]:
         coord = SkyCoord(ra, dec, unit='deg', frame="icrs", location=self._observer.location, obstime=obs_time)
         coord = coord.altaz
 
         return coord.alt.rad, coord.az.rad
+
+    def point_query_altaz(self, alt: float, az: float) -> Optional[bool]:
+        if self._cloud_query_info is None:
+            return None
+
+        cloud_query, obs_time = self._cloud_query_info
+
+        cloudiness = cloud_query.query_nearest_coordinate(AltAzCoord(alt, az))
+
+        if cloudiness is None:
+            return None
+        else:
+            return bool(cloudiness)
