@@ -16,6 +16,7 @@ pytest = "^7.4.0"
 pytest-cov = "^4.1.0"
 pytest-mock = "^3.11.1"
 pytest-asyncio = "^0.21.1"
+pytest-aiohttp = "^1.0.5"
 mypy = "1.9.0"
 
 [tool.mypy]
@@ -39,7 +40,8 @@ dynamic = ["version"]
 
 dependencies = [
     "pyobs-core[full]>=1.13.4",
-    "influxdb-client>=1.42.0"
+    "influxdb-client>=1.42.0",
+    "opencv-python>= 4.8.0.76"
 ]
 
 [project.optional-dependencies]
@@ -48,6 +50,7 @@ test = [
     "pytest-cov>=4.1.0",
     "pytest-mock>=3.11.1",
     "pytest-asyncio>=0.21.1",
+    "pytest-aiohttp>=1.0.5",
     "mypy>=1.9.0",
     "testcontainers[influxdb]>=4.7.1",
     "matplotlib"

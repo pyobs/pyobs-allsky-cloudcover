@@ -1,0 +1,94 @@
+class: pyobs.modules.MultiModule
+
+shared:
+  world:
+    class: pyobs.utils.simulation.SimWorld
+    time: "2020-10-21 22:00:00"
+
+
+modules:
+  cloudcover:
+    class: pyobs_cloudcover.application.Application
+
+    image_sender: "tester"
+
+    server:
+      url: "localhost"
+      port: 8080
+
+    # This is overridden by the test module
+    measurement_log:
+      url: ""
+      bucket: ""
+      org: ""
+      token: ""
+
+    pipelines:
+      night:
+        alt_interval:
+          start:
+          end: -18
+
+        options:
+          world_model:
+            class: pyobs_cloudcover.world_model.WCSModel
+            file_path: "data/test_wcs.fits"
+
+          preprocessor:
+            mask_filepath: ""
+            bin_size: 2
+
+          catalog:
+            filepath: "data/catalog_v50.csv"
+            filter:
+              alt: 30.0
+              v_mag: 7.0
+              distance: 0.0
+
+          reverse_matcher:
+            sigma_threshold: 4.0
+            window_size: 10.0
+          altaz_grid:
+            point_number: 100000
+            limiting_altitude: 30
+          lim_mag_map:
+            radius: 7.0
+            integration_length: 1
+          cloud_map:
+            threshold: 5.5
+
+          coverage_info:
+            zenith_altitude: 80
+
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: "cloudcover"
+
+  tester:
+    class: pyobs_cloudcover.testing.TestModule
+    image_path: "data/test_night_image.fits"
+    total_fraction: 0.1
+    zenith_fraction: 0.0
+    zenith_value: False
+    zenith_average: 0.0
+
+    comm:
+      class: pyobs.comm.local.LocalComm
+      name: "tester"
+
+vfs:
+  class: pyobs.vfs.VirtualFileSystem
+  roots:
+    cache:
+      class: pyobs.vfs.MemoryFile
+      #root: .
+
+comm:
+  class: pyobs.comm.local.LocalComm
+  name: multi
+
+timezone: Europe/Berlin
+location:
+    longitude: 9.944333
+    latitude: 51.560583
+    elevation: 201.0000000008158

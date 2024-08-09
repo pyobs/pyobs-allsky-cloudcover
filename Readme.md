@@ -12,13 +12,39 @@ This pipeline estimates the limiting magnitude of each pixel based on the visibi
 
 ## Web Service
 
-Route: `/query?ra={Right ascension in degree}&dec={Declination in degree}`
+### Point Query
+Returns the cloudiness value of the analyzed sky position closest to the requested position. <br>
+**Routes**: <br>
+`/query/point?ra={Right ascension in degree}&dec={Declination in degree}` or <br>
+`/query/point?alt={Altitude in degree}&az={Azimuth in degree}`
 
-### Result
-| Field    | Type  | Description                                     |
-|----------|-------|-------------------------------------------------|
+**Example:** <br>
+`/query/point?alt=90.0&az=0.0`
+
+
+**Result:**
+
+| Field    | Type  | Description                                      |
+|----------|-------|--------------------------------------------------|
 | obs_time | float | Observation Unix time of the last analyzed image |
-| value    | float | Limiting magnitude in mag                       |
+| value    | bool  | If it is cloudy at the requested point           |
+
+### Area Query
+Returns the cloud fraction within the requested great circle. 
+
+**Routes**: <br>
+`/query/area?ra={Right ascension in degree}&dec={Declination in degree}&radius={Radius in degree}` or <br>
+`/query/area?alt={Altitude in degree}&az={Azimuth in degree}&radius={Radius in degree}`
+
+**Example:** <br>
+`/query/area?alt=90.0&az=0.0&radius=10.0`
+
+**Result:**
+
+| Field    | Type  | Description                                      |
+|----------|-------|--------------------------------------------------|
+| obs_time | float | Observation Unix time of the last analyzed image |
+| value    | float | Cloud fraction in the requested area in percent  |
 
 
 ## Configuration
