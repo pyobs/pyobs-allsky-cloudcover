@@ -18,9 +18,9 @@ class CoverageQueryExecutor(object):
     def set_measurement(self, measurement: CloudCoverageInfo) -> None:
         self._cloud_query_info = (measurement.cloud_cover_query, measurement.obs_time)
 
-    def get_obs_time(self) -> float:
+    def get_obs_time(self) -> Optional[float]:
         if self._cloud_query_info is None:
-            raise ValueError("Measurement has not been set yet!")
+            return None
 
         obs_time: datetime.datetime = self._cloud_query_info[1]
         return obs_time.timestamp()
