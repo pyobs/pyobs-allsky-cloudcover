@@ -20,7 +20,7 @@ class DayPipelineFactory(object):
         mask = np.load(options.mask_filepath)
         alt_az_generator = AltAzMapGenerator(model, 0)
         cloud_map_generator_factory = CloudMapGeneratorFactory(options.cloud_map)
-        sun_masker = SunMasker(self._observer)
+        sun_masker = SunMasker(options.sun_apparent_size, self._observer)
         coverage_info_calculator_factory = CloudInfoCalculatorFactory(options.coverage_info)
 
         return DayPipeline(mask, alt_az_generator, cloud_map_generator_factory(), sun_masker, coverage_info_calculator_factory())

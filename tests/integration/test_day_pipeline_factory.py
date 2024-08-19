@@ -31,6 +31,7 @@ def test_day_pipeline() -> None:
             "c_y": 5.11194838e+01
         },
         "mask_filepath": "tests/integration/small_dummy_mask.npy",
+        "sun_apparent_size": 0.54,
         "cloud_map": {
             "threshold": 3.5
         },

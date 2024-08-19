@@ -27,7 +27,7 @@ def test_day_pipeline() -> None:
 
     alt_az_generator = AltAzMapGenerator(model, 20)
     cloud_map_gen = CloudMapGenerator(3.0)
-    sun_masker = SunMasker(observer)
+    sun_masker = SunMasker(0.54, observer)
 
     coverage_change_calculator = CoverageChangeCalculator()
     zenith_masker = ZenithCloudCoverageCalculator(80)
