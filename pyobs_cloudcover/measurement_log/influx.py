@@ -9,7 +9,7 @@ from pyobs_cloudcover.measurement_log.measurement_log import MeasurementLog
 
 
 class Influx(MeasurementLog):
-    def __init__(self, url: str, bucket: str, org: str, token: str) -> None:
+    def __init__(self, url: str, bucket: str, org: str, token: str, measurement_name: str) -> None:
         self._client = influxdb_client.InfluxDBClient(
             url=url,
             token=token,
@@ -17,9 +17,10 @@ class Influx(MeasurementLog):
         )
         self._bucket = bucket
         self._org = org
+        self._measurement_name = measurement_name
 
     def __call__(self, measurement: CloudCoverageInfo) -> None:
-        data = influxdb_client.Point("measurement")
+        data = influxdb_client.Point(self._measurement_name)
 
         data.time(measurement.obs_time)
 

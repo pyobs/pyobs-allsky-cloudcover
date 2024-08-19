@@ -22,6 +22,7 @@ modules:
       bucket: ""
       org: ""
       token: ""
+      measurement_name: "measurement"
 
     pipelines:
       day:

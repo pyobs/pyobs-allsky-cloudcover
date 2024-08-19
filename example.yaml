@@ -16,6 +16,7 @@ measurement_log:
   bucket: ""
   org: ""
   token: ""
+  measurement_name: "measurement"
 
 # Different image analysis pipelines can be used for different solar altitude intervals
 # Currently only the "night" pipeline is available, which works best after the astronomical dawn

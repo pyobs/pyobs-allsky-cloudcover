@@ -16,7 +16,7 @@ def test_call():
     obs_time = datetime.datetime(2020, 1, 1, 0, 0, 0)
     measurement = CloudCoverageInfo(np.array([]), 0, 1, 0.1, obs_time)
 
-    measurement_log = Influx("", "bucket", "org", "token")
+    measurement_log = Influx("", "bucket", "org", "token", "measurement")
 
     measurement_log(measurement)
 
