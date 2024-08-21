@@ -60,7 +60,7 @@ modules:
             c_y: 5.11194838e+02
 
           mask_filepath: "data/mask.npy"
-
+          sun_apparent_size: 0.54
           cloud_map:
             threshold: 3.5
 

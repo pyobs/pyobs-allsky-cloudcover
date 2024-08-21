@@ -71,6 +71,9 @@ pipelines:
         # Under which color ratio a pixel is considered cloudy (blue/red + blue/green)
         threshold: 3.5
 
+      # Apparent size of the sun in the allsky image in degree
+      sun_apparent_size: 0.54
+
       coverage_info:
         # Altitude which is considered to be the lower boundary of the zenith to average for the zenith cloud fraction measurement (in degree)
         zenith_altitude: 80
