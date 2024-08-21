@@ -77,6 +77,8 @@ modules:
           cloud_map:
             threshold: 5.5
 
+          moon_apparent_size: 10.0
+
           coverage_info:
             zenith_altitude: 80
 

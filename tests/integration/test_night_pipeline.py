@@ -13,6 +13,7 @@ from pyobs_cloudcover.cloud_info_calculator import ZenithCloudCoverageCalculator
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
 from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import \
     LimMagnitudeMapGenerator
+from pyobs_cloudcover.pipeline.night.moon_masker import MoonMasker
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
 from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
@@ -53,9 +54,11 @@ def test_night_pipeline() -> None:
     cloud_map_gen = CloudMapGenerator(0.5)
     lim_mag_map_generator = LimMagnitudeMapGenerator(50.0)
 
+    moon_masker = MoonMasker(10, observer)
+
     coverage_change_calculator = CoverageChangeCalculator()
     cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_change_calculator)
 
-    pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher, lim_mag_map_generator, cloud_map_gen, cloud_coverage_info_calculator)
+    pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher, lim_mag_map_generator, cloud_map_gen, moon_masker, cloud_coverage_info_calculator)
 
     pipeline(image, obs_time)
