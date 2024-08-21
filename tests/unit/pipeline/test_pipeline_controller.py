@@ -17,7 +17,7 @@ class MockPipeline(Pipeline):
 
     def __call__(self, image: npt.NDArray[np.float_], obs_time: datetime.datetime) -> CloudCoverageInfo:
         time = datetime.datetime(2024, 1, 1, 0, 0, 0)
-        return CloudCoverageInfo(np.array([]),  0.0, 1, 0.1, time)
+        return CloudCoverageInfo(np.array([]), 0.1, time)
 
 
 @pytest.fixture()

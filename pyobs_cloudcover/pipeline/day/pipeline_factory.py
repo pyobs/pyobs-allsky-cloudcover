@@ -21,6 +21,6 @@ class DayPipelineFactory(object):
         alt_az_generator = AltAzMapGenerator(model, 0)
         cloud_map_generator_factory = CloudMapGeneratorFactory(options.cloud_map)
         sun_masker = SunMasker(self._observer)
-        coverage_info_calculator_factory = CloudInfoCalculatorFactory(options.coverage_info)
+        coverage_info_calculator_factory = CloudInfoCalculatorFactory()
 
         return DayPipeline(mask, alt_az_generator, cloud_map_generator_factory(), sun_masker, coverage_info_calculator_factory())

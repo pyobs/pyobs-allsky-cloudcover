@@ -16,13 +16,32 @@ modules:
       url: "localhost"
       port: 8080
 
-    # This is overridden by the test module
     measurement_log:
-      url: ""
-      bucket: ""
-      org: ""
-      token: ""
-      measurement_name: "measurement"
+      # This is overridden by the test module
+      logger:
+        type: "influx"
+        url: ""
+        bucket: ""
+        org: ""
+        token: ""
+
+      measurements:
+        cloud_zenith:
+          - type: "zenith"
+            name: "cloudcover"
+            altitude: 80.0
+        cloud_total:
+          - type: "total"
+            name: "cloudcover"
+        coverage:
+          - type: "change"
+            name: "coverage-change"
+          - type: "sun"
+            name: "sun-coverage"
+            radius: 20.0
+          - type: "moon"
+            name: "moon-coverage"
+            radius: 20.0
 
     pipelines:
       night:

@@ -33,9 +33,6 @@ def test_day_pipeline() -> None:
         "mask_filepath": "tests/integration/small_dummy_mask.npy",
         "cloud_map": {
             "threshold": 3.5
-        },
-        "coverage_info": {
-            "zenith_altitude": 80
         }
     }
 

@@ -1,6 +1,5 @@
 from pyobs_cloudcover.cloud_info_calculator.coverage_info_calculator import CoverageInfoCalculator
-from pyobs_cloudcover.cloud_info_calculator.zenith_cloud_coverage_calculator import ZenithCloudCoverageCalculator
+from pyobs_cloudcover.measurement_log.field_evaluators.zenith_cloud_coverage_calculator import ZenithCloudCoverageCalculator
 from pyobs_cloudcover.cloud_info_calculator.cloud_info_calculator_factory import CloudInfoCalculatorFactory
-from pyobs_cloudcover.cloud_info_calculator.cloud_info_calculator_options import CloudInfoCalculatorOptions
 
-__all__ = ["CoverageInfoCalculator", "ZenithCloudCoverageCalculator", "CloudInfoCalculatorFactory", "CloudInfoCalculatorOptions"]
+__all__ = ["CoverageInfoCalculator", "ZenithCloudCoverageCalculator", "CloudInfoCalculatorFactory"]

@@ -12,11 +12,31 @@ server:
 
 # Influx DB
 measurement_log:
-  url: ""
-  bucket: ""
-  org: ""
-  token: ""
-  measurement_name: "measurement"
+  logger:
+    type: "influx"
+    url: ""
+    bucket: ""
+    org: ""
+    token: ""
+
+  measurements:
+    cloud_zenith:
+      - type: "zenith"
+        name: "cloudcover"
+        altitude: 80.0
+    cloud_total:
+      - type: "total"
+        name: "cloudcover"
+    coverage:
+      - type: "change"
+        name: "coverage-change"
+      - type: "sun"
+        name: "sun-coverage"
+        radius: 20.0
+      - type: "moon"
+        name: "moon-coverage"
+        radius: 20.0
+
 
 # Different image analysis pipelines can be used for different solar altitude intervals
 # Currently only the "night" pipeline is available, which works best after the astronomical dawn
