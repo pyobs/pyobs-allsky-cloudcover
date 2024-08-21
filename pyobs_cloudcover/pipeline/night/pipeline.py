@@ -13,6 +13,7 @@ from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator imp
 from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import LimMagnitudeMapGenerator
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
+from pyobs_cloudcover.pipeline.night.moon_masker import MoonMasker
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
 
 
@@ -24,6 +25,7 @@ class NightPipeline(Pipeline):
                  star_reverse_matcher: StarReverseMatcher,
                  lim_magnitude_map_generator: LimMagnitudeMapGenerator,
                  cloud_map_generator: CloudMapGenerator,
+                 moon_masker: MoonMasker,
                  coverage_info_calculator: CoverageInfoCalculator) -> None:
 
         self._preprocess = preprocess
@@ -32,6 +34,7 @@ class NightPipeline(Pipeline):
         self._alt_az_list_generator = alt_az_list_generator
         self._lim_magnitude_map_generator = lim_magnitude_map_generator
         self._cloud_map_generator = cloud_map_generator
+        self._moon_masker = moon_masker
         self._coverage_info_calculator = coverage_info_calculator
 
     def __call__(self, image: npt.NDArray[np.float_], obs_time: datetime.datetime) -> CloudCoverageInfo:
@@ -46,5 +49,6 @@ class NightPipeline(Pipeline):
         lim_mag_map = self._lim_magnitude_map_generator(catalog, matches, alt_az_list)
         cloud_map = self._cloud_map_generator(lim_mag_map)
         sky_query = SkyPixelQuery(alt_az_list, cloud_map)
+        sky_query = self._moon_masker(sky_query, obs_time)
 
         return self._coverage_info_calculator(sky_query, obs_time)

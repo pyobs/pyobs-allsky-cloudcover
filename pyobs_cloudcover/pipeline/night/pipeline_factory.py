@@ -6,6 +6,7 @@ from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_factory import 
 from pyobs_cloudcover.cloud_info_calculator import CloudInfoCalculatorFactory
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_factory import CloudMapGeneratorFactory
 from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator_factory import LimMagnitudeMapGeneratorFactory
+from pyobs_cloudcover.pipeline.night.moon_masker import MoonMasker
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
 from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor_factory import PreprocessorFactory
@@ -37,6 +38,7 @@ class NightPipelineFactory(object):
         lin_mag_map_generator = lim_mag_map_generator_factory()
         cloud_map_generator = cloud_map_generator_factory()
         coverage_info_calculator = coverage_info_calculator_factory()
+        moon_masker = MoonMasker(options.moon_apparent_size, self._observer)
 
         pipeline = NightPipeline(
             preprocessor,
@@ -45,6 +47,7 @@ class NightPipelineFactory(object):
             star_reverse_matcher,
             lin_mag_map_generator,
             cloud_map_generator,
+            moon_masker,
             coverage_info_calculator
         )
 

@@ -55,7 +55,9 @@ def test_night_pipeline() -> None:
         },
         "cloud_map": {
             "threshold": 0.5
-        }
+        },
+
+        "moon_apparent_size": 10.0
     }
 
     pipeline_options = NightPipelineOptions.from_dict(pipeline_kwargs)
