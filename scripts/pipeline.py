@@ -6,15 +6,16 @@ import numpy as np
 from astroplan import Observer
 
 from data_loader.sun_alt_date_filter import SunAltDateFilter
-from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
-from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
-from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
-from pyobs_cloudcover.cloud_info_calculator import CoverageCalculator
-from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import \
-    CoverageChangeCalculator
 from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
 from pyobs_cloudcover.cloud_info_calculator import ZenithCloudCoverageCalculator
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import LimMagnitudeMapGenerator
+from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import \
+    CoverageChangeCalculator
+from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
+from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
+from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
+from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import \
+    LimMagnitudeMapGenerator
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
 from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
@@ -45,29 +46,29 @@ def main() -> None:
     pipeline = build_pipeline(wcs_file, catalog_file, observer, (2080, 3096))
 
     coverage = []
-    average = []
-    std = []
     zenith_coverage = []
-    zenith_average = []
-    zenith_std = []
     change = []
     dates = []
+
+    times = []
+
     for image in image_loader:
+        start = datetime.datetime.now()
+
         obs_time = datetime.datetime.fromisoformat(image.header["DATE-OBS"])
         print(obs_time)
         coverage_info = pipeline(image.data, obs_time)
-
         coverage.append(coverage_info.total_cover)
-        average.append(coverage_info.average)
-        std.append(coverage_info.std)
         zenith_coverage.append(coverage_info.zenith_cover)
-        zenith_average.append(coverage_info.zenith_average)
-        zenith_std.append(coverage_info.zenith_std)
         change.append(coverage_info.change)
         dates.append(coverage_info.obs_time)
 
-    write_to_file(output, coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, dates)
+        end = datetime.datetime.now()
+        times.append((end - start).total_seconds())
 
+    write_to_file(output, coverage, zenith_coverage, change, dates)
+
+    print(np.average(times[0:]))
 
 def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeline:
     wcs_model_factory = WCSModelLoader(wcs_file)
@@ -80,20 +81,19 @@ def build_pipeline(wcs_file, catalog_file, observer, image_shape) -> NightPipeli
     altaz_catalog_loader = AltAzCatalogLoader.from_csv(catalog_file)
     catalog_constructor = CatalogConstructor(altaz_catalog_loader, model, observer, 30.0, 7.0, 4.0)
 
-    altaz_list_generator = AltAzMapGenerator(model, 30.0)
+    altaz_list_generator = SphericalAltAzGenerator(int(1e5), 30.0)
 
-    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(3.0, 4.0, 7e3), ImageWindow(10.0))
+    reverse_matcher = StarReverseMatcher(SigmaThresholdDetector(4.0, 4.0, 8e3), ImageWindow(6.0))
 
+    cloud_map_gen = CloudMapGenerator(5.5)
+    lim_mag_map_generator = LimMagnitudeMapGenerator(7.0)
 
-    cloud_map_gem = LimMagnitudeMapGenerator(7.0)
-    coverage_calculator = CoverageCalculator(5.5)
     coverage_change_calculator = CoverageChangeCalculator()
     zenith_masker = ZenithCloudCoverageCalculator(80)
-    cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator,
-                                                            zenith_masker)
+    cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_change_calculator, zenith_masker)
 
-    pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher, cloud_map_gem,
-                             cloud_coverage_info_calculator)
+    pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher,
+                             lim_mag_map_generator, cloud_map_gen, cloud_coverage_info_calculator)
 
     return pipeline
 
@@ -103,11 +103,11 @@ def parse_datetime(datetime_str: str) -> datetime.datetime:
     date = date.replace(tzinfo=None)
     return date
 
-def write_to_file(output_file: str, coverages, averages, stds, zenith_coverages, zenith_averages, zenith_stds, changes, dates) -> None:
+def write_to_file(output_file: str, coverages, zenith_coverages, changes, dates) -> None:
     lines = [
-        f"{date.isoformat()},{coverage},{average},{std},{zenith_coverage},{zenith_average},{zenith_std},{change}\n"
-        for coverage, average, std, zenith_coverage, zenith_average, zenith_std, change, date in
-        zip(coverages, averages, stds, zenith_coverages, zenith_averages, zenith_stds, changes, dates)
+        f"{date.isoformat()},{coverage},{zenith_coverage},{change}\n"
+        for coverage, zenith_coverage, change, date in
+        zip(coverages, zenith_coverages, changes, dates)
     ]
 
     with open(output_file, 'w+') as file:

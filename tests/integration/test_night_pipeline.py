@@ -54,8 +54,7 @@ def test_night_pipeline() -> None:
     lim_mag_map_generator = LimMagnitudeMapGenerator(50.0)
 
     coverage_change_calculator = CoverageChangeCalculator()
-    zenith_masker = ZenithCloudCoverageCalculator(80)
-    cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_change_calculator, zenith_masker)
+    cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_change_calculator)
 
     pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher, lim_mag_map_generator, cloud_map_gen, cloud_coverage_info_calculator)
 

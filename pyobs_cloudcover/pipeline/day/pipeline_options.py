@@ -2,14 +2,12 @@ from __future__ import annotations
 
 from typing import Dict, Any, cast
 
-from pyobs_cloudcover.cloud_info_calculator import CloudInfoCalculatorOptions
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_options import CloudMapGeneratorOptions
 
 
 class DayPipelineOptions:
-    def __init__(self, model_options: Dict[str, Any], mask_filepath: str, sun_apparent_size: float, cloud_map: CloudMapGeneratorOptions, coverage_info: CloudInfoCalculatorOptions) -> None:
+    def __init__(self, model_options: Dict[str, Any], mask_filepath: str, sun_apparent_size: float, cloud_map: CloudMapGeneratorOptions) -> None:
         self.model_options = model_options
-        self.coverage_info = coverage_info
         self.cloud_map = cloud_map
         self.mask_filepath = mask_filepath
         self.sun_apparent_size = sun_apparent_size
@@ -20,6 +18,5 @@ class DayPipelineOptions:
         mask_filepath = cast(str, options.get('mask_filepath'))
         sun_apparent_size = float(cast(float, options.get('sun_apparent_size')))
         cloud_map = CloudMapGeneratorOptions.from_dict(cast(Dict[str, Any], options.get('cloud_map')))
-        coverage_info = CloudInfoCalculatorOptions.from_dict(cast(Dict[str, Any], options.get('coverage_info')))
 
-        return DayPipelineOptions(model_options, mask_filepath, sun_apparent_size, cloud_map, coverage_info)
+        return DayPipelineOptions(model_options, mask_filepath, sun_apparent_size, cloud_map)

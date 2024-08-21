@@ -62,9 +62,6 @@ def test_night_pipeline() -> None:
                         },
                         "cloud_map": {
                             "threshold": 0.5
-                        },
-                        "coverage_info": {
-                            "zenith_altitude": 80
                         }
                     }
             }

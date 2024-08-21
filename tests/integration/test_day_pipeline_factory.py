@@ -34,9 +34,6 @@ def test_day_pipeline() -> None:
         "sun_apparent_size": 0.54,
         "cloud_map": {
             "threshold": 3.5
-        },
-        "coverage_info": {
-            "zenith_altitude": 80
         }
     }
 

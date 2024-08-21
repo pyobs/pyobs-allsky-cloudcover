@@ -3,6 +3,7 @@ from typing import List, Optional
 import numpy as np
 from cloudmap_rs import AltAzCoord, SkyPixelQuery
 
+from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.cloud_info_calculator import \
     ZenithCloudCoverageCalculator
 
@@ -19,4 +20,5 @@ def test_zenith_mask() -> None:
     pixels = [False, True, False, True, True, True, False, True, False]
 
     sky_query = SkyPixelQuery(alt_az_list, pixels)
-    assert calculator(sky_query) == 1
+    coverage_info = CloudCoverageInfo(sky_query, None, None)
+    assert calculator(coverage_info) == 1

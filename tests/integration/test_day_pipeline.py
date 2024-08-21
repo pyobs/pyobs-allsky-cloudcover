@@ -30,13 +30,11 @@ def test_day_pipeline() -> None:
     sun_masker = SunMasker(0.54, observer)
 
     coverage_change_calculator = CoverageChangeCalculator()
-    zenith_masker = ZenithCloudCoverageCalculator(80)
-    cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_change_calculator, zenith_masker)
+    cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_change_calculator)
 
     pipeline = DayPipeline(mask, alt_az_generator, cloud_map_gen, sun_masker, cloud_coverage_info_calculator)
 
     result = pipeline(image, obs_time)
 
-    np.testing.assert_almost_equal(result.total_cover, 1.0, decimal=3)
-    np.testing.assert_almost_equal(result.zenith_cover, 1.0, decimal=3)
+    assert result.change is None
 

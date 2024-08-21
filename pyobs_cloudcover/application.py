@@ -5,7 +5,8 @@ from typing import Dict, Any
 from pyobs.events import NewImageEvent, Event
 from pyobs.modules import Module
 
-from pyobs_cloudcover.measurement_log.influx import Influx
+from pyobs_cloudcover.measurement_log.logger_strategies.influx import Influx
+from pyobs_cloudcover.measurement_log.measurment_logger_factory import MeasurementLoggerFactory
 from pyobs_cloudcover.pipeline.pipeline_controller_factory import PipelineControllerFactory
 from pyobs_cloudcover.web_api.server_factory import ServerFactory
 
@@ -26,7 +27,8 @@ class Application(Module):
         server_factory = ServerFactory(self.observer)
         self._server = server_factory(server)
 
-        self._measurement_log = Influx(**measurement_log)
+        measurement_logger_factory = MeasurementLoggerFactory(self.observer)
+        self._measurement_log = measurement_logger_factory(measurement_log)
 
         pipeline_controller_factory = PipelineControllerFactory(self.observer)
         self._pipeline_controller = pipeline_controller_factory(pipelines)
@@ -53,8 +55,6 @@ class Application(Module):
         measurement = self._pipeline_controller(image.data, obs_time)
 
         if measurement is not None:
-            log.debug(f"{measurement.total_cover}, {measurement.zenith_cover}, {measurement.change}")
-
             self._server.set_measurement(measurement)
             self._measurement_log(measurement)
 

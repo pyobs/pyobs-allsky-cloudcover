@@ -63,9 +63,9 @@ class TestModule(Module):
         Therefore, the InfluxDB parameters are updated here manually.
         """
         cloud_cover: pyobs_cloudcover.application.Application = self.comm._network._clients["cloudcover"].module
-        cloud_cover._measurement_log._client, _ = influx.get_client(token=self._INFLUX_TOKEN)
-        cloud_cover._measurement_log._bucket = self._INFLUX_BUCKET
-        cloud_cover._measurement_log._org = self._INFLUX_ORG
+        cloud_cover._measurement_log._logger._client, _ = influx.get_client(token=self._INFLUX_TOKEN)   # type: ignore
+        cloud_cover._measurement_log._logger._bucket = self._INFLUX_BUCKET  # type: ignore
+        cloud_cover._measurement_log._logger._org = self._INFLUX_ORG    # type: ignore
 
     async def _submit_image(self) -> None:
         image = Image.from_file(self._image_path)
