@@ -79,9 +79,6 @@ modules:
 
           moon_apparent_size: 10.0
 
-          coverage_info:
-            zenith_altitude: 80
-
     comm:
       class: pyobs.comm.local.LocalComm
       name: "cloudcover"
