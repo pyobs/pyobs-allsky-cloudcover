@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pyobs-allsky-cloudcover"
-version = "1.2.0"
+version = "1.2.1"
 description = "Allsky Cloudcover Analyser"
 authors = ["germanhydrogen <admin@germanhydrogen.org>"]
 readme = "Readme.md"
