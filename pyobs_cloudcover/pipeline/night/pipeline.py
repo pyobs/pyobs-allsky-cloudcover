@@ -6,6 +6,7 @@ import numpy.typing as npt
 from cloudmap_rs import SkyPixelQuery
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
+from pyobs_cloudcover.cloud_plot.cloud_plotter import plot_clouds
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
 from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
@@ -51,4 +52,6 @@ class NightPipeline(Pipeline):
         sky_query = SkyPixelQuery(alt_az_list, cloud_map)
         sky_query = self._moon_masker(sky_query, obs_time)
 
-        return self._coverage_info_calculator(sky_query, obs_time)
+        cloud_plot = plot_clouds(alt_az_list, sky_query.get_pixels())
+
+        return self._coverage_info_calculator(sky_query, cloud_plot, obs_time)

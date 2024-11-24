@@ -7,7 +7,8 @@ readme = "Readme.md"
 packages = [{include = "pyobs_cloudcover"}]
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.12"
+python = ">=3.11,<3.13"
+matplotlib = "^3.9.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
@@ -39,7 +40,8 @@ dynamic = ["version"]
 dependencies = [
     "pyobs-core[full]>=1.13.4",
     "influxdb-client>=1.42.0",
-    "opencv-python>= 4.8.0.76"
+    "opencv-python>= 4.8.0.76",
+    "matplotlib"
 ]
 
 [project.optional-dependencies]
@@ -51,7 +53,6 @@ test = [
     "pytest-aiohttp>=1.0.5",
     "mypy>=1.9.0",
     "testcontainers[influxdb]>=4.7.1",
-    "matplotlib"
 ]
 
 [tool.maturin]

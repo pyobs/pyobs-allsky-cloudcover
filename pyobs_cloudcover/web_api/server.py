@@ -1,3 +1,5 @@
+from typing import Optional
+
 from aiohttp import web
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
@@ -14,9 +16,14 @@ class Server(object):
         self._app = web.Application()
         self._app.add_routes([web.get("/query/point", self._point_query)])
         self._app.add_routes([web.get("/query/area", self._area_query)])
+        self._app.add_routes([web.get("/cloud_map.png", self._image)])
+        self._app.add_routes([web.get("/cloud_map.html", self._image_site)])
+
+        self._cloud_plot: Optional[bytes] = None
 
     def set_measurement(self, measurement: CloudCoverageInfo) -> None:
         self._query_executor.set_measurement(measurement)
+        self._cloud_plot = measurement.cloud_plot
 
     async def start(self) -> None:
         runner = web.AppRunner(self._app)
@@ -64,3 +71,9 @@ class Server(object):
         obs_time = self._query_executor.get_obs_time()
 
         return web.json_response({'value': cover, 'obs_time': obs_time})
+
+    async def _image(self, _: web.Request) -> web.Response:
+        return web.Response(body=self._cloud_plot, content_type="image/png")
+
+    async def _image_site(self, _: web.Request) -> web.Response:
+        return web.Response(body=b'<html><img src="cloud_map.png"></html>', content_type="text/html")

@@ -62,7 +62,7 @@ modules:
           mask_filepath: "data/mask.npy"
           sun_apparent_size: 0.54
           cloud_map:
-            threshold: 3.5
+            threshold: 3.0
 
     comm:
       class: pyobs.comm.local.LocalComm
@@ -71,10 +71,10 @@ modules:
   tester:
     class: pyobs_cloudcover.testing.TestModule
     image_path: "data/test_day_image.fits"
-    total_fraction: 0.7
+    total_fraction: 0.3
     zenith_fraction: 0.02
-    zenith_value: False
-    zenith_average: 2.3
+    zenith_value: True
+    zenith_average: 5.8
 
     comm:
       class: pyobs.comm.local.LocalComm

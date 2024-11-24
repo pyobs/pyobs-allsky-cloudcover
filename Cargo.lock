@@ -203,7 +203,7 @@ dependencies = [
 
 [[package]]
 name = "pyobs-allsky-cloudcover"
-version = "0.1.0"
+version = "1.2.1"
 dependencies = [
  "ball-tree",
  "pyo3",
