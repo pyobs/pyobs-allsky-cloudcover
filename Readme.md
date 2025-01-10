@@ -46,6 +46,12 @@ Returns the cloud fraction within the requested great circle.
 | obs_time | float | Observation Unix time of the last analyzed image |
 | value    | float | Cloud fraction in the requested area in percent  |
 
+### Cloud Map Visualization
+Returns the visualized cloud map.
+
+**Routes**: <br>
+`/cloud_map.png`
+`/cloud_map.html`
 
 ## Configuration
 
