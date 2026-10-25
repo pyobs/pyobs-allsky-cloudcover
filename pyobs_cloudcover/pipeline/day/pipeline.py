@@ -74,7 +74,7 @@ class DayPipeline(Pipeline):
             self._alt_az_mask = on_sky
             self._grid = SkyGrid(alt[on_sky], az[on_sky])
 
-        sky_query = SkyPixelQuery(self._grid, cloud_map[self._alt_az_mask])
-        sky_query = self._sun_masker(sky_query, frame.obs_time)
+        sky_query = self._sun_masker(SkyPixelQuery(self._grid, cloud_map[self._alt_az_mask]), frame.obs_time)
+        ratio_query = self._sun_masker(SkyPixelQuery(self._grid, ratio[self._alt_az_mask]), frame.obs_time)
 
-        return self._coverage_info_calculator(sky_query, frame.obs_time)
+        return self._coverage_info_calculator(sky_query, frame.obs_time, ratio_query, "color_ratio", "day")

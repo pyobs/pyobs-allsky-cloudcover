@@ -64,7 +64,7 @@ class NightPipeline(Pipeline):
 
         lim_mag_map = self._lim_magnitude_map_generator(catalog, matches, grid)
         cloud_map = self._cloud_map_generator(lim_mag_map)
-        sky_query = SkyPixelQuery(grid, cloud_map)
-        sky_query = self._moon_masker(sky_query, obs_time)
+        sky_query = self._moon_masker(SkyPixelQuery(grid, cloud_map), obs_time)
+        lim_mag_query = self._moon_masker(SkyPixelQuery(grid, lim_mag_map), obs_time)
 
-        return self._coverage_info_calculator(sky_query, obs_time)
+        return self._coverage_info_calculator(sky_query, obs_time, lim_mag_query, "limiting_magnitude", "night")
