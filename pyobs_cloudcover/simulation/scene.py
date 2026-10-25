@@ -191,3 +191,25 @@ class SkyBrightness:
 
     def total(self, alt: FloatArray, az: FloatArray, eph: Ephemeris) -> FloatArray:
         return self.dark(alt, az) + self.moon(alt, az, eph) + self.twilight(alt, az, eph)
+
+
+# Raw-sensor-independent colour of the sunlit clear sky relative to green (Rayleigh: blue at the zenith and away
+# from the sun, white towards the horizon and around the sun)
+_BLUE_SKY = np.array([0.55, 1.0, 1.55])
+
+
+def daylight(eph: Ephemeris) -> float:
+    """0 at night, 1 in daylight, ramping up during twilight (sun -10 .. -2 deg)."""
+    return float(np.clip((np.rad2deg(eph.sun_alt) + 10) / 8, 0, 1))
+
+
+def sky_colour(alt: FloatArray, az: FloatArray, eph: Ephemeris) -> FloatArray:
+    """(3, ...) R, G, B weights of the clear sky relative to its V/green brightness."""
+    d = daylight(eph)
+    shape = np.shape(alt)
+    if d == 0:
+        return np.ones((3, *shape))
+    rho = angular_distance(alt, az, eph.sun_alt, eph.sun_az)
+    white = np.clip(np.exp(-np.clip(alt, 0, None) / np.deg2rad(12)) + np.exp(-rho / np.deg2rad(12)), 0, 1)
+    colour = _BLUE_SKY[:, None] * (1 - white.ravel()) + white.ravel()
+    return np.asarray((1 + d * (colour - 1)).reshape(3, *shape))

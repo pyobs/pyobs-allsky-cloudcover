@@ -194,7 +194,7 @@ PRESETS: dict[str, CameraProfile] = {
         header_style="indi",
         filename_format="ccd1_%Y%m%dT%H%M%S.fits",
     ),
-    # ZWO ASI178MM (mono, 14-bit stored as 16-bit), equidistant 1.4 mm lens, camera mounted rotated by
+    # ZWO ASI178MM (mono, 14-bit stored as 16-bit), stereographic 1.2 mm lens, camera mounted rotated by
     # 90 degrees. N.I.N.A.-style headers with DATE-LOC and millisecond DATE-OBS.
     "zwo-asi178mm": CameraProfile(
         name="zwo-asi178mm",
@@ -208,9 +208,9 @@ PRESETS: dict[str, CameraProfile] = {
         lens={
             "c_x": 1039.5,
             "c_y": 1547.5,
-            "f": 640.0,
+            "f": 500.0,
             "a0": np.deg2rad(180.0),
-            "projection": "equidistant",
+            "projection": "stereographic",
             "parity": -1,
         },
         gain=0.9,

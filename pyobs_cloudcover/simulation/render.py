@@ -28,16 +28,19 @@ from pyobs_cloudcover.simulation.scene import (
     SkyBrightness,
     SkyConditions,
     airmass,
+    daylight,
     mag_to_nl,
     moon_magnitude,
     nl_to_mag,
+    sky_colour,
 )
 from pyobs_cloudcover.simulation.truth import TRUTH_ALT, TRUTH_AZ, GroundTruth
 
 FloatArray = npt.NDArray[np.float64]
 
 ARCSEC2_PER_SR = (180 / np.pi * 3600) ** 2
-MOON_RADIUS = np.deg2rad(0.26)
+MOON_RADIUS = np.deg2rad(0.26)  # the sun's is about the same
+SUN_MAGNITUDE = -26.74
 VISIBLE_SNR = 5.0
 # fixed seed for synthetic faint stars, so they stay put on the celestial sphere between frames and runs
 FAINT_STAR_SEED = 20240308
@@ -81,6 +84,7 @@ class _Geometry:
     in_lens: npt.NDArray[np.bool_]
     vignetting: FloatArray
     channel_response: FloatArray  # per raw pixel
+    channel_index: npt.NDArray[np.intp]  # 0/1/2 = R/G/B per raw pixel (all 1 for mono)
 
 
 @dataclass
@@ -150,8 +154,16 @@ class Simulator:
                 in_lens=in_lens,
                 vignetting=vignetting,
                 channel_response=self._channel_response(),
+                channel_index=self._channel_index(),
             )
         return self._geometry
+
+    def _channel_index(self) -> npt.NDArray[np.intp]:
+        p = self.profile
+        if p.bayer is None:
+            return np.ones((p.height, p.width), dtype=np.intp)
+        cell = np.array([["RGB".index(c) for c in p.bayer[:2]], ["RGB".index(c) for c in p.bayer[2:]]])
+        return np.tile(cell, (p.height // 2 + 1, p.width // 2 + 1))[: p.height, : p.width]
 
     def _channel_response(self) -> FloatArray:
         p = self.profile
@@ -192,8 +204,15 @@ class Simulator:
         sky_alt = np.where(geo.in_lens, np.clip(geo.alt, 0, None), np.pi / 2)
         sky_az = np.where(geo.in_lens, geo.az, 0.0)
         clear = self._brightness.total(sky_alt, sky_az, eph)
-        cloud_light = self._cloud_brightness(sky_alt, sky_az, eph)
+        cloud_light = self._cloud_brightness(sky_alt, sky_az, eph, extinction)
         surface = clear * transmission + (1 - transmission) * cloud_light
+        colour = None
+        if p.is_color and daylight(eph) > 0:
+            # blue clear sky, white/grey clouds
+            sky_rgb = sky_colour(sky_alt, sky_az, eph)
+            with np.errstate(invalid="ignore", divide="ignore"):
+                colour = (clear * transmission * sky_rgb + (1 - transmission) * cloud_light) / surface
+            colour = np.nan_to_num(colour, nan=1.0)
         if self.horizon is not None:
             surface = np.where(obstructed, surface * self.horizon.brightness, surface)
         surface = np.where(geo.alt > 0, surface, surface * 0.02)  # ground below the horizon
@@ -207,7 +226,7 @@ class Simulator:
                 # like capture software: keep the median sky level at <= 15% of saturation
                 level = float(np.median(sky_rate[visible_sky])) if np.any(visible_sky) else 0.0
                 if level * exposure > 0.15 * p.saturation:
-                    exposure = max(1e-5, 0.15 * p.saturation / level)
+                    exposure = max(1e-6, 0.15 * p.saturation / level)
 
         sky_image = sky_rate * exposure
         image = sky_image.copy()
@@ -233,38 +252,15 @@ class Simulator:
 
         # the moon itself
         if eph.moon_alt > 0:
-            mx, my = self._model.altaz_to_pix(eph.moon_alt, eph.moon_az)
-            plate = (
-                float(
-                    self._model.radius(np.array(np.pi / 2 - eph.moon_alt + 1e-3))
-                    - self._model.radius(np.array(np.pi / 2 - eph.moon_alt))
-                )
-                / 1e-3
-            )
-            moon_flux = (
-                10
-                ** (
-                    -0.4
-                    * (
-                        moon_magnitude(eph.moon_phase_angle)
-                        + k * airmass(np.array(np.pi / 2 - eph.moon_alt))
-                        - p.zero_point
-                    )
-                )
-                * exposure
-            )
-            moon_ext = combined_extinction(self.clouds, np.array([eph.moon_alt]), np.array([eph.moon_az]), seconds)
-            _add_gaussians(
-                image,
-                np.array([mx]),
-                np.array([my]),
-                np.array([moon_flux * 10 ** (-0.4 * float(moon_ext[0]))]),
-                np.array([max(p.psf_fwhm / 2.3548, MOON_RADIUS * plate)]),
-            )
+            self._add_disc(image, eph.moon_alt, eph.moon_az, moon_magnitude(eph.moon_phase_angle), exposure, seconds)
+
+        # the sun itself
+        if eph.sun_alt > np.deg2rad(-1):
+            self._add_disc(image, eph.sun_alt, eph.sun_az, SUN_MAGNITUDE, exposure, seconds)
 
         # --- sensor
         rng = np.random.default_rng([self.seed, int(time.timestamp() * 1000) % 2**63])
-        signal = p.orientation.to_raw(image) * geo.channel_response
+        signal = self._raw_signal(image, sky_image, colour)
         dark = np.full(signal.shape, p.dark_current * exposure)
         dark[self._hot_y, self._hot_x] += self._hot_rate * exposure
         electrons = rng.poisson(np.clip(signal + dark, 0, 1e12)).astype(np.float64)
@@ -283,12 +279,41 @@ class Simulator:
         header = build_header(p, self.site, time, exposure)
         return SimulatedFrame(raw, header, truth, make_filename(p, self.site, time), time)
 
-    def _cloud_brightness(self, alt: FloatArray, az: FloatArray, eph: Ephemeris) -> FloatArray:
-        """Surface brightness of an opaque cloud: ground light, moonlight and twilight it reflects."""
+    def _cloud_brightness(self, alt: FloatArray, az: FloatArray, eph: Ephemeris, extinction: FloatArray) -> FloatArray:
+        """Surface brightness of a cloud: ground light, moonlight and sunlight it reflects. In daylight thin clouds
+        are brighter than the sky around them and thick ones darker grey."""
         base = mag_to_nl(self.sky.zenith_mag) * self.sky.cloud_ground_light
         # an opaque cloud lit by the full moon (~15.6 mag/arcsec^2) is ~15x brighter than the moonlit clear sky
         moon = self._brightness.moon(alt, az, eph) * 30 * self.sky.cloud_moon_albedo
-        return np.asarray(base + moon + self._brightness.twilight(alt, az, eph))
+        thickness = np.clip(extinction / 4, 0, 1)
+        sun = self._brightness.twilight(alt, az, eph) * (1.8 - 1.1 * thickness)
+        return np.asarray(base + moon + sun)
+
+    def _add_disc(
+        self, image: FloatArray, alt: float, az: float, magnitude: float, exposure: float, seconds: float
+    ) -> None:
+        """The sun or moon: a blob with the body's apparent size and brightness, dimmed by clouds."""
+        p = self.profile
+        x, y = self._model.altaz_to_pix(alt, az)
+        theta = np.array(np.pi / 2 - alt)
+        plate = float(self._model.radius(theta + 1e-3) - self._model.radius(theta)) / 1e-3
+        ext = float(combined_extinction(self.clouds, np.array([alt]), np.array([az]), seconds)[0])
+        flux = 10 ** (-0.4 * (magnitude + self.sky.extinction * airmass(theta) + ext - p.zero_point)) * exposure
+        sigma = max(p.psf_fwhm / 2.3548, MOON_RADIUS * plate)
+        _add_gaussians(image, np.array([x]), np.array([y]), np.array([float(flux)]), np.array([sigma]))
+
+    def _raw_signal(self, image: FloatArray, sky_image: FloatArray, colour: FloatArray | None) -> FloatArray:
+        """Electrons per raw pixel: canonical image -> raw orientation, through the Bayer filters."""
+        p, geo = self.profile, self.geometry()
+        if colour is None or not p.is_color:
+            return np.asarray(p.orientation.to_raw(image) * geo.channel_response)
+        # stars, moon and sun are white, the sky and clouds have the colour computed for them
+        point_sources = image - sky_image
+        signal = np.zeros((p.height, p.width))
+        for c in range(3):
+            channel = p.orientation.to_raw(sky_image * colour[c] + point_sources)
+            signal += np.where(geo.channel_index == c, channel, 0.0)
+        return signal * geo.channel_response
 
     def _star_positions(self, atime: Time) -> dict[str, FloatArray]:
         cat = self._catalog

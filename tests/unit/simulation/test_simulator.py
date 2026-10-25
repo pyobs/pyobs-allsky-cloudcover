@@ -193,3 +193,23 @@ def test_cli(tmp_path) -> None:  # type: ignore[no-untyped-def]
     # budget camera: local time (UTC+2) in the file name, nothing in the header
     assert images == ["allsky_20260321-000000.fits", "allsky_20260321-000200.fits"]
     assert len(list(tmp_path.glob("*.truth.npz"))) == 2
+
+
+def test_daytime_sun_and_blue_sky() -> None:
+    noon = datetime.datetime(2026, 3, 21, 10, 0, tzinfo=datetime.UTC)
+    sim = Simulator(get_preset("zwo-asi224mc", 0.25))
+    f = sim.render(noon)
+    meta = f.truth.metadata
+    assert meta["sun_alt"] > 40
+    assert meta["exposure"] < 0.001
+    canonical = sim.profile.orientation.to_canonical(f.raw.astype(float))
+    y, x = np.unravel_index(np.argmax(canonical), canonical.shape)
+    sx, sy = sim.world_model.altaz_to_pix(np.deg2rad(meta["sun_alt"]), np.deg2rad(meta["sun_az"]))
+    assert np.hypot(x - sx, y - sy) < 4  # the brightest spot is the sun
+    # zenith sky is bluer than a white light would be through the same filters
+    h, w = canonical.shape
+    zx, zy = (int(round(v)) // 2 * 2 for v in sim.world_model.altaz_to_pix(np.pi / 2, 0.0))
+    cell = canonical[zy : zy + 2, zx : zx + 2]
+    values = {sim.profile.bayer[2 * i + j]: cell[i, j] for i in range(2) for j in range(2)}  # type: ignore[index]
+    r, _, b = sim.profile.channel_response
+    assert values["B"] / values["R"] > 1.5 * b / r
