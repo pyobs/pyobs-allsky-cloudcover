@@ -102,3 +102,84 @@ def _pick(
     result[g[take]] = ordered[take]
     return result
 
+
+
+def robust_border_magnitude(
+    grid: SkyGrid,
+    star_alt: npt.NDArray[np.float64],
+    star_az: npt.NDArray[np.float64],
+    v_mag: npt.NDArray[np.float64],
+    found: npt.NDArray[np.bool_],
+    radius: float,
+    weight: WeightFunction | None = None,
+) -> npt.NDArray[np.float64]:
+    """Limiting magnitude as the cut that best separates seen from unseen stars within ``radius``.
+
+    For every position, the stars within ``radius`` are sorted by magnitude and the cut ``c`` is chosen that
+    minimises the weighted number of stars on the wrong side of it (seen but fainter than ``c``, or unseen but
+    brighter). The estimate is halfway between the stars either side of the best cut (the middle of the range
+    if several cuts are equally good). Unlike :func:`border_magnitude`, which only looks at the faintest seen
+    and brightest unseen star, a single false detection or missed star can't move the result far.
+
+    Edge cases match :func:`border_magnitude`: all stars seen gives the faintest magnitude, none seen the
+    brightest, no stars NaN.
+    """
+    if weight is None:
+        weight = exponential_weight(radius)
+    n = len(grid)
+    out = np.full(n, np.nan)
+    if n == 0 or len(v_mag) == 0:
+        return out
+
+    stars = SkyGrid(star_alt, star_az)
+    pairs = grid.tree.sparse_distance_matrix(stars.tree, angle_to_chord(radius), output_type="ndarray")
+    if len(pairs) == 0:
+        return out
+    distance = np.asarray(chord_to_angle(pairs["v"]), dtype=np.float64)
+    mag_all = np.asarray(v_mag, dtype=np.float64)[pairs["j"]]
+    order = np.lexsort((mag_all, pairs["i"]))
+    gi = pairs["i"][order]
+    mag = mag_all[order]
+    vis = np.asarray(found, dtype=np.bool_)[pairs["j"]][order]
+    w = weight(distance[order])
+
+    starts = np.flatnonzero(np.r_[True, gi[1:] != gi[:-1]])
+    groups = gi[starts]
+    counts = np.diff(np.r_[starts, len(gi)])
+    group_of = np.repeat(np.arange(len(starts)), counts)
+
+    # cost of cutting after star j (j counted within its group): seen stars fainter + unseen stars up to j
+    cum_seen = np.cumsum(w * vis)
+    cum_unseen = np.cumsum(w * ~vis)
+    before = np.r_[0.0, cum_seen][starts]
+    before_unseen = np.r_[0.0, cum_unseen][starts]
+    total_seen = np.add.reduceat(w * vis, starts)
+    seen_upto = cum_seen - before[group_of]
+    unseen_upto = cum_unseen - before_unseen[group_of]
+    cost_after = (total_seen[group_of] - seen_upto) + unseen_upto
+    cost_before_all = total_seen  # cut before the brightest star: every seen star is wrong
+
+    best_after = np.minimum.reduceat(cost_after, starts)
+    best = np.minimum(best_after, cost_before_all)
+    eps = 1e-9 * (1 + best)
+
+    # magnitude of each candidate cut: halfway to the next star, the last star itself at the end
+    next_mag = np.r_[mag[1:], np.nan]
+    is_last = np.r_[starts[1:] - 1, len(gi) - 1]
+    next_mag[is_last] = mag[is_last]
+    cut_mag = (mag + next_mag) / 2
+
+    # middle of the range of optimal cuts
+    optimal = cost_after <= (best + eps)[group_of]
+    first_cut = np.full(len(starts), np.nan)
+    last_cut = np.full(len(starts), np.nan)
+    idx = np.flatnonzero(optimal)
+    # cut_mag rises within a group, so min/max give the first/last optimal cut
+    np.fmin.at(first_cut, group_of[idx], cut_mag[idx])
+    np.fmax.at(last_cut, group_of[idx], cut_mag[idx])
+    before_is_optimal = cost_before_all <= best + eps
+    first_cut = np.where(before_is_optimal, mag[starts], first_cut)
+    last_cut = np.where(np.isnan(last_cut), mag[starts], last_cut)
+
+    out[groups] = (first_cut + last_cut) / 2
+    return out

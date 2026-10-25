@@ -3,7 +3,11 @@
 import numpy as np
 import pytest
 
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.border_magnitude import border_magnitude, legacy_weight
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.border_magnitude import (
+    border_magnitude,
+    legacy_weight,
+    robust_border_magnitude,
+)
 from pyobs_cloudcover.sky_query import SkyGrid
 
 ZENITH = SkyGrid([np.pi / 2], [0.0])
@@ -67,3 +71,34 @@ def test_nearer_stars_weigh_more() -> None:
         grid, alt, np.array([0.0, np.pi]), np.array([5.0, 6.0]), np.array([True, False]), np.deg2rad(7), legacy_weight
     )
     assert legacy[0] > 5.5
+
+
+def run_robust(mags: list[float], found: list[bool]) -> float:
+    n = len(mags)
+    alt = np.full(n, np.deg2rad(88.0))
+    az = np.linspace(0, 2 * np.pi, n, endpoint=False)
+    return float(robust_border_magnitude(ZENITH, alt, az, np.array(mags), np.array(found), np.deg2rad(5), uniform)[0])
+
+
+def test_robust_clean_border() -> None:
+    assert run_robust([1.0, 2.0, 3.0, 4.0, 5.0], [True, True, True, False, False]) == 3.5
+
+
+def test_robust_ignores_single_outliers() -> None:
+    mags = [1.0, 2.0, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5]
+    found = [True, True, True, True, False, False, False, False, True, False]  # one false detection at 6.0
+    assert run_robust(mags, found) == 3.75
+    # the plain border rule is dragged towards the outlier
+    assert run(mags, found) > 4.5
+
+
+def test_robust_edge_cases() -> None:
+    assert run_robust([2.0, 3.0], [True, True]) == 3.0
+    assert run_robust([2.0, 3.0], [False, False]) == 2.0
+    far = robust_border_magnitude(ZENITH, np.array([0.0]), np.array([0.0]), np.array([1.0]), np.array([True]), 0.1)
+    assert np.isnan(far[0])
+
+
+def test_robust_middle_of_equally_good_cuts() -> None:
+    # seen at 2, unseen at 3, seen at 4, unseen at 5: cuts after 2 and after 4 both misclassify one star
+    assert run_robust([2.0, 3.0, 4.0, 5.0], [True, False, True, False]) == (2.5 + 4.5) / 2
