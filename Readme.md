@@ -1,11 +1,19 @@
 # pyobs allsky cloudcover 
-[![Build](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/build.yml/badge.svg)](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/build.yml)
-[![Tests](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/tests.yaml/badge.svg)](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/tests.yaml)
+[![pytest](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/pytest.yml/badge.svg)](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/pytest.yml)
+[![ruff](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/ruff.yml/badge.svg)](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/ruff.yml)
+[![mypy](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/mypy.yml/badge.svg)](https://github.com/pyobs/pyobs-allsky-cloudcover/actions/workflows/mypy.yml)
 
 This module analyzes Allsky images for cloud cover and writes the (zenith) cloud fraction and cloud change into an Influx DB.
 It also includes a web service to query celestial positions for the limiting magnitude, which is calculated in an intermediate step.
 
 Best paired with: [pyobs-allsky](https://gitlab.gwdg.de/iag/k.schimpf/pyobs-allsky)
+
+## Installation
+
+Pure Python (3.11+), installed with [uv](https://docs.astral.sh/uv/):
+
+    uv sync
+    uv run pytest
 
 ## Documentation
 

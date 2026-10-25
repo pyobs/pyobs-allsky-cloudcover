@@ -6,11 +6,9 @@ writes the (zenith) cloud fraction and cloud change into InfluxDB. It also runs 
 service to query cloudiness at a given celestial position — see `Web service`_ below. Best paired
 with `pyobs-allsky <https://gitlab.gwdg.de/iag/k.schimpf/pyobs-allsky>`_.
 
-Unlike the rest of the driver-module fleet, this repo is Python + Rust (a
-`maturin <https://www.maturin.rs/>`_/PyO3 extension, see ``src/``) built with Poetry, not ``uv`` —
-one page still covers it, but there's no autoclass reference here: building the Rust extension
-just to import it for docs isn't worth the cost for a repo this size. See `Available classes`_
-below for a plain description instead.
+The package is pure Python, packaged with ``uv`` like the rest of the fleet. (Versions before 2.0
+shipped a Rust extension for the neighbour queries; it was replaced by NumPy/SciPy.) There's no
+autoclass reference yet; see `Available classes`_ below for a plain description instead.
 
 
 How it works
