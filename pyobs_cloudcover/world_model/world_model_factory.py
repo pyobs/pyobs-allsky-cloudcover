@@ -3,6 +3,7 @@ from typing import Any
 import pyobs.object
 from astroplan import Observer
 
+from pyobs_cloudcover.world_model.fisheye_model import FisheyeModel
 from pyobs_cloudcover.world_model.simple_model import SimpleModel
 from pyobs_cloudcover.world_model.wcs_model_loader import WCSModelLoader
 from pyobs_cloudcover.world_model.world_model import WorldModel
@@ -16,6 +17,9 @@ class WorldModelFactory:
         if world_model_config['class'] == 'pyobs_cloudcover.world_model.SimpleModel':
             model: SimpleModel = pyobs.object.get_object(world_model_config, SimpleModel)
             return model
+        if world_model_config["class"] == "pyobs_cloudcover.world_model.FisheyeModel":
+            fisheye: FisheyeModel = pyobs.object.get_object(world_model_config, FisheyeModel)
+            return fisheye
         if world_model_config['class'] == 'pyobs_cloudcover.world_model.WCSModel':
             wcs_model_loader = WCSModelLoader(world_model_config["file_path"])
             return wcs_model_loader()
