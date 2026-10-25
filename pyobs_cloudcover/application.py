@@ -1,6 +1,8 @@
 import asyncio
 import concurrent.futures
+import datetime
 import logging
+from pathlib import Path
 from typing import Any
 
 from pyobs.events import Event, NewImageEvent
@@ -12,6 +14,7 @@ from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.ingest.watcher import DirectoryWatcher
 from pyobs_cloudcover.measurement_log.measurment_logger_factory import MeasurementLoggerFactory
 from pyobs_cloudcover.pipeline.pipeline_controller_factory import PipelineControllerFactory
+from pyobs_cloudcover.status import ModuleStatus
 from pyobs_cloudcover.web_api.server_factory import ServerFactory
 
 log = logging.getLogger(__name__)
@@ -57,6 +60,9 @@ class Application(Module):
         self._latest: tuple[str, bool] | None = None
         self._new_image = asyncio.Event()
 
+        self._status = ModuleStatus()
+        self._server.set_status_provider(self._status.to_dict)
+
         self._watcher = DirectoryWatcher(watch, self._submit_file) if watch is not None else None
         if self._watcher is not None:
             self.add_background_task(self._watcher.run)
@@ -91,8 +97,10 @@ class Application(Module):
     def submit_image(self, filename: str, local: bool = False) -> None:
         """Queue an image (a pyobs VFS path, or a local file if ``local``) for analysis. Only the newest image is
         kept: if analysis falls behind, older images that haven't been started yet are skipped."""
+        self._status.received += 1
         if self._latest is not None:
             log.info("Skipping %s, a newer image arrived before it was analysed.", self._latest[0])
+            self._status.skipped += 1
             self._finished(*self._latest)
         self._latest = (filename, local)
         self._new_image.set()
@@ -127,19 +135,29 @@ class Application(Module):
             raw = await self._load(filename, local)
             loop = asyncio.get_running_loop()
             result = await loop.run_in_executor(self._executor, self._run_pipeline, raw)
-        except Exception:
+        except Exception as e:
             log.exception("Analysing %s failed.", filename)
+            self._status.failed += 1
+            self._status.last_error = f"{Path(filename).name}: {type(e).__name__}: {e}"
+            self._status.last_error_at = datetime.datetime.now(datetime.UTC)
             return False
 
+        self._status.last_file = filename
         if result is None:
-            log.info(
-                "No result for %s (no pipeline for this sun altitude, or it couldn't analyse the image).", filename
-            )
+            reason = getattr(self._pipeline_controller, "last_reason", "") or "no result"
+            log.info("No result for %s: %s.", filename, reason)
+            self._status.without_result += 1
+            self._status.last_reason = reason
             return False
 
         measurement, fields = result
         self._server.set_measurement(measurement)
         self._measurement_log.submit(fields, measurement.obs_time)
+        self._status.analysed += 1
+        self._status.last_obs_time = measurement.obs_time
+        self._status.last_result_at = datetime.datetime.now(datetime.UTC)
+        self._status.last_pipeline = measurement.pipeline
+        self._status.last_reason = ""
         log.info("Finished %s.", filename)
         return True
 

@@ -14,7 +14,6 @@ def obs_time():
     return datetime.datetime(2024, 3, 9, 1, 48, 48, 297970)
 
 
-
 def test_point_radec_no_map(observer, obs_time):
     executor = CoverageQueryExecutor(observer)
 
@@ -23,7 +22,7 @@ def test_point_radec_no_map(observer, obs_time):
 
 def test_point_radec(observer, obs_time) -> None:
     executor = CoverageQueryExecutor(observer)
-    executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))  # type: ignore
+    executor._radec_to_altaz = Mock(return_value=(np.pi / 2, 0))  # type: ignore
 
     cloud_query = SkyPixelQuery(SkyGrid([0], [0]), [1.0])
     executor.set_measurement(CloudCoverageInfo(cloud_query, 0.1, obs_time))
@@ -33,7 +32,7 @@ def test_point_radec(observer, obs_time) -> None:
 
 def test_point_radec_nan(observer, obs_time) -> None:
     executor = CoverageQueryExecutor(observer)
-    executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))  # type: ignore
+    executor._radec_to_altaz = Mock(return_value=(np.pi / 2, 0))  # type: ignore
 
     cloud_query = SkyPixelQuery(SkyGrid([0], [0]), [np.nan])
     executor.set_measurement(CloudCoverageInfo(cloud_query, 0.1, obs_time))
@@ -43,7 +42,7 @@ def test_point_radec_nan(observer, obs_time) -> None:
 
 def test_area_radec(observer, obs_time) -> None:
     executor = CoverageQueryExecutor(observer)
-    executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))  # type: ignore
+    executor._radec_to_altaz = Mock(return_value=(np.pi / 2, 0))  # type: ignore
 
     cloud_query = SkyPixelQuery(SkyGrid([0], [0]), [1.0])
     executor.set_measurement(CloudCoverageInfo(cloud_query, 0.1, obs_time))
@@ -53,7 +52,7 @@ def test_area_radec(observer, obs_time) -> None:
 
 def test_area_radec_nan(observer, obs_time) -> None:
     executor = CoverageQueryExecutor(observer)
-    executor._radec_to_altaz = Mock(return_value=(np.pi/2, 0))  # type: ignore
+    executor._radec_to_altaz = Mock(return_value=(np.pi / 2, 0))  # type: ignore
 
     cloud_query = SkyPixelQuery(SkyGrid([0], [0]), [np.nan])
     executor.set_measurement(CloudCoverageInfo(cloud_query, 0.1, obs_time))

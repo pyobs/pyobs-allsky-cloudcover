@@ -16,13 +16,14 @@ async def test_point_query_radec(aiohttp_client, observer: Observer) -> None:
     server = Server(executor)
 
     client = await aiohttp_client(server._app)
-    response = await client.get('/query/point?ra=0.0&dec=0.0')
+    response = await client.get("/query/point?ra=0.0&dec=0.0")
 
     assert response.status == 200
     data = await response.json()
 
     assert data["value"] is False
     assert data["obs_time"] == 0
+
 
 @pytest.mark.asyncio
 async def test_point_query_altaz(aiohttp_client, observer: Observer) -> None:
@@ -33,7 +34,7 @@ async def test_point_query_altaz(aiohttp_client, observer: Observer) -> None:
     server = Server(executor)
 
     client = await aiohttp_client(server._app)
-    response = await client.get('/query/point?alt=0.0&az=0.0')
+    response = await client.get("/query/point?alt=0.0&az=0.0")
 
     assert response.status == 200
     data = await response.json()
@@ -51,7 +52,7 @@ async def test_point_query_invalid(aiohttp_client, observer: Observer) -> None:
     server = Server(executor)
 
     client = await aiohttp_client(server._app)
-    response = await client.get('/query/point?a=0.0&z=0.0')
+    response = await client.get("/query/point?a=0.0&z=0.0")
 
     assert response.status == 400
 
@@ -65,7 +66,7 @@ async def test_area_query_radec(aiohttp_client, observer: Observer) -> None:
     server = Server(executor)
 
     client = await aiohttp_client(server._app)
-    response = await client.get('/query/area?ra=0.0&dec=0.0&radius=10.0')
+    response = await client.get("/query/area?ra=0.0&dec=0.0&radius=10.0")
 
     assert response.status == 200
     data = await response.json()
@@ -83,7 +84,7 @@ async def test_area_query_altaz(aiohttp_client, observer: Observer) -> None:
     server = Server(executor)
 
     client = await aiohttp_client(server._app)
-    response = await client.get('/query/area?alt=0.0&az=0.0&radius=10.0')
+    response = await client.get("/query/area?alt=0.0&az=0.0&radius=10.0")
 
     assert response.status == 200
     data = await response.json()
@@ -101,7 +102,7 @@ async def test_area_query_invalid_coords(aiohttp_client, observer: Observer) -> 
     server = Server(executor)
 
     client = await aiohttp_client(server._app)
-    response = await client.get('/query/area?a=0.0&z=0.0&radius=10.0')
+    response = await client.get("/query/area?a=0.0&z=0.0&radius=10.0")
 
     assert response.status == 400
 
@@ -115,7 +116,7 @@ async def test_area_query_missing_radius(aiohttp_client, observer: Observer) -> 
     server = Server(executor)
 
     client = await aiohttp_client(server._app)
-    response = await client.get('/query/area?alt=0.0&az=0.0')
+    response = await client.get("/query/area?alt=0.0&az=0.0")
 
     assert response.status == 400
 

@@ -3,6 +3,6 @@ import pytest
 from astroplan import Observer
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope="module")
 def observer():
     return Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)

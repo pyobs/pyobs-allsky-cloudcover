@@ -83,6 +83,11 @@ async def test_watched_directory_to_influx_and_api(preset: str, tmp_path: Path, 
         assert area["fraction"] < 0.3 and area["value"] == pytest.approx(100 * area["fraction"])
         point = await get(unused_tcp_port, "/query/point?alt=60&az=200")
         assert point["value"] in (True, False)
+        lim = await get(unused_tcp_port, "/query/limiting_magnitude/area?alt=90&az=0&radius=30")
+        assert lim["pipeline"] == "night" and 3 < lim["mean"] < 8
+        status = await get(unused_tcp_port, "/status")
+        assert status["frames"]["analysed"] == 2 and status["frames"]["failed"] == 0
+        assert status["pipeline"] == "night" and status["last_obs_time"] == t2.isoformat()
     finally:
         await app.close()
 

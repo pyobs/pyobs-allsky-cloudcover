@@ -1,4 +1,3 @@
-
 from astroplan import Observer
 
 from pyobs_cloudcover.camera.profile import Frame
@@ -12,6 +11,7 @@ class PipelineController:
         self._pipelines = pipelines
         self._sun_alt_intervals = sun_alt_intervals
         self._observer = observer
+        self.last_reason = ""
 
         self._check_arg_length()
         self._check_interval_overlap()
@@ -32,10 +32,16 @@ class PipelineController:
             raise ValueError("Sun altitude intervals can't overlap!")
 
     def __call__(self, frame: Frame) -> CloudCoverageInfo | None:
+        """Result of the pipeline for the sun's altitude; if there is none, ``last_reason`` says why."""
         sun_alt = self._observer.sun_altaz(frame.obs_time).alt.deg
+        self.last_reason = ""
 
         for pipeline, alt_interval in zip(self._pipelines, self._sun_alt_intervals):
             if sun_alt in alt_interval:
-                return pipeline(frame)
+                result = pipeline(frame)
+                if result is None:
+                    self.last_reason = f"the {type(pipeline).__name__} couldn't analyse this image"
+                return result
 
+        self.last_reason = f"no pipeline for the sun at {sun_alt:.1f} deg"
         return None
