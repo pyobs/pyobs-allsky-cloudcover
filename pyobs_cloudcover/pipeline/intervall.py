@@ -1,44 +1,28 @@
 from __future__ import annotations
 
+import math
+
 
 class Interval:
+    """Half-open interval [start, end); None means unbounded."""
+
     def __init__(self, start: float | None = None, end: float | None = None):
         self._start = start
         self._end = end
 
+    @property
+    def _lower(self) -> float:
+        return -math.inf if self._start is None else self._start
+
+    @property
+    def _upper(self) -> float:
+        return math.inf if self._end is None else self._end
+
     def __contains__(self, value: float) -> bool:
-        in_interval = True
-
-        if self._start is not None:
-            in_interval &= self._start < value
-
-        if self._end is not None:
-            in_interval &= value < self._end
-
-        return in_interval
+        return self._lower <= value < self._upper
 
     def does_intersect(self, other: Interval) -> bool:
-        if (other._start is None and other._end is None) or (self._start is None and self._end is None):
-            return True
-
-        if self == other:
-            return True
-
-        does_intersect = False
-
-        if other._start is not None:
-            does_intersect |= other._start in self
-
-        if other._end is not None:
-            does_intersect |= other._end in self
-
-        if self._start is not None:
-            does_intersect |= self._start in other
-
-        if self._end is not None:
-            does_intersect |= self._end in other
-
-        return does_intersect
+        return max(self._lower, other._lower) < min(self._upper, other._upper)
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Interval):

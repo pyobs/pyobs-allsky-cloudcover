@@ -72,3 +72,16 @@ def test_equal_invalid():
     second = object()
 
     assert not (first == second)
+
+
+def test_boundary_belongs_to_exactly_one_interval() -> None:
+    # regression: with strict comparisons on both ends, a sun altitude of exactly -18 matched no pipeline
+    night = Interval(start=None, end=-18)
+    twilight = Interval(start=-18, end=18)
+    assert -18 not in night
+    assert -18 in twilight
+    assert not night.does_intersect(twilight)
+
+
+def test_overlap_detected() -> None:
+    assert Interval(start=None, end=-17).does_intersect(Interval(start=-18, end=None))
