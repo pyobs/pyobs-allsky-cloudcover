@@ -118,3 +118,20 @@ async def test_area_query_missing_radius(aiohttp_client, observer: Observer) -> 
     response = await client.get('/query/area?alt=0.0&az=0.0')
 
     assert response.status == 400
+
+
+@pytest.mark.asyncio
+async def test_server_binds_configured_host(observer: Observer, unused_tcp_port: int) -> None:
+    # regression: the server always bound to 'localhost', whatever the config said
+    import aiohttp
+
+    server = Server(CoverageQueryExecutor(observer=observer), url="127.0.0.1", port=unused_tcp_port)
+    await server.start()
+    try:
+        assert server._runner is not None
+        assert server._runner.addresses[0][:2] == ("127.0.0.1", unused_tcp_port)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"http://127.0.0.1:{unused_tcp_port}/query/point?alt=90&az=0") as response:
+                assert response.status == 200
+    finally:
+        await server.stop()

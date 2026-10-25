@@ -39,6 +39,10 @@ class Application(Module):
 
         await self.comm.register_event(NewImageEvent, self.process_new_image)
 
+    async def close(self) -> None:
+        await self._server.stop()
+        await super().close()
+
     async def process_new_image(self, event: Event, sender: str) -> bool:
         if not isinstance(event, NewImageEvent):
             return False

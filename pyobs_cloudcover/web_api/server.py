@@ -11,6 +11,7 @@ class Server:
         self._url = url
         self._port = port
 
+        self._runner: web.AppRunner | None = None
         self._app = web.Application()
         self._app.add_routes([web.get("/query/point", self._point_query)])
         self._app.add_routes([web.get("/query/area", self._area_query)])
@@ -19,10 +20,15 @@ class Server:
         self._query_executor.set_measurement(measurement)
 
     async def start(self) -> None:
-        runner = web.AppRunner(self._app)
-        await runner.setup()
-        site = web.TCPSite(runner, 'localhost', self._port)
+        self._runner = web.AppRunner(self._app)
+        await self._runner.setup()
+        site = web.TCPSite(self._runner, self._url, self._port)
         await site.start()
+
+    async def stop(self) -> None:
+        if self._runner is not None:
+            await self._runner.cleanup()
+            self._runner = None
 
     async def _point_query(self, request: web.Request) -> web.Response:
         if "ra" in request.rel_url.query and "dec" in request.rel_url.query:
