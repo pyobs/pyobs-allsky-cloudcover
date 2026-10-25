@@ -4,10 +4,10 @@ from typing import Any
 
 
 class AltAzGridOptions:
-    def __init__(self, point_number: int, limiting_altitude: float):
+    def __init__(self, point_number: int = 100000, limiting_altitude: float = 30.0):
         self.limiting_altitude = limiting_altitude
         self.point_number = point_number
 
     @staticmethod
     def from_dict(options: dict[str, Any]) -> AltAzGridOptions:
-        return AltAzGridOptions(options["point_number"], options["limiting_altitude"])
+        return AltAzGridOptions(**options)

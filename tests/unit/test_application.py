@@ -38,7 +38,8 @@ class SlowPipeline:
         self.fail = fail
         self.calls: list[datetime.datetime] = []
 
-    def __call__(self, image: Any, obs_time: datetime.datetime) -> CloudCoverageInfo:
+    def __call__(self, frame: Any) -> CloudCoverageInfo:
+        obs_time = frame.obs_time
         time.sleep(self.seconds)
         if self.fail:
             raise RuntimeError("pipeline exploded")

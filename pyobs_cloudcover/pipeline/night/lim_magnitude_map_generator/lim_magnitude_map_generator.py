@@ -4,20 +4,24 @@ import numpy as np
 import numpy.typing as npt
 
 from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.border_magnitude import border_magnitude
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.border_magnitude import (
+    border_magnitude,
+    robust_border_magnitude,
+)
 from pyobs_cloudcover.sky_query import SkyGrid
 
 
 class LimMagnitudeMapGenerator:
-    def __init__(self, radius: float, integration_length: int = 1):
+    def __init__(self, radius: float, integration_length: int = 1, estimator: str = "border"):
         self._radius = radius
+        self._estimate = robust_border_magnitude if estimator == "robust" else border_magnitude
         self._integration_frame: deque[tuple[PixelCatalog, list[bool]]] = deque([], integration_length)
 
     def __call__(self, catalog: PixelCatalog, matches: list[bool], grid: SkyGrid) -> npt.NDArray[np.float64]:
         self._update_integration_frame(catalog, matches)
         integrated_matches = self._get_integrated_frame()
 
-        return border_magnitude(
+        return self._estimate(
             grid,
             np.deg2rad(np.asarray(catalog.alt, dtype=np.float64)),
             np.deg2rad(np.asarray(catalog.az, dtype=np.float64)),

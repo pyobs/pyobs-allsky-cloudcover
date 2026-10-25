@@ -30,4 +30,4 @@ def test_day_pipeline_accepts_wcs_model(tmp_path) -> None:  # type: ignore[no-un
         }
     )
     pipeline = DayPipelineFactory(Observer(latitude=-30 * u.deg, longitude=20 * u.deg))(options)
-    assert isinstance(pipeline._alt_az_generator._model, WCSModel)
+    assert isinstance(pipeline._alt_az_generator._model.model, WCSModel)  # type: ignore[attr-defined]

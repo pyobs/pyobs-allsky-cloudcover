@@ -5,15 +5,16 @@ from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.detector impo
 
 
 class SigmaThresholdDetector(StarDetector):
-    def __init__(self, sigma: float, distance: float, median_limit: float):
+    def __init__(self, sigma: float, distance: float, median_limit: float | None = None):
         self._sigma = sigma
         self._distance = distance
         self._median_limit = median_limit
 
-    def __call__(self, image: npt.NDArray[np.float64]) -> bool:
+    def __call__(self, image: npt.NDArray[np.float64], median_limit: float | None = None) -> bool:
         median = np.median(image)
 
-        if median > self._median_limit:
+        limit = self._median_limit if median_limit is None else median_limit
+        if limit is not None and median > limit:
             return False
 
         average = np.average(image)

@@ -85,6 +85,12 @@ class PixelCatalog:
     def _get_faintest_indices(self, cluster: npt.NDArray[np.int_]) -> npt.NDArray[np.int_]:
         return np.argsort(self.v_mag[cluster])[1:]
 
+    def filter_mask(self, mask: npt.NDArray[np.bool_]) -> None:
+        """Keep only stars on pixels where ``mask`` is True (call after :meth:`filter_window_size`)."""
+        ix = np.clip(np.rint(self.px).astype(int), 0, mask.shape[1] - 1)
+        iy = np.clip(np.rint(self.py).astype(int), 0, mask.shape[0] - 1)
+        self._filter(mask[iy, ix])
+
     def filter_window_size(self, height: int, width: int) -> None:
         inside_x_axis = (0 < self.px) & (self.px < width)
         inside_y_axis = (0 < self.py) & (self.py < height)

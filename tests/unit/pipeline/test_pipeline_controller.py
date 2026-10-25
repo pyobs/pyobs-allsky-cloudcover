@@ -5,8 +5,8 @@ import numpy as np
 import pytest
 from astroplan import Observer
 from astropy.coordinates import SkyCoord
-from numpy import typing as npt
 
+from pyobs_cloudcover.camera.profile import Frame
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.pipeline.intervall import Interval
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
@@ -15,7 +15,7 @@ from pyobs_cloudcover.pipeline.pipeline_controller import PipelineController
 
 class MockPipeline(Pipeline):
 
-    def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> CloudCoverageInfo:
+    def __call__(self, frame: Frame) -> CloudCoverageInfo:
         time = datetime.datetime(2024, 1, 1, 0, 0, 0)
         return CloudCoverageInfo(np.array([]), 0.1, time)
 
@@ -48,7 +48,7 @@ def test_pipeline_call_outside_interval(mocker, observer) -> None:
     interval = [Interval(0, 1)]
     controller = PipelineController(pipelines, interval, observer)
 
-    assert controller(np.array([]), datetime.datetime.now()) is None
+    assert controller(Frame(np.zeros((2, 2)), datetime.datetime.now(datetime.UTC))) is None
 
 
 def test_pipeline_call_inside_interval(mocker, observer) -> None:
@@ -58,4 +58,4 @@ def test_pipeline_call_inside_interval(mocker, observer) -> None:
     interval = [Interval(0, 10)]
     controller = PipelineController(pipelines, interval, observer)
 
-    assert isinstance(controller(np.array([]), datetime.datetime.now()), CloudCoverageInfo)
+    assert isinstance(controller(Frame(np.zeros((2, 2)), datetime.datetime.now(datetime.UTC))), CloudCoverageInfo)

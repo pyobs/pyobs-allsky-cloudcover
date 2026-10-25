@@ -4,6 +4,7 @@ import astropy.units as u
 import numpy as np
 from astroplan import Observer
 
+from pyobs_cloudcover.camera.profile import Frame
 from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
 from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import CoverageChangeCalculator
 from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
@@ -33,7 +34,7 @@ def test_day_pipeline() -> None:
 
     pipeline = DayPipeline(mask, alt_az_generator, cloud_map_gen, sun_masker, cloud_coverage_info_calculator)
 
-    result = pipeline(image, obs_time)
+    result = pipeline(Frame(image.astype(float), obs_time, bayer="RGGB"))
 
     assert result.change is None
 

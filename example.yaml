@@ -1,21 +1,59 @@
 class: pyobs_cloudcover.application.Application
 
-# Camera which images are used for cloud detection
-image_sender: "allskycam"
+# Where images come from: a directory the capture software writes into (recommended) ...
+watch:
+  path: /var/lib/allsky/images
+  # glob for the image files (FITS recommended; PNG/TIFF/JPEG work, but 8-bit/JPEG images lose faint stars)
+  pattern: "*.fits"
+  # what to do with an image once analysed: keep, delete or move (to 'archive')
+  after: keep
+  archive: ""
 
-# Web Service
+# ... and/or NewImageEvents from a pyobs camera module (name of that module)
+# image_sender: allskycam
+
+# Everything specific to the camera. Placeholders: run `pyobs-cloudcover calibrate` on a few clear-night
+# images to fit the world model and build the mask (see docs, "Setting up a new camera").
+camera:
+  # Bayer pattern: auto (BAYERPAT/COLORTYP header keywords), none (mono) or RGGB/BGGR/GRBG/GBRG
+  bayer: auto
+  # raw image -> canonical: flip left/right, flip up/down, then rotate counter-clockwise (0/90/180/270)
+  orientation: {flip_x: false, flip_y: false, rotate: 0}
+  timestamp:
+    # auto: header keywords, then filename_format, then the file's modification time
+    source: auto
+    keywords: [DATE-OBS]
+    # filename_format: "image-%Y%m%d%H%M%S.fits"
+    # time zone of timestamps that don't carry one
+    timezone: UTC
+  # saturation level in ADU; guessed from the data if not set (or set bit_depth)
+  # saturation: 65535
+  # master dark and hot-pixel map (raw orientation), sky mask (canonical orientation; nonzero = sky)
+  dark: ""
+  hot_pixels: ""
+  mask: ""
+  # world model in canonical full-resolution pixels; this placeholder is a 1.55 mm equidistant fisheye
+  # centred on a 2028x1520 image
+  world_model:
+    class: pyobs_cloudcover.world_model.FisheyeModel
+    c_x: 1013.5
+    c_y: 759.5
+    f: 480.0
+    a0: 0.0
+    projection: equidistant
+    parity: 1
+
+# Web service (see docs for the routes)
 server:
-  # Host Name
-  url: "localhost"
-  # Port
+  url: "0.0.0.0"
   port: 8080
 
-# Influx DB
+# Influx DB (type: influx, memory or none)
 measurement_log:
   logger:
     type: "influx"
-    url: ""
-    bucket: ""
+    url: "http://localhost:8086"
+    bucket: "allsky"
     org: ""
     token: ""
 
@@ -23,7 +61,7 @@ measurement_log:
     cloud_zenith:
       - type: "zenith"
         name: "cloudcover"
-        # Altitude which is considered to be the lower boundary of the zenith to average for the zenith cloud fraction measurement (in degree)
+        # lower altitude bound of the zenith region (degrees)
         altitude: 80.0
     cloud_total:
       - type: "total"
@@ -39,8 +77,7 @@ measurement_log:
         radius: 20.0
 
 
-# Different image analysis pipelines can be used for different solar altitude intervals
-# Currently only the "night" pipeline is available, which works best after the astronomical dawn
+# Analysis pipelines by solar altitude ([start, end) in degrees)
 pipelines:
   day:
     alt_interval:
@@ -48,105 +85,67 @@ pipelines:
       end:
 
     options:
-      # Astronomical solution
-      # Possible models:
-      #   Simple Model
-      #     class: pyobs_cloudcover.world_model.SimpleModel
-      #     parameters: (a0, F, R, c_x, c_y) see https://ui.adsabs.harvard.edu/abs/2019A&A...626A.105B
-      #   WCS Model
-      #     class: pyobs_cloudcover.world_model.WCSModel
-      #     parameters:
-      #       file_path: Path to FITS file containing WCS
-      world_model:
-        class: pyobs_cloudcover.world_model.SimpleModel
-        a0: 4.81426598e-03
-        F: 2.00000000e+00
-        R: 1.06352627e+03
-        c_x: 7.57115607e+02
-        c_y: 5.11194838e+02
-
-      # Filepath to the image mask
-      mask_filepath: ""   # .npy horizon mask with the image's shape; "" = no mask
-
+      # binning of the colour-ratio map
+      bin_size: 2
       cloud_map:
-        # Under which color ratio a pixel is considered cloudy (blue/red + blue/green)
+        # pixels with a colour ratio (blue/red + blue/green) below this are cloudy
         threshold: 3.5
-
-      # Apparent size of the sun in the allsky image in degree
+      # radius masked around the sun (degrees)
       sun_apparent_size: 0.54
 
-      coverage_info:
-        # Altitude which is considered to be the lower boundary of the zenith to average for the zenith cloud fraction measurement (in degree)
-        zenith_altitude: 80
   night:
-    # Solar altitude interval (in degree), in which this pipeline should be used
     alt_interval:
       start:
       end: -18
 
     options:
-      # Astronomical solution
-      # Possible models:
-      #   Simple Model
-      #     class: pyobs_cloudcover.world_model.SimpleModel
-      #     parameters: (a0, F, R, c_x, c_y) see https://ui.adsabs.harvard.edu/abs/2019A&A...626A.105B
-      #   WCS Model
-      #     class: pyobs_cloudcover.world_model.WCSModel
-      #     parameters:
-      #       file_path: Path to FITS file containing WCS
-      world_model:
-        class: pyobs_cloudcover.world_model.SimpleModel
-        a0: 4.81426598e-03
-        F: 2.00000000e+00
-        R: 1.06352627e+03
-        c_x: 7.57115607e+02
-        c_y: 5.11194838e+02
-
-      preprocessor:
-        # Filepath to the image mask
-        mask_filepath: ""   # .npy horizon mask with the image's shape; "" = no mask
-        # Which image binning should be applied
-        bin_size: 2
+      # binning before star detection; must be even for colour (Bayer) cameras
+      bin_size: 2
 
       catalog:
-        # Filepath to the star catalog; leave empty for the bundled Yale Bright Star Catalogue
+        # leave empty for the bundled Yale Bright Star Catalogue (V < ~6.5)
         filepath: ""
         filter:
-          # Lower altitude boundary (in degree)
+          # lowest altitude (degrees) and faintest magnitude of the stars used
           alt: 30.0
-          # Upper magnitude boundary (in mag)
           v_mag: 7.0
-          # Minimum allowed distance between stars (in px after binning)
+          # minimum distance between stars (pixels after binning)
           distance: 0.0
 
-      # Determines the visibility of a star
-      reverse_matcher:
-        # How many standard deviations a signal has to be over the average brightness to count as a star detection
-        sigma_threshold: 3.0
-        # Maximum allowed distance between a signal and the calculated position of the star (in px)
-        distance: 4.0
-        # Maximum allowed median brightness of the window
-        median_limit: 8e3
-        # Rectangle around the calculated star position with 2 * window_size + 1 length, in which the star searched for (in px)
-        window_size: 6.0
+      # star detection: aperture photometry around each predicted star position
+      detector:
+        type: aperture
+        # signal-to-noise a star needs to count as seen
+        snr: 3.0
+        # how far (binned pixels) a star may be from its predicted position
+        search_radius: 2.0
+        # stars on a background brighter than this fraction of saturation count as not seen
+        max_background: 0.8
 
-      # Determines at which celestial positions the limiting magnitude is evaluated
+      # where the limiting magnitude is estimated
       altaz_grid:
-        # Number of equidistant points on the hole celestial sphere
+        # points on the whole sphere (about a quarter are above 30 degrees)
         point_number: 100000
-        # Lower boundary for altitude
         limiting_altitude: 30
 
       lim_mag_map:
-        # Radius in which to use stars for estimating the limiting magnitude (in degree)
+        # stars within this radius (degrees) estimate the limiting magnitude at a point
         radius: 7.0
-        # Number of consecutive images in which a star has to be visible to be considered visible for the limiting magnitude estimation
+        # robust (recommended) or border (1.x)
+        estimator: robust
+        # number of consecutive frames a star must be seen in
         integration_length: 1
 
       cloud_map:
-        # Under which limiting magnitude a pixel is considered cloudy (in mag)
-        threshold: 5.5
+        # points with a limiting magnitude below this are cloudy. Camera specific: choose it with
+        # `pyobs-cloudcover replay` on a few nights of images.
+        threshold: 4.8
 
-      # Apparent size of the moon in the allsky image in degree
-      moon_apparent_size: 0.5
+      # radius masked around the moon (degrees)
+      moon_apparent_size: 10.0
 
+timezone: UTC
+location:
+  longitude: 0.0
+  latitude: 0.0
+  elevation: 0.0

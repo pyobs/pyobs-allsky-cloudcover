@@ -11,4 +11,5 @@ class LimMagnitudeMapGeneratorFactory:
         self._options = options
 
     def __call__(self) -> LimMagnitudeMapGenerator:
-        return LimMagnitudeMapGenerator(self._options.radius)
+        o = self._options
+        return LimMagnitudeMapGenerator(o.radius, o.integration_length, o.estimator)
