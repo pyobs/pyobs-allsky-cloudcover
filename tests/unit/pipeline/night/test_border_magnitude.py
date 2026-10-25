@@ -1,8 +1,9 @@
 """Border-magnitude rules, ported from the unit tests of the former Rust extension (src/night/)."""
+
 import numpy as np
 import pytest
 
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.border_magnitude import border_magnitude
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.border_magnitude import border_magnitude, legacy_weight
 from pyobs_cloudcover.sky_query import SkyGrid
 
 ZENITH = SkyGrid([np.pi / 2], [0.0])
@@ -42,6 +43,27 @@ def test_no_stars_is_nan() -> None:
 def test_matches_rust_two_star_case() -> None:
     # src/night/cloud_map_generator.rs::test_gen_cloud_map: stars at 45 deg alt, query at zenith
     grid = SkyGrid([np.pi / 2], [0.0])
-    result = border_magnitude(grid, np.array([np.pi / 4] * 2), np.array([0.0, np.pi]),
-                              np.array([1.0, 0.0]), np.array([False, True]), np.pi / 2)
+    result = border_magnitude(
+        grid,
+        np.array([np.pi / 4] * 2),
+        np.array([0.0, np.pi]),
+        np.array([1.0, 0.0]),
+        np.array([False, True]),
+        np.pi / 2,
+        legacy_weight,
+    )
     assert result[0] == pytest.approx(0.5)
+
+
+def test_nearer_stars_weigh_more() -> None:
+    # regression: the legacy weight grew with distance, so the farther star dominated
+    grid = SkyGrid([np.pi / 2], [0.0])
+    alt = np.deg2rad([88.0, 84.0])
+    result = border_magnitude(
+        grid, alt, np.array([0.0, np.pi]), np.array([5.0, 6.0]), np.array([True, False]), np.deg2rad(7)
+    )
+    assert 5.0 < result[0] < 5.5
+    legacy = border_magnitude(
+        grid, alt, np.array([0.0, np.pi]), np.array([5.0, 6.0]), np.array([True, False]), np.deg2rad(7), legacy_weight
+    )
+    assert legacy[0] > 5.5

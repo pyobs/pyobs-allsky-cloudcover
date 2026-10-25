@@ -9,8 +9,21 @@ WeightFunction = Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]]
 
 
 def legacy_weight(distance: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-    """Star weight as implemented in the former Rust extension (``distance`` in rad)."""
+    """Star weight of the former Rust extension, kept for comparison only (``distance`` in rad).
+
+    It applied the deg->rad factor to a distance already in radians and dropped the ``exp``, so the weight grew
+    with distance: the farthest stars dominated and a star right at the grid point counted zero.
+    """
     return -distance * np.pi / (7.0 * 180.0)
+
+
+def exponential_weight(scale: float) -> WeightFunction:
+    """``exp(-distance / scale)``, the intended weight (``scale`` = search radius, both in rad)."""
+
+    def weight(distance: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
+        return np.asarray(np.exp(-distance / scale))
+
+    return weight
 
 
 def border_magnitude(
@@ -20,15 +33,18 @@ def border_magnitude(
     v_mag: npt.NDArray[np.float64],
     found: npt.NDArray[np.bool_],
     radius: float,
-    weight: WeightFunction = legacy_weight,
+    weight: WeightFunction | None = None,
 ) -> npt.NDArray[np.float64]:
     """Estimate the limiting magnitude at every grid position from the seen/unseen stars within ``radius``.
 
     For each position, take the faintest seen star (``hv``) and the brightest unseen star (``ln``) within
     ``radius`` (rad). If they overlap (``hv > ln``), the result is the weighted mean magnitude of all stars
     between them; otherwise the weighted mean of those two border stars. With only seen (unseen) stars, the
-    faintest seen (brightest unseen) magnitude is used. Positions without any star get NaN.
+    faintest seen (brightest unseen) magnitude is used. Positions without any star get NaN. Stars are weighted
+    by ``weight(distance)``, by default ``exp(-distance / radius)``.
     """
+    if weight is None:
+        weight = exponential_weight(radius)
     n = len(grid)
     out = np.full(n, np.nan)
     if n == 0 or len(v_mag) == 0:

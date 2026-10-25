@@ -21,7 +21,10 @@ def test_call() -> None:
 
     cloud_map = cloud_map_generator(catalog, matches, grid)
 
-    np.testing.assert_array_almost_equal(cloud_map, np.array([0.5, 0.6, 0.5, 0.4, 0.5]))
+    # nearer stars weigh more: exp(-d/20deg) for the 4 deg (mag 0) and 6 deg (mag 1) stars
+    near, far = np.exp(-4 / 20), np.exp(-6 / 20)
+    expected = far / (near + far)
+    np.testing.assert_array_almost_equal(cloud_map, np.array([0.5, expected, 0.5, 1 - expected, 0.5]))
 
 
 def test_get_integrated_frame() -> None:
