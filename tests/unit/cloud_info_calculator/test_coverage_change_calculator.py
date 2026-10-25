@@ -14,3 +14,17 @@ def test_call():
     cloud_map = [None, True, True, True]
 
     assert calculator(cloud_map) == 2/3
+
+
+def test_change_is_measured_against_the_previous_frame() -> None:
+    # regression: the map was stored in the wrong attribute, so every frame was compared to the first one
+    calculator = CoverageChangeCalculator()
+    calculator([0.0, 0.0, 0.0, 0.0])
+    assert calculator([1.0, 1.0, 1.0, 1.0]) == 1.0
+    assert calculator([1.0, 1.0, 1.0, 1.0]) == 0.0
+
+
+def test_no_overlap_gives_none() -> None:
+    calculator = CoverageChangeCalculator()
+    calculator([float("nan"), 1.0])
+    assert calculator([1.0, float("nan")]) is None

@@ -11,18 +11,14 @@ class CoverageChangeCalculator:
         """Fraction of positions known in both maps whose cloud state changed. Maps hold 1.0/0.0/NaN."""
         new = np.array(new_map, dtype=np.float64)
 
-        if self._last_map is None:
-            self._last_map = new
+        last = None if self._last_map is None else np.array(self._last_map, dtype=np.float64)
+        self._last_map = new
+        if last is None or last.shape != new.shape:
             return None
 
-        last = np.asarray(self._last_map, dtype=np.float64)
-        image_filter = ~np.isnan(last) & ~np.isnan(new)
+        known = ~np.isnan(last) & ~np.isnan(new)
+        if not np.any(known):
+            return None
 
-        pixel_count = np.sum(image_filter)
-
-        changed_pixels = np.logical_xor(new[image_filter].astype(np.bool_), last[image_filter].astype(np.bool_))
-        change = np.sum(changed_pixels)/pixel_count
-
-        self._last_clouds = new
-
-        return float(change)
+        changed = np.logical_xor(new[known].astype(np.bool_), last[known].astype(np.bool_))
+        return float(np.mean(changed))
