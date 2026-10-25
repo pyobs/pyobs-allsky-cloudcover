@@ -77,11 +77,13 @@ measurement_log:
         radius: 20.0
 
 
-# Analysis pipelines by solar altitude ([start, end) in degrees)
+# Analysis pipelines by solar altitude ([start, end) in degrees). Between them (nautical/astronomical
+# twilight) there is no result; /status says so. The colour (day) method works down to about -6 deg, the
+# star (night) method needs the sky to be dark, from about -18 deg.
 pipelines:
   day:
     alt_interval:
-      start: 18
+      start: -6
       end:
 
     options:

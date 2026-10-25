@@ -53,8 +53,9 @@ pipelines:
       cloud_map:
         threshold: 4.7
   day:
+    # the colour method works into civil twilight (simulation: down to -6 deg)
     alt_interval:
-      start: 18
+      start: -6
       end: null
     options:
       cloud_map:
