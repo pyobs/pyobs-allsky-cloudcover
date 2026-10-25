@@ -19,3 +19,11 @@ def test_end2end():
     window.set_image(padded_image)
 
     np.testing.assert_array_equal(window(3, 3), base_image)
+
+
+def test_window_is_clipped_at_the_image_edge() -> None:
+    # regression: abs() mirrored a negative lower bound, cutting the window to the wrong pixels
+    image = np.arange(400).reshape(20, 20)
+    window = ImageWindow(6)
+    window.set_image(image)
+    np.testing.assert_array_equal(window(2, 3), image[0:10, 0:9])

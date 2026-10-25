@@ -18,9 +18,9 @@ class ImageWindow:
         if self._image is None:
             raise ValueError("Image must be set before calling this method.")
 
-        low_px = abs(int(px - self._h_size))
+        low_px = max(0, int(px - self._h_size))
         high_px = int(px + self._h_size)
-        low_py = abs(int(py - self._h_size))
+        low_py = max(0, int(py - self._h_size))
         high_py = int(py + self._h_size)
 
         return self._image[low_py:high_py+1, low_px:high_px+1]
