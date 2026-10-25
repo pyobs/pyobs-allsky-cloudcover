@@ -259,8 +259,35 @@ class Simulator:
             self._add_disc(image, eph.sun_alt, eph.sun_az, SUN_MAGNITUDE, exposure, seconds)
 
         # --- sensor
+        raw = self._sensor(self._raw_signal(image, sky_image, colour), exposure, time)
+
+        # --- ground truth
+        truth = self._truth(
+            time, eph, exposure, seconds, stars, sx, sy, flux, sigma, star_ext, star_obstructed, sky_image
+        )
+        header = build_header(p, self.site, time, exposure)
+        return SimulatedFrame(raw, header, truth, make_filename(p, self.site, time), time)
+
+    def render_dark(self, time: datetime.datetime, exposure: float | None = None) -> SimulatedFrame:
+        """A dark frame (lens covered): bias, dark current, hot pixels and noise only."""
+        if time.tzinfo is None:
+            time = time.replace(tzinfo=datetime.UTC)
+        p = self.profile
+        exposure = p.exposure_time if exposure is None else exposure
+        raw = self._sensor(np.zeros((p.height, p.width)), exposure, time)
+        header = build_header(p, self.site, time, exposure, image_type="Dark")
+        empty = GroundTruth(np.zeros((len(TRUTH_ALT), len(TRUTH_AZ))), self.cloud_threshold, {}, {"dark": True})
+        return SimulatedFrame(raw, header, empty, "dark_" + make_filename(p, self.site, time), time)
+
+    @property
+    def hot_pixels(self) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.intp], FloatArray]:
+        """Raw row, column and dark current (e-/s) of the simulated hot pixels."""
+        return self._hot_y, self._hot_x, self._hot_rate
+
+    def _sensor(self, signal: FloatArray, exposure: float, time: datetime.datetime) -> npt.NDArray[Any]:
+        """Electrons per raw pixel -> stored ADU, with dark current, hot pixels, noise and saturation."""
+        p = self.profile
         rng = np.random.default_rng([self.seed, int(time.timestamp() * 1000) % 2**63])
-        signal = self._raw_signal(image, sky_image, colour)
         dark = np.full(signal.shape, p.dark_current * exposure)
         dark[self._hot_y, self._hot_x] += self._hot_rate * exposure
         electrons = rng.poisson(np.clip(signal + dark, 0, 1e12)).astype(np.float64)
@@ -270,14 +297,7 @@ class Simulator:
         if p.stretch_gamma is not None:
             adu = p.max_adu * (np.clip(adu, 0, p.max_adu) / p.max_adu) ** p.stretch_gamma
         adu = np.clip(np.rint(adu), 0, p.max_adu).astype(np.int64) << p.adu_shift
-        raw = np.ascontiguousarray(adu.astype(p.storage_dtype))
-
-        # --- ground truth
-        truth = self._truth(
-            time, eph, exposure, seconds, stars, sx, sy, flux, sigma, star_ext, star_obstructed, sky_image
-        )
-        header = build_header(p, self.site, time, exposure)
-        return SimulatedFrame(raw, header, truth, make_filename(p, self.site, time), time)
+        return np.ascontiguousarray(adu.astype(p.storage_dtype))
 
     def _cloud_brightness(self, alt: FloatArray, az: FloatArray, eph: Ephemeris, extinction: FloatArray) -> FloatArray:
         """Surface brightness of a cloud: ground light, moonlight and sunlight it reflects. In daylight thin clouds
