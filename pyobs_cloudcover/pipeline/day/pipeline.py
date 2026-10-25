@@ -1,11 +1,8 @@
 import datetime
-from itertools import compress
-from typing import List, Any, Optional
+from typing import Optional
 
 import numpy as np
 from numpy import typing as npt
-
-from cloudmap_rs import SkyPixelQuery
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
@@ -15,6 +12,7 @@ from pyobs_cloudcover.pipeline.day.sun_masker import SunMasker
 from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
+from pyobs_cloudcover.sky_query import SkyGrid, SkyPixelQuery
 
 
 class DayPipeline(Pipeline):
@@ -25,30 +23,20 @@ class DayPipeline(Pipeline):
         self._sun_masker = sun_masker
         self._coverage_info_calculator = coverage_info_calculator
 
-        self._sky_query: Optional[SkyPixelQuery] = None
+        self._grid: Optional[SkyGrid] = None
         self._alt_az_mask: Optional[npt.NDArray[np.bool_]] = None
 
     def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> CloudCoverageInfo:
         debayered_image = debayer_image(image)
-        color_ratio_image = calc_color_ratio(debayered_image).flatten()
+        color_ratio_image = calc_color_ratio(debayered_image)
         cloud_map = self._cloud_map_generator(color_ratio_image)
 
-        if self._sky_query is None or self._alt_az_mask is None:
-            alt_az_points = self.flatten(self._alt_az_generator(*image.shape))
-            self._alt_az_mask = self._mask.flatten() & np.array([x is not None for x in alt_az_points])
+        if self._grid is None or self._alt_az_mask is None:
+            alt, az, on_sky = self._alt_az_generator(*image.shape)
+            self._alt_az_mask = self._mask.astype(np.bool_) & on_sky
+            self._grid = SkyGrid(alt[self._alt_az_mask], az[self._alt_az_mask])
 
-            self._sky_query = SkyPixelQuery(self.filter(alt_az_points, self._alt_az_mask), cloud_map[self._alt_az_mask]) # type: ignore
-        else:
-            self._sky_query.set_pixels(cloud_map[self._alt_az_mask])
-
-        sky_query = self._sun_masker(self._sky_query, obs_time)
+        sky_query = SkyPixelQuery(self._grid, cloud_map[self._alt_az_mask])
+        sky_query = self._sun_masker(sky_query, obs_time)
 
         return self._coverage_info_calculator(sky_query, obs_time)
-
-    @staticmethod
-    def flatten(map_2d: List[List[Any]]) -> List[Any]:
-        return [entry for row in map_2d for entry in row]
-
-    @staticmethod
-    def filter(map_1d: List[Any], predicate: List[bool]) -> List[Any]:
-        return list(compress(map_1d, predicate))

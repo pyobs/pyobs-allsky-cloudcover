@@ -19,7 +19,7 @@ def test_fibonacci_sphere_is_equal_area() -> None:
 
 def test_spherical_alt_az_generator_limits_altitude() -> None:
     generator = SphericalAltAzGenerator(10000, 30)
-    coords = generator()
+    grid = generator()
 
-    assert min(c.alt for c in coords) >= np.deg2rad(30)
-    assert abs(len(coords) - 2500) <= 2
+    assert grid.alt.min() >= np.deg2rad(30)
+    assert abs(len(grid) - 2500) <= 2

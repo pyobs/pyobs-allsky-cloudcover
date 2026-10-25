@@ -1,11 +1,12 @@
 from collections import deque, defaultdict
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 import numpy.typing as npt
-from cloudmap_rs import Star, Average, MagnitudeMapGenerator, AltAzCoord
 
 from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.border_magnitude import border_magnitude
+from pyobs_cloudcover.sky_query import SkyGrid
 
 
 class LimMagnitudeMapGenerator(object):
@@ -13,19 +14,18 @@ class LimMagnitudeMapGenerator(object):
         self._radius = radius
         self._integration_frame: deque[Tuple[PixelCatalog, List[bool]]] = deque([], integration_length)
 
-    def __call__(self, catalog: PixelCatalog, matches: List[bool], alt_az_image_list: List[Optional[AltAzCoord]]) -> npt.NDArray[np.float64]:
+    def __call__(self, catalog: PixelCatalog, matches: List[bool], grid: SkyGrid) -> npt.NDArray[np.float64]:
         self._update_integration_frame(catalog, matches)
         integrated_matches = self._get_integrated_frame()
 
-        star_coords = [AltAzCoord(np.deg2rad(alt), np.deg2rad(az)) for alt, az in zip(catalog.alt, catalog.az)]
-        match_entries = [Star(v_mag, found) for v_mag, found in zip(catalog.v_mag, integrated_matches)]
-
-        map_generator = MagnitudeMapGenerator(star_coords, match_entries)
-
-        av_vis_map = map_generator.query_many(alt_az_image_list, np.deg2rad(self._radius))
-        vis_map = self._convert_average_to_value(av_vis_map)
-
-        return vis_map
+        return border_magnitude(
+            grid,
+            np.deg2rad(np.asarray(catalog.alt, dtype=np.float64)),
+            np.deg2rad(np.asarray(catalog.az, dtype=np.float64)),
+            np.asarray(catalog.v_mag, dtype=np.float64),
+            np.asarray(integrated_matches, dtype=np.bool_),
+            np.deg2rad(self._radius),
+        )
 
     def _update_integration_frame(self, catalog: PixelCatalog, matches: List[bool]) -> None:
         self._integration_frame.append((catalog, matches))
@@ -42,9 +42,3 @@ class LimMagnitudeMapGenerator(object):
                 match_dict[sao].append(match)
 
         return [all(match_dict[sao]) for sao in catalogs[-1].sao]
-
-    @staticmethod
-    def _convert_average_to_value(average_map: List[Average]) -> npt.NDArray[np.float64]:
-        return np.array(
-            [x.value if x is not None else np.nan for x in average_map]
-        )

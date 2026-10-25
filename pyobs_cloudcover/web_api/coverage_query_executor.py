@@ -4,9 +4,9 @@ from typing import Optional, Tuple
 import numpy as np
 from astroplan import Observer
 from astropy.coordinates import SkyCoord
-from cloudmap_rs import AltAzCoord, SkyPixelQuery
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
+from pyobs_cloudcover.sky_query import SkyPixelQuery
 
 
 class CoverageQueryExecutor(object):
@@ -47,7 +47,7 @@ class CoverageQueryExecutor(object):
 
         cloud_query, obs_time = self._cloud_query_info
 
-        cloudiness = cloud_query.query_nearest_coordinate(AltAzCoord(np.deg2rad(alt), np.deg2rad(az)))
+        cloudiness = cloud_query.query_nearest_coordinate(np.deg2rad(alt), np.deg2rad(az))
 
         if cloudiness is None:
             return None
@@ -68,7 +68,7 @@ class CoverageQueryExecutor(object):
             return None
         cloud_query, obs_time = self._cloud_query_info
 
-        cloudiness = cloud_query.query_radius(AltAzCoord(np.deg2rad(alt), np.deg2rad(az)), np.deg2rad(radius))
+        cloudiness = cloud_query.query_radius(np.deg2rad(alt), np.deg2rad(az), np.deg2rad(radius))
 
         if cloudiness is None:
             return None

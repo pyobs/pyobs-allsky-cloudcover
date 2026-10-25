@@ -1,13 +1,9 @@
 import datetime
 
-import numpy as np
-from cloudmap_rs import AltAzCoord, SkyPixelQuery
-
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import \
     CoverageChangeCalculator
-from pyobs_cloudcover.measurement_log.field_evaluators.zenith_cloud_coverage_calculator import \
-    ZenithCloudCoverageCalculator
+from pyobs_cloudcover.sky_query import SkyPixelQuery
 
 
 class CoverageInfoCalculator:

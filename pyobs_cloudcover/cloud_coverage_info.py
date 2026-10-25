@@ -1,7 +1,7 @@
 import datetime
 from typing import Optional
 
-from cloudmap_rs import SkyPixelQuery
+from pyobs_cloudcover.sky_query import SkyPixelQuery
 
 
 class CloudCoverageInfo(object):

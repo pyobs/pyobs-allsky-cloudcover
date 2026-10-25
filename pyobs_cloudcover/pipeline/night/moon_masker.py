@@ -1,9 +1,9 @@
 import datetime
 
 import numpy as np
-from cloudmap_rs import SkyPixelQuery, AltAzCoord
-
 from astroplan import Observer
+
+from pyobs_cloudcover.sky_query import SkyPixelQuery
 
 
 class MoonMasker:
@@ -13,6 +13,6 @@ class MoonMasker:
 
     def __call__(self, sky_query: SkyPixelQuery, obs_time: datetime.datetime) -> SkyPixelQuery:
         moon_alt_az = self._observer.moon_altaz(obs_time)
-        sky_query.mask_radius(AltAzCoord(moon_alt_az.alt.rad, moon_alt_az.az.rad), np.deg2rad(self._moon_apparent_size))
+        sky_query.mask_radius(moon_alt_az.alt.rad, moon_alt_az.az.rad, np.deg2rad(self._moon_apparent_size))
 
         return sky_query

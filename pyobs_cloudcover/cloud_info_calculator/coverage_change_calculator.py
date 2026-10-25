@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -6,23 +6,24 @@ import numpy.typing as npt
 
 class CoverageChangeCalculator(object):
     def __init__(self) -> None:
-        self._last_map: Optional[List[Optional[bool]]] = None
+        self._last_map: Optional[npt.NDArray[np.float64]] = None
 
-    def __call__(self, new_map: List[Optional[bool]]) -> Optional[float]:
+    def __call__(self, new_map: npt.ArrayLike) -> Optional[float]:
+        """Fraction of positions known in both maps whose cloud state changed. Maps hold 1.0/0.0/NaN."""
+        new = np.array(new_map, dtype=np.float64)
+
         if self._last_map is None:
-            self._last_map = new_map
+            self._last_map = new
             return None
 
-        image_filter = np.array([(x is not None) and (y is not None) for x, y in zip(self._last_map, new_map)])
+        last = np.asarray(self._last_map, dtype=np.float64)
+        image_filter = ~np.isnan(last) & ~np.isnan(new)
 
         pixel_count = np.sum(image_filter)
 
-        changed_pixels = np.logical_xor(
-            np.array(new_map).astype(np.bool_)[image_filter],
-            np.array(self._last_map).astype(np.bool_)[image_filter]
-        )
+        changed_pixels = np.logical_xor(new[image_filter].astype(np.bool_), last[image_filter].astype(np.bool_))
         change = np.sum(changed_pixels)/pixel_count
 
-        self._last_clouds = new_map
+        self._last_clouds = new
 
         return float(change)

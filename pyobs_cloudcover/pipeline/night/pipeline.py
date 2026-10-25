@@ -3,8 +3,6 @@ import datetime
 import numpy as np
 import numpy.typing as npt
 
-from cloudmap_rs import SkyPixelQuery
-
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
@@ -15,6 +13,7 @@ from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocess
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
 from pyobs_cloudcover.pipeline.night.moon_masker import MoonMasker
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
+from pyobs_cloudcover.sky_query import SkyPixelQuery
 
 
 class NightPipeline(Pipeline):
@@ -44,11 +43,11 @@ class NightPipeline(Pipeline):
         catalog = self._catalog_constructor(obs_time, img_height, img_width)
         matches = self._star_reverse_matcher(preprocessed_image, catalog)
 
-        alt_az_list = self._alt_az_list_generator()
+        grid = self._alt_az_list_generator()
 
-        lim_mag_map = self._lim_magnitude_map_generator(catalog, matches, alt_az_list)
+        lim_mag_map = self._lim_magnitude_map_generator(catalog, matches, grid)
         cloud_map = self._cloud_map_generator(lim_mag_map)
-        sky_query = SkyPixelQuery(alt_az_list, cloud_map)
+        sky_query = SkyPixelQuery(grid, cloud_map)
         sky_query = self._moon_masker(sky_query, obs_time)
 
         return self._coverage_info_calculator(sky_query, obs_time)

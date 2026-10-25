@@ -1,8 +1,8 @@
 import functools
-from typing import List, Optional, Tuple
+from typing import Tuple
 
 import numpy as np
-from cloudmap_rs import AltAzCoord
+import numpy.typing as npt
 
 from pyobs_cloudcover.world_model import WorldModel
 
@@ -13,24 +13,13 @@ class AltAzMapGenerator:
         self._limiting_altitude = limiting_altitude
 
     @functools.lru_cache(maxsize=None)
-    def __call__(self, image_height: int, image_width: int) -> List[List[Optional[AltAzCoord]]]:
-        x = np.arange(0, image_width)
-        y = np.arange(0, image_height)
+    def __call__(self, image_height: int, image_width: int) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.bool_]]:
+        """Altitude and azimuth (rad) of every pixel, and whether the pixel is on the sky above the altitude limit."""
+        meshed_x, meshed_y = np.meshgrid(np.arange(0, image_width), np.arange(0, image_height))
 
-        meshed_x, meshed_y = np.meshgrid(x, y)
+        with np.errstate(invalid="ignore"):
+            alt, az = self._model.pix_to_altaz(meshed_x, meshed_y)
+            alt, az = np.asarray(alt, dtype=np.float64), np.asarray(az, dtype=np.float64)
+            valid = ~np.isnan(alt) & ~np.isnan(az) & (alt >= np.deg2rad(self._limiting_altitude))
 
-        alt, az = self._model.pix_to_altaz(meshed_x, meshed_y)
-        alt_az_coords = np.dstack((alt, az))
-
-        return [
-                [
-                    self._alt_az_convert(coord)
-                    for coord in row
-                ] for row in alt_az_coords
-            ]
-
-    def _alt_az_convert(self, alt_az_coords: Tuple[float, float]) -> Optional[AltAzCoord]:
-        if alt_az_coords[0] < np.deg2rad(self._limiting_altitude) or np.isnan(alt_az_coords[0]) or np.isnan(alt_az_coords[1]):
-            return None
-        else:
-            return AltAzCoord(*alt_az_coords)
+        return alt, az, valid

@@ -1,9 +1,9 @@
 import datetime
 
 import numpy as np
-from cloudmap_rs import SkyPixelQuery, AltAzCoord
-
 from astroplan import Observer
+
+from pyobs_cloudcover.sky_query import SkyPixelQuery
 
 
 class SunMasker:
@@ -13,6 +13,6 @@ class SunMasker:
 
     def __call__(self, sky_query: SkyPixelQuery, obs_time: datetime.datetime) -> SkyPixelQuery:
         sun_alt_az = self._observer.sun_altaz(obs_time)
-        sky_query.mask_radius(AltAzCoord(sun_alt_az.alt.rad, sun_alt_az.az.rad), np.deg2rad(self._sun_apparent_size))
+        sky_query.mask_radius(sun_alt_az.alt.rad, sun_alt_az.az.rad, np.deg2rad(self._sun_apparent_size))
 
         return sky_query
