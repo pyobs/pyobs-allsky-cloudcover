@@ -57,3 +57,28 @@ def test_factory_and_config_roundtrip() -> None:
     rebuilt = WorldModelFactory(Observer(latitude=0, longitude=0))(model.to_config())
     assert isinstance(rebuilt, FisheyeModel)
     np.testing.assert_allclose(rebuilt.altaz_to_pix(ALT, AZ), model.altaz_to_pix(ALT, AZ))
+
+
+def test_scaled_model_matches_fisheye_scaled() -> None:
+    from pyobs_cloudcover.world_model import ScaledModel
+
+    model = FisheyeModel(c_x=1000.0, c_y=750.0, f=600.0, a0=1.0, parity=-1)
+    for b in (2, 3, 4):
+        wrapped = ScaledModel(model, b)
+        np.testing.assert_allclose(wrapped.altaz_to_pix(ALT, AZ), model.scaled(1 / b).altaz_to_pix(ALT, AZ),
+                                   atol=1e-9)
+        x, y = wrapped.altaz_to_pix(ALT, AZ)
+        alt, _ = wrapped.pix_to_altaz(x, y)
+        np.testing.assert_allclose(alt, ALT, atol=1e-9)
+
+
+def test_migration_formula_for_1x_night_models() -> None:
+    """docs/source/migration.rst: a 1.x SimpleModel (F=2) on the flipped 2x2-binned image -> FisheyeModel."""
+    a0, R, cx, cy, H = 0.3, 1063.5, 757.1, 511.2, 2080
+    old = SimpleModel(a0=a0, F=2.0, R=R, c_x=cx, c_y=cy)
+    new = FisheyeModel(c_x=2 * cx + 0.5, c_y=H - 1 - (2 * cy + 0.5), f=R, a0=a0, projection="equisolid", parity=-1)
+    xb, yb_flipped = old.altaz_to_pix(ALT, AZ)
+    # binned pixel i is centred on full-res 2i+0.5; then undo the vertical flip
+    expected_x = 2 * np.asarray(xb) + 0.5
+    expected_y = H - 1 - (2 * np.asarray(yb_flipped) + 0.5)
+    np.testing.assert_allclose(new.altaz_to_pix(ALT, AZ), (expected_x, expected_y), atol=1e-9)
