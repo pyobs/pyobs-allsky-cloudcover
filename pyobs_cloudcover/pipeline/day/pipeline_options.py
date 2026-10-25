@@ -5,7 +5,7 @@ from typing import Any
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_options import CloudMapGeneratorOptions
 
 # blue/red + blue/green below which a pixel is cloudy; camera specific (this suits the simulated presets)
-THRESHOLD_DEFAULT = 2.1
+THRESHOLD_DEFAULT = 1.85
 
 
 class DayPipelineOptions:

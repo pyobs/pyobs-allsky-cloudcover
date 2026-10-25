@@ -90,7 +90,7 @@ pipelines:
       cloud_map:
         # pixels with a colour ratio (blue/red + blue/green, raw colours) below this are cloudy;
         # camera specific, choose it with `pyobs-cloudcover replay`
-        threshold: 2.1
+        threshold: 1.85
       # radius masked around the sun (degrees)
       sun_apparent_size: 0.54
 
@@ -140,7 +140,7 @@ pipelines:
       cloud_map:
         # points with a limiting magnitude below this are cloudy. Camera specific: choose it with
         # `pyobs-cloudcover replay` on a few nights of images.
-        threshold: 4.8
+        threshold: 4.6
 
       # radius masked around the moon (degrees)
       moon_apparent_size: 10.0

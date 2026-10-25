@@ -14,7 +14,7 @@ from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher_o
 # defaults chosen on simulated images (benchmarks/night_method.py); thresholds are camera specific
 DETECTOR_DEFAULTS: dict[str, Any] = {"type": "aperture", "snr": 3.0}
 ESTIMATOR_DEFAULT = "robust"
-THRESHOLD_DEFAULT = 4.8
+THRESHOLD_DEFAULT = 4.6
 
 
 class NightPipelineOptions:

@@ -1,0 +1,50 @@
+{
+  "scale": 1.0,
+  "seeds": [
+    0
+  ],
+  "summary": {
+    "budget-8bit / day": {
+      "agreement": 0.9858448376433988,
+      "total_error": 0.003888780867198125,
+      "zenith_error": 0.0012884937508053085,
+      "frames": 3
+    },
+    "budget-8bit / night": {
+      "agreement": 0.7170756362302897,
+      "total_error": 0.20378655665566556,
+      "zenith_error": 0.22646198830409356,
+      "frames": 9
+    },
+    "rpi-hq / day": {
+      "agreement": 0.9869812404866788,
+      "total_error": 0.003983414480072852,
+      "zenith_error": 0.0019869942196531674,
+      "frames": 3
+    },
+    "rpi-hq / night": {
+      "agreement": 0.8936511404473779,
+      "total_error": 0.07623895122845618,
+      "zenith_error": 0.016812865497076016,
+      "frames": 9
+    },
+    "zwo-asi178mm / night": {
+      "agreement": 0.9129543454345436,
+      "total_error": 0.06252253025302529,
+      "zenith_error": 0.032309941520467844,
+      "frames": 9
+    },
+    "zwo-asi224mc / day": {
+      "agreement": 0.9860442283416709,
+      "total_error": 0.0038571228201411865,
+      "zenith_error": 0.002564102564102555,
+      "frames": 3
+    },
+    "zwo-asi224mc / night": {
+      "agreement": 0.7980319545287862,
+      "total_error": 0.17299223322332236,
+      "zenith_error": 0.1175438596491228,
+      "frames": 9
+    }
+  }
+}

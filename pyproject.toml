@@ -35,6 +35,9 @@ dev = [
     "ruff>=0.15.0",
     "types-PyYAML>=6.0.12",
 ]
+integration = [
+    "testcontainers[influxdb]>=4.7.1",
+]
 
 [build-system]
 requires = ["hatchling"]
@@ -65,9 +68,10 @@ module = "pyobs_cloudcover.measurement_log.logger_strategies.influx"
 disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
-addopts = "-m 'not integration'"
+addopts = "-m 'not integration and not accuracy'"
 asyncio_mode = "strict"
 testpaths = ["tests"]
 markers = [
     "integration: marks tests that require external services (Docker/InfluxDB)",
+    "accuracy: accuracy regression run on full-size simulated images (slow)",
 ]

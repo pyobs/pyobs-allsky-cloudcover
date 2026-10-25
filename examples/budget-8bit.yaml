@@ -1,0 +1,74 @@
+# Low-cost 8-bit colour USB camera, mirrored image, time only in the (local-time) file name.
+# The camera of the simulator preset 'budget-8bit' (pyobs-cloudcover-sim --preset budget-8bit); thresholds tuned
+# on simulated nights/days with benchmarks/accuracy.py --tune.
+class: pyobs_cloudcover.application.Application
+watch:
+  path: /var/lib/allsky/images
+  pattern: allsky_*.fits
+  after: keep
+camera:
+  bayer: GRBG
+  orientation:
+    flip_x: true
+  timestamp:
+    source: filename
+    filename_format: allsky_%Y%m%d-%H%M%S.fits
+    timezone: Africa/Johannesburg
+  world_model:
+    class: pyobs_cloudcover.world_model.FisheyeModel
+    c_x: 643.0
+    c_y: 476.0
+    projection: polynomial
+    coefficients:
+    - 330.0
+    - 0.0
+    - -28.0
+    a0: 0.17453292519943295
+    parity: 1
+server:
+  url: 0.0.0.0
+  port: 8080
+measurement_log:
+  logger:
+    type: influx
+    url: http://localhost:8086
+    bucket: allsky
+    org: ''
+    token: ''
+  measurements:
+    cloud_zenith:
+    - type: zenith
+      name: cloudcover
+      altitude: 80.0
+    cloud_total:
+    - type: total
+      name: cloudcover
+    coverage:
+    - type: change
+      name: coverage-change
+    - type: sun
+      name: sun-coverage
+      radius: 20.0
+    - type: moon
+      name: moon-coverage
+      radius: 20.0
+pipelines:
+  night:
+    alt_interval:
+      start: null
+      end: -18
+    options:
+      cloud_map:
+        threshold: 3.9
+  day:
+    alt_interval:
+      start: 18
+      end: null
+    options:
+      cloud_map:
+        threshold: 1.85
+timezone: Africa/Johannesburg
+location:
+  longitude: 20.81
+  latitude: -32.38
+  elevation: 1760.0

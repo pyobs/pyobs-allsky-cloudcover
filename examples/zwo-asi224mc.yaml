@@ -1,0 +1,64 @@
+# ZWO ASI224MC with a 1.25 mm fisheye, images from INDI (Bayer pattern and time from the header).
+# The camera of the simulator preset 'zwo-asi224mc' (pyobs-cloudcover-sim --preset zwo-asi224mc); thresholds tuned
+# on simulated nights/days with benchmarks/accuracy.py --tune.
+class: pyobs_cloudcover.application.Application
+watch:
+  path: /var/lib/allsky/images
+  pattern: ccd1_*.fits
+  after: keep
+camera:
+  world_model:
+    class: pyobs_cloudcover.world_model.FisheyeModel
+    c_x: 651.5
+    c_y: 487.5
+    f: 330.0
+    a0: 1.5707963267948966
+    projection: equisolid
+    parity: 1
+server:
+  url: 0.0.0.0
+  port: 8080
+measurement_log:
+  logger:
+    type: influx
+    url: http://localhost:8086
+    bucket: allsky
+    org: ''
+    token: ''
+  measurements:
+    cloud_zenith:
+    - type: zenith
+      name: cloudcover
+      altitude: 80.0
+    cloud_total:
+    - type: total
+      name: cloudcover
+    coverage:
+    - type: change
+      name: coverage-change
+    - type: sun
+      name: sun-coverage
+      radius: 20.0
+    - type: moon
+      name: moon-coverage
+      radius: 20.0
+pipelines:
+  night:
+    alt_interval:
+      start: null
+      end: -18
+    options:
+      cloud_map:
+        threshold: 4.55
+  day:
+    alt_interval:
+      start: 18
+      end: null
+    options:
+      cloud_map:
+        threshold: 1.9
+timezone: Africa/Johannesburg
+location:
+  longitude: 20.81
+  latitude: -32.38
+  elevation: 1760.0
