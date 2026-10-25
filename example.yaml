@@ -88,8 +88,9 @@ pipelines:
       # binning of the colour-ratio map
       bin_size: 2
       cloud_map:
-        # pixels with a colour ratio (blue/red + blue/green) below this are cloudy
-        threshold: 3.5
+        # pixels with a colour ratio (blue/red + blue/green, raw colours) below this are cloudy;
+        # camera specific, choose it with `pyobs-cloudcover replay`
+        threshold: 2.1
       # radius masked around the sun (degrees)
       sun_apparent_size: 0.54
 

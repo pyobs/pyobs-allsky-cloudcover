@@ -4,6 +4,9 @@ from typing import Any
 
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_options import CloudMapGeneratorOptions
 
+# blue/red + blue/green below which a pixel is cloudy; camera specific (this suits the simulated presets)
+THRESHOLD_DEFAULT = 2.1
+
 
 class DayPipelineOptions:
     """Options of the day pipeline.
@@ -36,7 +39,9 @@ class DayPipelineOptions:
             model_options=options.get("world_model") or {},
             mask_filepath=str(options.get("mask_filepath") or ""),
             sun_apparent_size=float(options.get("sun_apparent_size", 0.54)),
-            cloud_map=CloudMapGeneratorOptions.from_dict(options.get("cloud_map", {"threshold": 3.5})),
+            cloud_map=CloudMapGeneratorOptions.from_dict(
+                options.get("cloud_map", {"threshold": 3.5 if legacy else THRESHOLD_DEFAULT})
+            ),
             bin_size=int(options.get("bin_size", 1 if legacy else 2)),
             legacy=legacy,
         )
