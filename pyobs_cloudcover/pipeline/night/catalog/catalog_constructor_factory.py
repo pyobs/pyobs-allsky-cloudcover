@@ -1,5 +1,7 @@
 from astroplan import Observer
 
+from pyobs_cloudcover.data import resolve_catalog_path
+
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_options import CatalogConstructorOptions
@@ -13,7 +15,7 @@ class CatalogConstructorFactory(object):
         self._observer = observer
 
     def __call__(self) -> CatalogConstructor:
-        altaz_catalog_loader = AltAzCatalogLoader.from_csv(self._options.filepath)
+        altaz_catalog_loader = AltAzCatalogLoader.from_csv(resolve_catalog_path(self._options.filepath))
         catalog_constructor = CatalogConstructor(
             altaz_catalog_loader, self._model, self._observer,
             self._options.alt_filter, self._options.v_mag_filter, self._options.distance_filter

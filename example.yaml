@@ -109,8 +109,8 @@ pipelines:
         bin_size: 2
 
       catalog:
-        # Filepath to the star catalog
-        filepath: "data/catalog_v50.csv"
+        # Filepath to the star catalog; leave empty for the bundled Yale Bright Star Catalogue
+        filepath: ""
         filter:
           # Lower altitude boundary (in degree)
           alt: 30.0
