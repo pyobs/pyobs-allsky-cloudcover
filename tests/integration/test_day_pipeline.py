@@ -18,11 +18,11 @@ def test_day_pipeline() -> None:
     observer = Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)
     obs_time = datetime.datetime(2024, 3, 9, 1, 48, 48, 297970)
 
-    model_parameters = [4.81426598e-03, 2.00000000e+00, 1.06352627e+03, 7.57115607e+01, 5.11194838e+01]
+    model_parameters = [4.81426598e-03, 2.00000000e00, 1.06352627e03, 7.57115607e01, 5.11194838e01]
     model = SimpleModel(*model_parameters)
 
     image = np.ones((104, 154)).astype(np.uint16) * 1
-    image[104//2, 154//2] = 0
+    image[104 // 2, 154 // 2] = 0
     mask = np.ones((104, 154)).astype(bool)
 
     alt_az_generator = AltAzMapGenerator(model, 20)
@@ -37,4 +37,3 @@ def test_day_pipeline() -> None:
     result = pipeline(Frame(image.astype(float), obs_time, bayer="RGGB"))
 
     assert result.change is None
-

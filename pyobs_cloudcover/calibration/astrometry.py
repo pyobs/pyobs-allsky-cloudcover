@@ -76,11 +76,32 @@ class LensCircle:
 
 
 def fit_lens_circle(images: Sequence[FloatArray]) -> LensCircle:
-    """Centre and radius of the illuminated disc, fitted to its edge (edge points on the image border, where
-    the circle is cut off, are ignored)."""
+    """Centre and radius of the illuminated disc, fitted to its edge.
+
+    Two discs are tried: everything lit above the noise of the dark border (in daylight that is the whole image
+    circle, ground and trees included) and the bright sky alone; the one with the more circular edge wins. Edge
+    points on the image border, where the circle is cut off, are ignored, and the fit follows the outer envelope
+    of the edge, since obstructions only cut into the disc.
+    """
     mean = np.mean([ndimage.uniform_filter(np.asarray(im, dtype=np.float64), 5) for im in images], axis=0)
-    lo, hi = np.percentile(mean, [2, 98])
-    inside = mean > lo + 0.5 * (np.median(mean[mean > np.percentile(mean, 50)]) - lo)
+    lo = float(np.percentile(mean, 2))
+    dark = mean[mean <= np.percentile(mean, 10)]
+    noise = 1.4826 * float(np.median(np.abs(dark - np.median(dark)))) + 1e-9
+    sky = float(np.median(mean[mean > np.percentile(mean, 50)]))
+    best: LensCircle | None = None
+    for threshold in (lo + 8 * noise, lo + 0.5 * (sky - lo)):
+        try:
+            circle = _circle_from_disc(mean > threshold)
+        except ValueError:
+            continue
+        if best is None or circle.rms < best.rms:
+            best = circle
+    if best is None:
+        raise ValueError("No illuminated disc found")
+    return best
+
+
+def _circle_from_disc(inside: npt.NDArray[np.bool_]) -> LensCircle:
     labels, n = ndimage.label(inside)
     if n == 0:
         raise ValueError("No illuminated disc found")
@@ -94,16 +115,39 @@ def fit_lens_circle(images: Sequence[FloatArray]) -> LensCircle:
     xs, ys = xs[keep].astype(float), ys[keep].astype(float)
     if len(xs) < 20:
         raise ValueError("Lens circle edge not found")
-    # algebraic (Kasa) fit, then geometric refinement
+    # Obstructions (trees, buildings) and the horizon cut *into* the disc, so fit its outer envelope: per angular
+    # sector keep the outermost edge point, then iteratively drop points well inside the fitted circle.
+    cx, cy = float(np.mean(xs)), float(np.mean(ys))
+    for _ in range(4):
+        angle = np.arctan2(ys - cy, xs - cx)
+        radius = np.hypot(xs - cx, ys - cy)
+        sector = ((angle + np.pi) / (2 * np.pi) * 180).astype(int) % 180
+        outer = np.zeros(len(xs), bool)
+        for k in np.unique(sector):
+            idx = np.flatnonzero(sector == k)
+            outer[idx[np.argmax(radius[idx])]] = True
+        px, py = xs[outer], ys[outer]
+        cx, cy, r = _fit_circle(px, py)
+        for _ in range(5):
+            residual = np.hypot(px - cx, py - cy) - r
+            spread = 1.4826 * np.median(np.abs(residual - np.median(residual))) + 0.5
+            keep = residual > -2.5 * spread
+            if keep.all() or keep.sum() < 10:
+                break
+            px, py = px[keep], py[keep]
+            cx, cy, r = _fit_circle(px, py)
+    rms = float(np.sqrt(np.mean((np.hypot(px - cx, py - cy) - r) ** 2)))
+    return LensCircle(float(cx), float(cy), float(r), rms)
+
+
+def _fit_circle(xs: FloatArray, ys: FloatArray) -> tuple[float, float, float]:
+    """Algebraic (Kasa) circle fit, refined geometrically."""
     a = np.column_stack([xs, ys, np.ones_like(xs)])
-    b = xs**2 + ys**2
-    c = np.linalg.lstsq(a, b, rcond=None)[0]
+    c = np.linalg.lstsq(a, xs**2 + ys**2, rcond=None)[0]
     cx, cy = c[0] / 2, c[1] / 2
     r = np.sqrt(c[2] + cx**2 + cy**2)
     res = optimize.least_squares(lambda p: np.hypot(xs - p[0], ys - p[1]) - p[2], [cx, cy, r], loss="soft_l1")
-    cx, cy, r = res.x
-    rms = float(np.sqrt(np.mean((np.hypot(xs - cx, ys - cy) - r) ** 2)))
-    return LensCircle(float(cx), float(cy), float(r), rms)
+    return float(res.x[0]), float(res.x[1]), float(res.x[2])
 
 
 def detect_stars(
@@ -334,17 +378,19 @@ def calibrate(
     focal_range: tuple[float, float] = (0.8, 1.25),
     max_zenith_angle: float = 100.0,
     polynomial: bool | None = None,
+    circle_frames: Sequence[Frame] | None = None,
 ) -> AstrometryResult:
     """Fit a :class:`FisheyeModel` to clear-night frames (canonical orientation, see :class:`CameraProfile`).
 
     ``polynomial``: also fit a polynomial lens and keep it if it fits clearly better (None), always (True) or
-    never (False).
+    never (False). ``circle_frames``: images to find the lens circle in instead of the night frames, e.g.
+    daytime frames, where the whole image circle is lit, when trees or buildings hide much of the horizon.
     """
     if not frames:
         raise ValueError("No frames")
     images = [luminance(f) for f in frames]
     shape = images[0].shape
-    circle = fit_lens_circle(images)
+    circle = fit_lens_circle([luminance(f) for f in circle_frames] if circle_frames else images)
     log.info(
         "Lens circle: centre (%.1f, %.1f), radius %.1f px (edge rms %.2f px)",
         circle.c_x,

@@ -21,7 +21,14 @@ dependencies = [
     "asyncinotify>=4.2.1,<5 ; sys_platform == 'linux'",
 ]
 
+[project.optional-dependencies]
+# pyobs-cloudcover catalog: download a deeper star catalogue
+catalog = ["astroquery>=0.4.10"]
+# pyobs-cloudcover replay --plot
+plots = ["matplotlib>=3.9"]
+
 [project.scripts]
+pyobs-cloudcover = "pyobs_cloudcover.cli:main"
 pyobs-cloudcover-sim = "pyobs_cloudcover.simulation.cli:main"
 
 [dependency-groups]
