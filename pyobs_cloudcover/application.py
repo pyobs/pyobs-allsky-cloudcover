@@ -11,6 +11,7 @@ from pyobs.modules import Module
 from pyobs_cloudcover.camera.profile import CameraProfile, Frame
 from pyobs_cloudcover.camera.reader import RawImage, from_fits_hdu, read_image
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
+from pyobs_cloudcover.config import MeasurementLogConfig, ServerConfig, validate_pipelines
 from pyobs_cloudcover.ingest.watcher import DirectoryWatcher
 from pyobs_cloudcover.measurement_log.measurment_logger_factory import MeasurementLoggerFactory
 from pyobs_cloudcover.pipeline.pipeline_controller_factory import PipelineControllerFactory
@@ -47,13 +48,14 @@ class Application(Module):
         self._camera = CameraProfile(camera)
 
         server_factory = ServerFactory(self.observer)
-        self._server = server_factory(server)
+        self._server = server_factory(ServerConfig.model_validate(server).model_dump())
 
         measurement_logger_factory = MeasurementLoggerFactory(self.observer)
-        self._measurement_log = measurement_logger_factory(measurement_log)
+        log_config = MeasurementLogConfig.model_validate(measurement_log).model_dump()
+        self._measurement_log = measurement_logger_factory(log_config)
 
         pipeline_controller_factory = PipelineControllerFactory(self.observer, self._camera)
-        self._pipeline_controller = pipeline_controller_factory(pipelines)
+        self._pipeline_controller = pipeline_controller_factory(validate_pipelines(pipelines))
 
         # the pipelines keep state between frames, so they run one at a time, off the event loop
         self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="cloudcover")

@@ -36,3 +36,37 @@ def test_1x_config_still_works() -> None:
     # 1.x semantics: vertical flip, 1.x detector and estimator
     assert night._preprocess._flip_vertical
     assert night._lim_magnitude_map_generator._estimate.__name__ == "border_magnitude"
+
+
+def test_config_errors_are_clear(tmp_path: Path) -> None:
+    import pytest
+    from pydantic import ValidationError
+
+    config = yaml.safe_load((ROOT / "example.yaml").read_text())
+    config["watch"]["path"] = str(tmp_path)
+    config["measurement_log"]["logger"] = {"type": "memory"}
+
+    def broken(**changes: Any) -> dict[str, Any]:
+        c = yaml.safe_load(yaml.safe_dump(config))
+        for path, value in changes.items():
+            node = c
+            *parents, leaf = path.split(".")
+            for key in parents:
+                node = node[key]
+            node[leaf] = value
+        return c
+
+    cases = {
+        "server.port": "eighty",
+        "measurement_log.logger": {"type": "mongodb"},
+        "measurement_log.measurements": {"m": [{"type": "sun", "name": "sun-coverage"}]},
+        "pipelines": {"dusk": {}},
+        "camera.bayer": "RGBW",
+        "watch.after": "shred",
+    }
+    for path, value in cases.items():
+        c = broken(**{path: value})
+        c.pop("class")
+        location = c.pop("location")
+        with pytest.raises((ValidationError, ValueError)):
+            Application(**c, location=location)
