@@ -1,4 +1,3 @@
-import datetime
 import logging
 from typing import Any
 
@@ -7,6 +6,7 @@ from pyobs.events import Event, NewImageEvent
 from pyobs.modules import Module
 
 from pyobs_cloudcover.measurement_log.measurment_logger_factory import MeasurementLoggerFactory
+from pyobs_cloudcover.obs_time import time_from_header
 from pyobs_cloudcover.pipeline.pipeline_controller_factory import PipelineControllerFactory
 from pyobs_cloudcover.web_api.server_factory import ServerFactory
 
@@ -54,7 +54,10 @@ class Application(Module):
 
         image = await self.vfs.read_image(event.filename)
 
-        obs_time = datetime.datetime.strptime(image.header["DATE-OBS"], "%Y-%m-%dT%H:%M:%S.%f")
+        obs_time = time_from_header(image.header)
+        if obs_time is None:
+            log.error("Image %s has no DATE-OBS, skipping.", event.filename)
+            return False
 
         measurement = self._pipeline_controller(image.data.astype(np.float64), obs_time)
 

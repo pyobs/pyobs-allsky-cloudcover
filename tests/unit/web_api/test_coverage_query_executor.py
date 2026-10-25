@@ -59,3 +59,11 @@ def test_area_radec_nan(observer, obs_time) -> None:
     executor.set_measurement(CloudCoverageInfo(cloud_query, 0.1, obs_time))
 
     assert executor.area_query_radec(10, 10, 90) is None
+
+
+def test_obs_time_is_unix_time_of_the_utc_timestamp(observer) -> None:  # type: ignore[no-untyped-def]
+    # obs times are aware UTC datetimes now; a naive one was turned into Unix time using the server's local zone
+    executor = CoverageQueryExecutor(observer)
+    obs_time = datetime.datetime(2024, 3, 9, 1, 48, 48, tzinfo=datetime.UTC)
+    executor.set_measurement(CloudCoverageInfo(SkyPixelQuery(SkyGrid([0], [0]), [1.0]), None, obs_time))
+    assert executor.get_obs_time() == 1709948928.0
