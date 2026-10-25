@@ -80,3 +80,35 @@ def test_legacy_config_still_works(tmp_path) -> None:  # type: ignore[no-untyped
     total_overcast = overcast.cloud_cover_query.query_radius(np.pi / 2, 0, np.deg2rad(60))
     assert total_clear is not None and total_overcast is not None
     assert total_overcast > total_clear + 0.3
+
+
+def test_mask_keeps_obstructions_from_reading_as_cloud(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    from pyobs_cloudcover.calibration.mask import sky_mask_from_altitude
+    from pyobs_cloudcover.simulation import Horizon
+
+    # a wall up to 45 deg all around the east
+    horizon = Horizon(azimuth=(0.0, 10.0, 170.0, 180.0, 359.0), altitude=(0.0, 45.0, 45.0, 0.0, 0.0))
+    sim = Simulator(get_preset("zwo-asi178mm", SCALE), horizon=horizon, seed=2)
+    path = sim.render(NIGHT).write(tmp_path)
+    camera = {**CAMERAS["zwo-asi178mm"], "world_model": sim.world_model.to_config()}
+
+    # sky mask: above 46 deg in the east, above 30 deg elsewhere (as the mask builder would produce)
+    model = sim.world_model
+    h, w = sim.profile.canonical_shape
+    y, x = np.mgrid[0:h, 0:w].astype(float)
+    _, az = model.pix_to_altaz(x, y)
+    east = (np.rad2deg(np.asarray(az)) > 5) & (np.rad2deg(np.asarray(az)) < 175)
+    mask = sky_mask_from_altitude((h, w), model, 30.0) & (~east | sky_mask_from_altitude((h, w), model, 46.0))
+    np.save(tmp_path / "mask.npy", mask)
+
+    pipelines = {"night": {"alt_interval": {"end": -18}, "options": {"cloud_map": {"threshold": 4.8}}}}
+    results = {}
+    for name, cam in (("without", camera), ("with", {**camera, "mask": str(tmp_path / "mask.npy")})):
+        profile = CameraProfile(cam)
+        controller = PipelineControllerFactory(sim._observer, profile)(pipelines)
+        result = controller(profile.prepare(read_image(path)))
+        assert result is not None
+        # cloud fraction in the obstructed band (east, 30-45 deg)
+        results[name] = result.cloud_cover_query.query_radius(np.deg2rad(37), np.deg2rad(90), np.deg2rad(7))
+    assert results["without"] is not None and results["without"] > 0.7  # the wall looks like cloud
+    assert results["with"] is None or results["with"] < 0.3  # masked: no stars there, so no claim
