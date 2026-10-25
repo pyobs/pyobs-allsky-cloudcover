@@ -4,14 +4,16 @@ import numpy as np
 import numpy.typing as npt
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
+from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
-from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import LimMagnitudeMapGenerator
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import (
+    LimMagnitudeMapGenerator,
+)
+from pyobs_cloudcover.pipeline.night.moon_masker import MoonMasker
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
-from pyobs_cloudcover.pipeline.night.moon_masker import MoonMasker
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
 from pyobs_cloudcover.sky_query import SkyPixelQuery
 

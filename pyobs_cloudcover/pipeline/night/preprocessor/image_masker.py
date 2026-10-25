@@ -1,11 +1,12 @@
 from __future__ import annotations
+
 from copy import copy
 
 import numpy as np
 import numpy.typing as npt
 
 
-class ImageMasker(object):
+class ImageMasker:
     def __init__(self, mask: npt.NDArray[np.bool_]) -> None:
         self._mask = mask
 

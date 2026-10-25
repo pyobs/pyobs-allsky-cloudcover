@@ -1,8 +1,7 @@
 import datetime
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
-from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import \
-    CoverageChangeCalculator
+from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import CoverageChangeCalculator
 from pyobs_cloudcover.sky_query import SkyPixelQuery
 
 

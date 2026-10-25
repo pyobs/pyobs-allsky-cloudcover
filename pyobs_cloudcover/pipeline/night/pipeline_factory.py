@@ -1,11 +1,12 @@
 from astroplan import Observer
-from pyobs.object import get_object
 
+from pyobs_cloudcover.cloud_info_calculator import CloudInfoCalculatorFactory
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_map_generator_factory import AltAzMapGeneratorFactory
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_factory import CatalogConstructorFactory
-from pyobs_cloudcover.cloud_info_calculator import CloudInfoCalculatorFactory
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_factory import CloudMapGeneratorFactory
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator_factory import LimMagnitudeMapGeneratorFactory
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator_factory import (
+    LimMagnitudeMapGeneratorFactory,
+)
 from pyobs_cloudcover.pipeline.night.moon_masker import MoonMasker
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
 from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
@@ -15,7 +16,7 @@ from pyobs_cloudcover.world_model import WorldModel
 from pyobs_cloudcover.world_model.world_model_factory import WorldModelFactory
 
 
-class NightPipelineFactory(object):
+class NightPipelineFactory:
     def __init__(self, observer: Observer):
         self._observer = observer
 

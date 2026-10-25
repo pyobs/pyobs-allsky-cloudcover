@@ -1,9 +1,8 @@
 from __future__ import annotations
-from typing import Optional
 
 
-class Interval(object):
-    def __init__(self, start: Optional[float] = None, end: Optional[float] = None):
+class Interval:
+    def __init__(self, start: float | None = None, end: float | None = None):
         self._start = start
         self._end = end
 

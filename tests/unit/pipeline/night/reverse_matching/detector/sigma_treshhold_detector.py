@@ -1,7 +1,8 @@
 import numpy as np
 
-from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.sigma_treshhold_detector import \
-    SigmaThresholdDetector
+from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.sigma_treshhold_detector import (
+    SigmaThresholdDetector,
+)
 
 
 def test_call_false():

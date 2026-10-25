@@ -4,7 +4,7 @@ import numpy as np
 import numpy.typing as npt
 
 
-class ImageBinner(object):
+class ImageBinner:
     def __init__(self, size: int) -> None:
         self._size = size
 

@@ -1,4 +1,4 @@
-from typing import Dict, Any, List
+from typing import Any
 
 from astroplan import Observer
 
@@ -9,18 +9,17 @@ from pyobs_cloudcover.pipeline.night.pipeline_factory import NightPipelineFactor
 from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
 from pyobs_cloudcover.pipeline.pipeline_controller import PipelineController
-from pyobs_cloudcover.world_model import WorldModel
 
 
-class PipelineControllerFactory(object):
+class PipelineControllerFactory:
     def __init__(self, observer: Observer):
         self._observer = observer
         self._night_pipeline_factory = NightPipelineFactory(observer)
         self._day_pipeline_factory = DayPipelineFactory(observer)
 
-    def __call__(self, pipline_configs: Dict[str, Dict[str, Any]]) -> PipelineController:
-        pipelines: List[Pipeline] = []
-        intervals: List[Interval] = []
+    def __call__(self, pipline_configs: dict[str, dict[str, Any]]) -> PipelineController:
+        pipelines: list[Pipeline] = []
+        intervals: list[Interval] = []
 
         for pipeline_type, pipeline_config in pipline_configs.items():
             if pipeline_type == 'day':

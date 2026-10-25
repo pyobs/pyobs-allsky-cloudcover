@@ -2,9 +2,9 @@ import datetime
 from io import StringIO
 from unittest.mock import Mock
 
+import astropy.units as u
 import numpy as np
 from astroplan import Observer
-import astropy.units as u
 
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 

@@ -1,5 +1,4 @@
 import functools
-from typing import Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -12,8 +11,10 @@ class AltAzMapGenerator:
         self._model = model
         self._limiting_altitude = limiting_altitude
 
-    @functools.lru_cache(maxsize=None)
-    def __call__(self, image_height: int, image_width: int) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.bool_]]:
+    @functools.cache
+    def __call__(
+        self, image_height: int, image_width: int
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.bool_]]:
         """Altitude and azimuth (rad) of every pixel, and whether the pixel is on the sky above the altitude limit."""
         meshed_x, meshed_y = np.meshgrid(np.arange(0, image_width), np.arange(0, image_height))
 

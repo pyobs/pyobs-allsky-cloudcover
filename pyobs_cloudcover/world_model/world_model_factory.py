@@ -1,17 +1,18 @@
-from typing import Dict, Any
+from typing import Any
 
 import pyobs.object
 from astroplan import Observer
 
-from pyobs_cloudcover.world_model import WorldModel, SimpleModel
+from pyobs_cloudcover.world_model.simple_model import SimpleModel
 from pyobs_cloudcover.world_model.wcs_model_loader import WCSModelLoader
+from pyobs_cloudcover.world_model.world_model import WorldModel
 
 
-class WorldModelFactory(object):
+class WorldModelFactory:
     def __init__(self, observer: Observer):
         self._observer = observer
 
-    def __call__(self, world_model_config: Dict[str, Any]) -> WorldModel:
+    def __call__(self, world_model_config: dict[str, Any]) -> WorldModel:
         if world_model_config['class'] == 'pyobs_cloudcover.world_model.SimpleModel':
             model: SimpleModel = pyobs.object.get_object(world_model_config, SimpleModel)
             return model

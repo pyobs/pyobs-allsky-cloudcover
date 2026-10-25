@@ -1,5 +1,4 @@
 import functools
-from typing import Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -7,7 +6,7 @@ import numpy.typing as npt
 from pyobs_cloudcover.sky_query import SkyGrid
 
 
-def fibonacci_sphere(point_number: int) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+def fibonacci_sphere(point_number: int) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
     """Altitude and azimuth (in rad) of ``point_number`` points evenly distributed over the whole sphere.
 
     Uses the Fibonacci lattice: equal-area latitude bands, golden-angle azimuth steps.
@@ -23,7 +22,7 @@ class SphericalAltAzGenerator:
         self._point_number = point_number
         self._limiting_altitude = limiting_altitude
 
-    @functools.lru_cache(maxsize=None)
+    @functools.cache
     def __call__(self) -> SkyGrid:
         alt, az = fibonacci_sphere(self._point_number)
         above = alt >= np.deg2rad(self._limiting_altitude)

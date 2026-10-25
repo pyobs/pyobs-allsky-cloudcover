@@ -1,10 +1,8 @@
 import numpy as np
 import numpy.typing as npt
 
-from pyobs_cloudcover.world_model import WorldModel
 
-
-class AltAzCatalog(object):
+class AltAzCatalog:
     def __init__(self, sao: npt.NDArray[np.int_], alt: npt.NDArray[np.float64], az: npt.NDArray[np.float64],
                  v_mag: npt.NDArray[np.float64]) -> None:
         self.sao = sao

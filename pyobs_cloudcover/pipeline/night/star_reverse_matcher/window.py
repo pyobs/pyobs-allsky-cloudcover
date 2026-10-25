@@ -1,13 +1,12 @@
-from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
 
 
-class ImageWindow(object):
+class ImageWindow:
     def __init__(self, h_size: float) -> None:
         self._h_size = h_size
-        self._image: Optional[npt.NDArray[np.float64]] = None
+        self._image: npt.NDArray[np.float64] | None = None
 
     def get_size(self) -> float:
         return self._h_size

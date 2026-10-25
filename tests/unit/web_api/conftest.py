@@ -1,6 +1,6 @@
+import astropy.units as u
 import pytest
 from astroplan import Observer
-import astropy.units as u
 
 
 @pytest.fixture(scope='module')

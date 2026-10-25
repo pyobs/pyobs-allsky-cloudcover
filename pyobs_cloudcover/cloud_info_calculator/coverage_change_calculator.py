@@ -1,14 +1,13 @@
-from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
 
 
-class CoverageChangeCalculator(object):
+class CoverageChangeCalculator:
     def __init__(self) -> None:
-        self._last_map: Optional[npt.NDArray[np.float64]] = None
+        self._last_map: npt.NDArray[np.float64] | None = None
 
-    def __call__(self, new_map: npt.ArrayLike) -> Optional[float]:
+    def __call__(self, new_map: npt.ArrayLike) -> float | None:
         """Fraction of positions known in both maps whose cloud state changed. Maps hold 1.0/0.0/NaN."""
         new = np.array(new_map, dtype=np.float64)
 

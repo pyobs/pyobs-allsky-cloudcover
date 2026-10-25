@@ -1,5 +1,4 @@
 import datetime
-from typing import List, Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -10,8 +9,8 @@ from pyobs_cloudcover.pipeline.intervall import Interval
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
 
 
-class PipelineController(object):
-    def __init__(self, pipelines: List[Pipeline], sun_alt_intervals: List[Interval], observer: Observer) -> None:
+class PipelineController:
+    def __init__(self, pipelines: list[Pipeline], sun_alt_intervals: list[Interval], observer: Observer) -> None:
         self._pipelines = pipelines
         self._sun_alt_intervals = sun_alt_intervals
         self._observer = observer
@@ -34,7 +33,7 @@ class PipelineController(object):
         if True in overlap:
             raise ValueError("Sun altitude intervals can't overlap!")
 
-    def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> Optional[CloudCoverageInfo]:
+    def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> CloudCoverageInfo | None:
         sun_alt = self._observer.sun_altaz(obs_time).alt.deg
 
         for pipeline, alt_interval in zip(self._pipelines, self._sun_alt_intervals):

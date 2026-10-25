@@ -1,14 +1,13 @@
 from astroplan import Observer
 
 from pyobs_cloudcover.data import resolve_catalog_path
-
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_options import CatalogConstructorOptions
 from pyobs_cloudcover.world_model import WorldModel
 
 
-class CatalogConstructorFactory(object):
+class CatalogConstructorFactory:
     def __init__(self, options: CatalogConstructorOptions, model: WorldModel, observer: Observer) -> None:
         self._options = options
         self._model = model

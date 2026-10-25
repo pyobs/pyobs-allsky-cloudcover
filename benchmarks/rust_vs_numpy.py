@@ -139,7 +139,12 @@ def bench_query(rust: Any, n_points: int, rng: np.random.Generator) -> None:
     alt = np.arcsin(rng.uniform(0, 1, n_points))
     az = rng.uniform(0, 2 * np.pi, n_points)
     cloudy = rng.random(n_points) < 0.4
-    centres = [(np.pi / 2, 0.0, np.pi / 2), (np.pi / 2, 0.0, np.deg2rad(10)), (0.8, 1.0, np.deg2rad(20)), (0.3, 4.0, np.deg2rad(20))]
+    centres = [
+        (np.pi / 2, 0.0, np.pi / 2),
+        (np.pi / 2, 0.0, np.deg2rad(10)),
+        (0.8, 1.0, np.deg2rad(20)),
+        (0.3, 4.0, np.deg2rad(20)),
+    ]
     pts = rng.uniform(0, 1, (1000, 2)) * [np.pi / 2, 2 * np.pi]
 
     def run_np() -> list[float]:

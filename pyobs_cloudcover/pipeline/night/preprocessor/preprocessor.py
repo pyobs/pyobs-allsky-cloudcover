@@ -5,7 +5,7 @@ from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinne
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
 
 
-class Preprocessor(object):
+class Preprocessor:
     def __init__(self, masker: ImageMasker, binner: ImageBinner):
         self._masker = masker
         self._binner = binner

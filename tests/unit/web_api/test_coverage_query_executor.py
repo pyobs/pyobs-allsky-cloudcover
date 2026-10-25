@@ -1,14 +1,13 @@
 import datetime
 from unittest.mock import Mock
 
-import astropy.units as u
 import numpy as np
 import pytest
-from astroplan import Observer
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.sky_query import SkyGrid, SkyPixelQuery
 from pyobs_cloudcover.web_api.coverage_query_executor import CoverageQueryExecutor
+
 
 @pytest.fixture()
 def obs_time():

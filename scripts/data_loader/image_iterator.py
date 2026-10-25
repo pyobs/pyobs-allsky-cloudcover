@@ -1,12 +1,11 @@
 import os
 from copy import copy
-from typing import List
 
 import pyobs.images
 
 
 class ImageIterator:
-    def __init__(self, file_paths: List[os.path], start=0, stop=None, step=1):
+    def __init__(self, file_paths: list[os.path], start=0, stop=None, step=1):
         self._file_paths = file_paths[start:stop:step]
         self._index = 0
 

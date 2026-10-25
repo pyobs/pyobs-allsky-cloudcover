@@ -1,28 +1,31 @@
-import sys
 import datetime
+import sys
 
+import astropy.units as u
 import numpy as np
 from astroplan import Observer
 from astropy.visualization import PercentileInterval
-import astropy.units as u
 from pyobs.images import Image
 
+from pyobs_cloudcover.cloud_info_calculator import (
+    CoverageCalculator,
+    CoverageInfoCalculator,
+    ZenithCloudCoverageCalculator,
+)
+from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import CoverageChangeCalculator
 from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog_loader import AltAzCatalogLoader
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
-from pyobs_cloudcover.cloud_info_calculator import CoverageCalculator
-from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import \
-    CoverageChangeCalculator
-from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
-from pyobs_cloudcover.cloud_info_calculator import ZenithCloudCoverageCalculator
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import LimMagnitudeMapGenerator
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import (
+    LimMagnitudeMapGenerator,
+)
 from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
-
 from pyobs_cloudcover.pipeline.night.preprocessor.image_binner import ImageBinner
 from pyobs_cloudcover.pipeline.night.preprocessor.image_masker import ImageMasker
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocessor
-from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.sigma_treshhold_detector import \
-    SigmaThresholdDetector
+from pyobs_cloudcover.pipeline.night.star_reverse_matcher.detector.sigma_treshhold_detector import (
+    SigmaThresholdDetector,
+)
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.window import ImageWindow
 from pyobs_cloudcover.world_model.wcs_model_loader import WCSModelLoader
@@ -43,7 +46,7 @@ def main() -> None:
     cloud_coverage_infos = [pipeline(image.data, obs_time) for image, obs_time in zip(images, obs_times)]
     end = datetime.datetime.now()
 
-    print((end-start).total_seconds())
+    print((end - start).total_seconds())
 
     cutoff = 5.5
 
@@ -53,7 +56,10 @@ def main() -> None:
     plt.subplot(122)
     plt.title(obs_times[0].isoformat())
     plt.imshow(PercentileInterval(99)(preprocessor(images[-1].data)), cmap="gray")
-    plt.imshow(cloud_coverage_infos[-1].cloud_cover_map, alpha=(cloud_coverage_infos[-1].cloud_cover_map < cutoff).astype(np.float64))
+    plt.imshow(
+        cloud_coverage_infos[-1].cloud_cover_map,
+        alpha=(cloud_coverage_infos[-1].cloud_cover_map < cutoff).astype(np.float64),
+    )
     plt.colorbar()
 
     plt.show()
@@ -81,14 +87,21 @@ def build_pipeline(wcs_file, catalog_file, image_shape, integration_size) -> (Ni
     coverage_calculator = CoverageCalculator(5.5)
     coverage_change_calculator = CoverageChangeCalculator(5.5)
     zenith_masker = ZenithCloudCoverageCalculator(80)
-    cloud_coverage_info_calculator = CoverageInfoCalculator(coverage_calculator, coverage_change_calculator,
-                                                            zenith_masker)
+    cloud_coverage_info_calculator = CoverageInfoCalculator(
+        coverage_calculator, coverage_change_calculator, zenith_masker
+    )
 
-    pipeline = NightPipeline(preprocessor, catalog_constructor, altaz_list_generator, reverse_matcher, cloud_map_gem,
-                             cloud_coverage_info_calculator)
+    pipeline = NightPipeline(
+        preprocessor,
+        catalog_constructor,
+        altaz_list_generator,
+        reverse_matcher,
+        cloud_map_gem,
+        cloud_coverage_info_calculator,
+    )
 
     return pipeline, preprocessor
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

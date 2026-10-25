@@ -1,5 +1,4 @@
-from collections import deque, defaultdict
-from typing import List, Tuple
+from collections import defaultdict, deque
 
 import numpy as np
 import numpy.typing as npt
@@ -9,12 +8,12 @@ from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.border_magnitud
 from pyobs_cloudcover.sky_query import SkyGrid
 
 
-class LimMagnitudeMapGenerator(object):
+class LimMagnitudeMapGenerator:
     def __init__(self, radius: float, integration_length: int = 1):
         self._radius = radius
-        self._integration_frame: deque[Tuple[PixelCatalog, List[bool]]] = deque([], integration_length)
+        self._integration_frame: deque[tuple[PixelCatalog, list[bool]]] = deque([], integration_length)
 
-    def __call__(self, catalog: PixelCatalog, matches: List[bool], grid: SkyGrid) -> npt.NDArray[np.float64]:
+    def __call__(self, catalog: PixelCatalog, matches: list[bool], grid: SkyGrid) -> npt.NDArray[np.float64]:
         self._update_integration_frame(catalog, matches)
         integrated_matches = self._get_integrated_frame()
 
@@ -27,13 +26,13 @@ class LimMagnitudeMapGenerator(object):
             np.deg2rad(self._radius),
         )
 
-    def _update_integration_frame(self, catalog: PixelCatalog, matches: List[bool]) -> None:
+    def _update_integration_frame(self, catalog: PixelCatalog, matches: list[bool]) -> None:
         self._integration_frame.append((catalog, matches))
 
-    def _get_integrated_frame(self) -> List[bool]:
+    def _get_integrated_frame(self) -> list[bool]:
         entries = list(self._integration_frame)
-        catalogs: List[PixelCatalog] = list(map(lambda x: x[0], entries))
-        match_lists: List[List[bool]] = list(map(lambda x: x[1], entries))
+        catalogs: list[PixelCatalog] = list(map(lambda x: x[0], entries))
+        match_lists: list[list[bool]] = list(map(lambda x: x[1], entries))
 
         match_dict = defaultdict(list)
 

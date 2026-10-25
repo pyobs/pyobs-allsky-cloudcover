@@ -1,18 +1,12 @@
 import datetime
 
-import numpy as np
-from astroplan import Observer
-
 import astropy.units as u
+import numpy as np
+import pytest
+from astroplan import Observer
 
 from pyobs_cloudcover.pipeline.day.pipeline_factory import DayPipelineFactory
 from pyobs_cloudcover.pipeline.day.pipeline_options import DayPipelineOptions
-from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
-from pyobs_cloudcover.pipeline.night.pipeline_factory import NightPipelineFactory
-from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
-from pyobs_cloudcover.world_model import SimpleModel
-
-import pytest
 
 pytestmark = pytest.mark.skip(
     reason="Depended on images and masks from the retired Goettingen ASI178MC camera, which were deleted; "

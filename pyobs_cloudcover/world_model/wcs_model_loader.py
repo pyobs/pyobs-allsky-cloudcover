@@ -8,7 +8,7 @@ from astropy.wcs import WCS
 from pyobs_cloudcover.world_model.wcs_model import WCSModel
 
 
-class WCSModelLoader(object):
+class WCSModelLoader:
     def __init__(self, file_path: str) -> None:
         self._file_path = file_path
 

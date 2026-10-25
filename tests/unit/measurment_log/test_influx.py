@@ -2,12 +2,8 @@ import datetime
 from unittest.mock import Mock
 
 import influxdb_client
-import numpy as np
 
-from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.measurement_log.logger_strategies.influx import Influx
-
-from influxdb_client.client.write_api import WriteApi
 
 
 def test_call():

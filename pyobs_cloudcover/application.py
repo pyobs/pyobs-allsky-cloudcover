@@ -1,11 +1,10 @@
 import datetime
 import logging
-from typing import Dict, Any
+from typing import Any
 
-from pyobs.events import NewImageEvent, Event
+from pyobs.events import Event, NewImageEvent
 from pyobs.modules import Module
 
-from pyobs_cloudcover.measurement_log.logger_strategies.influx import Influx
 from pyobs_cloudcover.measurement_log.measurment_logger_factory import MeasurementLoggerFactory
 from pyobs_cloudcover.pipeline.pipeline_controller_factory import PipelineControllerFactory
 from pyobs_cloudcover.web_api.server_factory import ServerFactory
@@ -16,9 +15,9 @@ log = logging.getLogger(__name__)
 class Application(Module):
     def __init__(self,
                  image_sender: str,
-                 server: Dict[str, Any],
-                 measurement_log: Dict[str, Any],
-                 pipelines: Dict[str, Dict[str, Any]], *args: Any, **kwargs: Any) -> None:
+                 server: dict[str, Any],
+                 measurement_log: dict[str, Any],
+                 pipelines: dict[str, dict[str, Any]], *args: Any, **kwargs: Any) -> None:
 
         super().__init__(*args, **kwargs)
 
@@ -34,7 +33,7 @@ class Application(Module):
         self._pipeline_controller = pipeline_controller_factory(pipelines)
 
     async def open(self) -> None:
-        await super(Application, self).open()
+        await super().open()
         await self._server.start()
 
         await self.comm.register_event(NewImageEvent, self.process_new_image)

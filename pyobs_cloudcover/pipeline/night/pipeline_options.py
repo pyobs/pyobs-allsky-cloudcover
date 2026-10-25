@@ -1,19 +1,20 @@
 from __future__ import annotations
 
-from typing import Dict, Any, cast
+from typing import Any, cast
 
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_grid_options import AltAzGridOptions
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_options import CatalogConstructorOptions
-
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_options import CloudMapGeneratorOptions
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator_options import LimMagnitudeMapGeneratorOptions
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator_options import (
+    LimMagnitudeMapGeneratorOptions,
+)
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor_options import PreprocessorOptions
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher_options import StarReverseMatcherOptions
 
 
-class NightPipelineOptions(object):
+class NightPipelineOptions:
     def __init__(self,
-                 model_options: Dict[str, Any],
+                 model_options: dict[str, Any],
                  preprocessor_options: PreprocessorOptions,
                  catalog_options: CatalogConstructorOptions,
                  star_matcher_options: StarReverseMatcherOptions,
@@ -33,7 +34,7 @@ class NightPipelineOptions(object):
         self.moon_apparent_size = moon_apparent_size
 
     @classmethod
-    def from_dict(cls, options: Dict[str, Dict[str, Any]]) -> NightPipelineOptions:
+    def from_dict(cls, options: dict[str, dict[str, Any]]) -> NightPipelineOptions:
         model_options = options.get("world_model", {})
         preprocessor_options = PreprocessorOptions.from_dict(options.get("preprocessor", {}))
         catalog_options = CatalogConstructorOptions.from_dict(options.get("catalog", {}))

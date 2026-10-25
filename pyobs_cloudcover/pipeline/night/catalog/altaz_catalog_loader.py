@@ -10,8 +10,14 @@ from astropy.coordinates import SkyCoord
 from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog import AltAzCatalog
 
 
-class AltAzCatalogLoader(object):
-    def __init__(self, sao: npt.NDArray[np.int_], ra: npt.NDArray[np.float64], dec: npt.NDArray[np.float64], v_mag: npt.NDArray[np.float64]) -> None:
+class AltAzCatalogLoader:
+    def __init__(
+        self,
+        sao: npt.NDArray[np.int_],
+        ra: npt.NDArray[np.float64],
+        dec: npt.NDArray[np.float64],
+        v_mag: npt.NDArray[np.float64],
+    ) -> None:
         self._sao = sao
         self._ra = ra
         self._dec = dec
@@ -22,8 +28,10 @@ class AltAzCatalogLoader(object):
 
         return AltAzCatalog(self._sao, alt, az, self._vmag)
 
-    def _equatorial_to_altaz(self, observer: Observer, obstime: datetime.datetime) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
-        ircs_coords = SkyCoord(ra=self._ra, dec=self._dec, unit='deg', location=observer.location, obstime=obstime)
+    def _equatorial_to_altaz(
+        self, observer: Observer, obstime: datetime.datetime
+    ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+        ircs_coords = SkyCoord(ra=self._ra, dec=self._dec, unit="deg", location=observer.location, obstime=obstime)
         alt_az_coord = ircs_coords.transform_to("altaz")
         return alt_az_coord.alt.deg, alt_az_coord.az.deg
 

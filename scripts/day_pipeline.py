@@ -4,12 +4,10 @@ import sys
 import astropy.units as u
 import numpy as np
 from astroplan import Observer
-
 from data_loader.sun_alt_date_filter import SunAltDateFilter
-from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
-from pyobs_cloudcover.cloud_info_calculator import ZenithCloudCoverageCalculator
-from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import \
-    CoverageChangeCalculator
+
+from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator, ZenithCloudCoverageCalculator
+from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import CoverageChangeCalculator
 from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.day.pipeline import DayPipeline
 from pyobs_cloudcover.pipeline.day.sun_masker import SunMasker

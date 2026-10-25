@@ -4,7 +4,7 @@ from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.web_api.coverage_query_executor import CoverageQueryExecutor
 
 
-class Server(object):
+class Server:
     def __init__(self, query_executor: CoverageQueryExecutor, url: str = "localhost", port: int = 8080) -> None:
         self._query_executor = query_executor
 

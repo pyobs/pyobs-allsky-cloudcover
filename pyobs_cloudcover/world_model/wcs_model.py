@@ -1,16 +1,14 @@
 import datetime
-from typing import Union, Tuple
 
 import numpy as np
 from astroplan import Observer
+from astropy import units as u
 from astropy.coordinates import Angle, SkyCoord
 from astropy.wcs import WCS
 from numpy import typing as npt
 
-from pyobs_cloudcover.world_model import WorldModel
 from pyobs_cloudcover.world_model.hour_angle_converter import HourAngleConverter
-
-from astropy import units as u
+from pyobs_cloudcover.world_model.world_model import WorldModel
 
 
 class WCSModel(WorldModel):
@@ -21,8 +19,8 @@ class WCSModel(WorldModel):
 
         self._ha_conv = HourAngleConverter(observer)
 
-    def pix_to_altaz(self, x: Union[npt.NDArray[np.float64], float], y: Union[npt.NDArray[np.float64], float]) -> \
-            Union[Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]], Tuple[float, float]]:
+    def pix_to_altaz(self, x: npt.NDArray[np.float64] | float, y: npt.NDArray[np.float64] | float) -> \
+            tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | tuple[float, float]:
 
         coord = self._wcs.pixel_to_world(x, y)
         ha = self._ha_conv(Angle(coord.ra.deg, unit="deg"), self._config_obs_time)
@@ -31,8 +29,8 @@ class WCSModel(WorldModel):
         coord = coord.transform_to("altaz")
         return coord.alt.rad, coord.az.rad
 
-    def altaz_to_pix(self, alt: Union[npt.NDArray[np.float64], float], az: Union[npt.NDArray[np.float64], float]) -> \
-                Union[Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]], Tuple[float, float]]:
+    def altaz_to_pix(self, alt: npt.NDArray[np.float64] | float, az: npt.NDArray[np.float64] | float) -> \
+                tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | tuple[float, float]:
 
         coord = SkyCoord(alt=alt * u.rad, az=az * u.rad, frame="altaz",
                          location=self._observer.location, obstime=self._config_obs_time)

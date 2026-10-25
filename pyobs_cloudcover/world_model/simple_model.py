@@ -1,4 +1,3 @@
-from typing import Union, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -13,8 +12,8 @@ class SimpleModel(WorldModel):
         self._R = R
         self._cx, self._cy = c_x, c_y
 
-    def pix_to_altaz(self, x: Union[npt.NDArray[np.float64], float], y: Union[npt.NDArray[np.float64], float]) -> \
-            Union[Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]], Tuple[float, float]]:
+    def pix_to_altaz(self, x: npt.NDArray[np.float64] | float, y: npt.NDArray[np.float64] | float) -> \
+            tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | tuple[float, float]:
         az = self._a0 + np.arctan2((y - self._cy), (x - self._cx))
         r = np.sqrt((x - self._cx) ** 2 + (y - self._cy) ** 2)
         z = self._F * np.arcsin(r / self._R)
@@ -22,8 +21,8 @@ class SimpleModel(WorldModel):
 
         return alt, az
 
-    def altaz_to_pix(self, alt: Union[npt.NDArray[np.float64], float], az: Union[npt.NDArray[np.float64], float]) -> \
-            Union[Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]], Tuple[float, float]]:
+    def altaz_to_pix(self, alt: npt.NDArray[np.float64] | float, az: npt.NDArray[np.float64] | float) -> \
+            tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]] | tuple[float, float]:
         z = np.pi / 2 - alt
         r = self._R * np.sin(z / self._F)
         x = self._cx + r * np.cos(az - self._a0)

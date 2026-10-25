@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import functools
-from typing import Optional, Union
 
 import numpy as np
 import numpy.typing as npt
 from scipy.spatial import cKDTree
 
 FloatArray = npt.NDArray[np.float64]
-ArrayLike = Union[FloatArray, float]
+ArrayLike = FloatArray | float
 
 
 def altaz_to_xyz(alt: npt.ArrayLike, az: npt.ArrayLike) -> FloatArray:
@@ -27,7 +26,7 @@ def chord_to_angle(chord: ArrayLike) -> ArrayLike:
     return 2 * np.arcsin(np.clip(np.asarray(chord) / 2, 0, 1))  # type: ignore[no-any-return]
 
 
-class SkyGrid(object):
+class SkyGrid:
     """A fixed set of positions on the sky with a spatial index, built once and reused for many maps."""
 
     def __init__(self, alt: npt.ArrayLike, az: npt.ArrayLike) -> None:
@@ -42,7 +41,7 @@ class SkyGrid(object):
     def tree(self) -> cKDTree:
         return cKDTree(self.xyz)
 
-    def nearest(self, alt: float, az: float) -> Optional[int]:
+    def nearest(self, alt: float, az: float) -> int | None:
         if len(self) == 0:
             return None
         _, index = self.tree.query(altaz_to_xyz(alt, az))
@@ -55,7 +54,7 @@ class SkyGrid(object):
         return np.asarray(self.tree.query_ball_point(altaz_to_xyz(alt, az), angle_to_chord(radius)), dtype=np.intp)
 
 
-class SkyPixelQuery(object):
+class SkyPixelQuery:
     """Values on a :class:`SkyGrid`. ``NaN`` marks unknown/masked positions.
 
     For cloud maps the values are 1.0 (cloudy), 0.0 (clear) or NaN.
@@ -74,13 +73,13 @@ class SkyPixelQuery(object):
     def get_pixels(self) -> FloatArray:
         return self._pixels.copy()
 
-    def query_nearest_coordinate(self, alt: float, az: float) -> Optional[float]:
+    def query_nearest_coordinate(self, alt: float, az: float) -> float | None:
         index = self.grid.nearest(alt, az)
         if index is None or np.isnan(self._pixels[index]):
             return None
         return float(self._pixels[index])
 
-    def query_radius(self, alt: float, az: float, radius: float) -> Optional[float]:
+    def query_radius(self, alt: float, az: float, radius: float) -> float | None:
         """Mean of the known values within ``radius`` (rad); None if there are none."""
         values = self._pixels[self.grid.within(alt, az, radius)]
         values = values[~np.isnan(values)]

@@ -1,30 +1,36 @@
 import datetime
-from typing import Optional
 
 import numpy as np
 from numpy import typing as npt
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
+from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.day.color_ratio_calculation import calc_color_ratio
 from pyobs_cloudcover.pipeline.day.debayer_image import debayer_image
 from pyobs_cloudcover.pipeline.day.sun_masker import SunMasker
-from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
 from pyobs_cloudcover.sky_query import SkyGrid, SkyPixelQuery
 
 
 class DayPipeline(Pipeline):
-    def __init__(self, mask: npt.NDArray[np.bool_], alt_az_generator: AltAzMapGenerator, cloud_map_generator: CloudMapGenerator, sun_masker: SunMasker, coverage_info_calculator: CoverageInfoCalculator) -> None:
+    def __init__(
+        self,
+        mask: npt.NDArray[np.bool_],
+        alt_az_generator: AltAzMapGenerator,
+        cloud_map_generator: CloudMapGenerator,
+        sun_masker: SunMasker,
+        coverage_info_calculator: CoverageInfoCalculator,
+    ) -> None:
         self._mask = mask
         self._alt_az_generator = alt_az_generator
         self._cloud_map_generator = cloud_map_generator
         self._sun_masker = sun_masker
         self._coverage_info_calculator = coverage_info_calculator
 
-        self._grid: Optional[SkyGrid] = None
-        self._alt_az_mask: Optional[npt.NDArray[np.bool_]] = None
+        self._grid: SkyGrid | None = None
+        self._alt_az_mask: npt.NDArray[np.bool_] | None = None
 
     def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> CloudCoverageInfo:
         debayered_image = debayer_image(image)

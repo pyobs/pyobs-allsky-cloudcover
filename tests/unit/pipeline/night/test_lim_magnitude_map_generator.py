@@ -1,7 +1,9 @@
 import numpy as np
 
 from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
-from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import LimMagnitudeMapGenerator
+from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_map_generator import (
+    LimMagnitudeMapGenerator,
+)
 from pyobs_cloudcover.sky_query import SkyGrid
 
 

@@ -6,7 +6,7 @@ from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocess
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor_options import PreprocessorOptions
 
 
-class PreprocessorFactory(object):
+class PreprocessorFactory:
     def __init__(self, options: PreprocessorOptions):
         self._options = options
 

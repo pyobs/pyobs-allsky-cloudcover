@@ -7,7 +7,7 @@ from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
 from pyobs_cloudcover.world_model import WorldModel
 
 
-class CatalogConstructor(object):
+class CatalogConstructor:
     def __init__(self, catalog_loader: AltAzCatalogLoader, model: WorldModel, observer: Observer,
                  alt_limit: float, v_mag_limit: float, distance_limit: float) -> None:
         self._catalog_loader = catalog_loader

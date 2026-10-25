@@ -1,4 +1,3 @@
-from typing import Dict
 
 from pyobs_cloudcover.measurement_log.logger_strategies.influx import Influx
 from pyobs_cloudcover.measurement_log.logger_strategies.measurement_log import LoggerStrategy
@@ -6,7 +5,7 @@ from pyobs_cloudcover.measurement_log.logger_strategies.measurement_log import L
 
 class MeasurementLogFactory:
     @staticmethod
-    def build(config: Dict[str, str]) -> LoggerStrategy:
+    def build(config: dict[str, str]) -> LoggerStrategy:
         if config["type"] == "influx":
             return Influx(
                 url=config["url"],

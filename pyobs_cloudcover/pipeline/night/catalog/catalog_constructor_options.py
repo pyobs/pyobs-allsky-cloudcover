@@ -1,24 +1,27 @@
 from __future__ import annotations
-from typing import Dict, Any, Optional
+
+from typing import Any
 
 
-class CatalogConstructorOptions(object):
-    def __init__(self, filepath: str = "", alt_filter: float = 20.0, v_mag_filter: float = 7.5, distance_filter: float = 0.0) -> None:
+class CatalogConstructorOptions:
+    def __init__(
+        self, filepath: str = "", alt_filter: float = 20.0, v_mag_filter: float = 7.5, distance_filter: float = 0.0
+    ) -> None:
         self.filepath = filepath
         self.alt_filter = alt_filter
         self.v_mag_filter = v_mag_filter
         self.distance_filter = distance_filter
 
     @classmethod
-    def from_dict(cls, options: Dict[str, Any]) -> CatalogConstructorOptions:
+    def from_dict(cls, options: dict[str, Any]) -> CatalogConstructorOptions:
         filepath: str = str(options.get("filepath") or "")
 
         if "filter" not in options:
             return cls(filepath)
 
-        filter_options: Dict[str, Any] = options["filter"]
+        filter_options: dict[str, Any] = options["filter"]
 
-        filter_kwargs: Dict[str, float] = {}
+        filter_kwargs: dict[str, float] = {}
 
         if "alt" in filter_options:
             filter_kwargs["alt_filter"] = filter_options["alt"]

@@ -1,10 +1,9 @@
 import datetime
 
+import astropy.units as u
 import numpy as np
 from astroplan import Observer
 from numpy.typing import NDArray
-
-import astropy.units as u
 
 
 class SunAltDateFilter:

@@ -107,7 +107,7 @@ async def test_area_query_invalid_coords(aiohttp_client, observer: Observer) -> 
 
 
 @pytest.mark.asyncio
-async def test_area_query_invalid_coords(aiohttp_client, observer: Observer) -> None:
+async def test_area_query_missing_radius(aiohttp_client, observer: Observer) -> None:
     executor = CoverageQueryExecutor(observer=observer)
     executor.area_query_altaz = Mock(return_value=0.0)  # type: ignore
     executor.get_obs_time = Mock(return_value=0)

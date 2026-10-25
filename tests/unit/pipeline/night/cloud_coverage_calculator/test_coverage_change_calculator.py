@@ -1,4 +1,3 @@
-import numpy as np
 
 from pyobs_cloudcover.cloud_info_calculator.coverage_change_calculator import CoverageChangeCalculator
 

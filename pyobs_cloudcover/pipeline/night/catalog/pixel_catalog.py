@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import datetime
-from typing import cast, List, Tuple, Set
+from typing import cast
 
 import numpy as np
 import numpy.typing as npt
@@ -10,9 +9,16 @@ from pyobs_cloudcover.pipeline.night.catalog.altaz_catalog import AltAzCatalog
 from pyobs_cloudcover.world_model import WorldModel
 
 
-class PixelCatalog(object):
-    def __init__(self, sao: npt.NDArray[np.int_], alt: npt.NDArray[np.float64], az: npt.NDArray[np.float64], px: npt.NDArray[np.float64], py: npt.NDArray[np.float64],
-                 v_mag: npt.NDArray[np.float64]) -> None:
+class PixelCatalog:
+    def __init__(
+        self,
+        sao: npt.NDArray[np.int_],
+        alt: npt.NDArray[np.float64],
+        az: npt.NDArray[np.float64],
+        px: npt.NDArray[np.float64],
+        py: npt.NDArray[np.float64],
+        v_mag: npt.NDArray[np.float64],
+    ) -> None:
         self.sao = sao
         self.alt = alt
         self.az = az
@@ -31,8 +37,8 @@ class PixelCatalog(object):
     def filter_close(self, distance: float) -> None:
         indices = np.arange(len(self.sao))
         neighbourhood = [
-                indices[self._in_neighbourhood(x, y, self.px, self.py, distance)] for x, y in zip(self.px, self.py)
-             ]
+            indices[self._in_neighbourhood(x, y, self.px, self.py, distance)] for x, y in zip(self.px, self.py)
+        ]
 
         neighbors = list(map(tuple, (filter(lambda x: len(x) > 1, neighbourhood))))
 
@@ -49,18 +55,20 @@ class PixelCatalog(object):
         self._filter(~indices_to_delete)
 
     @staticmethod
-    def _in_neighbourhood(x: float, y: float, px: npt.NDArray[np.float64], py: npt.NDArray[np.float64], d: float) -> npt.NDArray[np.bool_]:
+    def _in_neighbourhood(
+        x: float, y: float, px: npt.NDArray[np.float64], py: npt.NDArray[np.float64], d: float
+    ) -> npt.NDArray[np.bool_]:
         in_neighbourhood: npt.NDArray[np.bool_] = np.sqrt(np.square(x - px) + np.square(y - py)) <= d
         return in_neighbourhood
 
     @staticmethod
-    def _find_cluster(neighbours: List[Tuple[np.int_, ...]]) -> List[npt.NDArray[np.int_]]:
+    def _find_cluster(neighbours: list[tuple[np.int_, ...]]) -> list[npt.NDArray[np.int_]]:
         """
         Finds clusters in list of neighbours
         """
 
         unique_neighbour_pairs = list(set(neighbours))
-        clusters: List[Set[np.int_]] = [set(unique_neighbour_pairs[0])]
+        clusters: list[set[np.int_]] = [set(unique_neighbour_pairs[0])]
 
         for pair in unique_neighbour_pairs[1:]:
             for group in clusters:
@@ -70,7 +78,7 @@ class PixelCatalog(object):
             else:
                 clusters.append(set(pair))
 
-        cluster_list: List[npt.NDArray[np.int_]] = list(map(lambda x: np.array(list(x)), clusters))
+        cluster_list: list[npt.NDArray[np.int_]] = list(map(lambda x: np.array(list(x)), clusters))
 
         return cluster_list
 
@@ -89,10 +97,12 @@ class PixelCatalog(object):
 
         return PixelCatalog(
             altaz_catalog.sao,
-            altaz_catalog.alt, altaz_catalog.az,
-            cast(npt.NDArray[np.float64], px), cast(npt.NDArray[np.float64], py),
-            altaz_catalog.v_mag
-            )
+            altaz_catalog.alt,
+            altaz_catalog.az,
+            cast(npt.NDArray[np.float64], px),
+            cast(npt.NDArray[np.float64], py),
+            altaz_catalog.v_mag,
+        )
 
     @classmethod
     def default(cls) -> PixelCatalog:

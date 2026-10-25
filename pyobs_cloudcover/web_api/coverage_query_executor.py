@@ -1,5 +1,4 @@
 import datetime
-from typing import Optional, Tuple
 
 import numpy as np
 from astroplan import Observer
@@ -9,23 +8,23 @@ from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.sky_query import SkyPixelQuery
 
 
-class CoverageQueryExecutor(object):
+class CoverageQueryExecutor:
     def __init__(self, observer: Observer) -> None:
         self._observer = observer
 
-        self._cloud_query_info: Optional[Tuple[SkyPixelQuery, datetime.datetime]] = None
+        self._cloud_query_info: tuple[SkyPixelQuery, datetime.datetime] | None = None
 
     def set_measurement(self, measurement: CloudCoverageInfo) -> None:
         self._cloud_query_info = (measurement.cloud_cover_query, measurement.obs_time)
 
-    def get_obs_time(self) -> Optional[float]:
+    def get_obs_time(self) -> float | None:
         if self._cloud_query_info is None:
             return None
 
         obs_time: datetime.datetime = self._cloud_query_info[1]
         return obs_time.timestamp()
 
-    def point_query_radec(self, ra: float, dec: float) -> Optional[bool]:
+    def point_query_radec(self, ra: float, dec: float) -> bool | None:
         if self._cloud_query_info is None:
             return None
 
@@ -35,13 +34,13 @@ class CoverageQueryExecutor(object):
 
         return self.point_query_altaz(alt, az)
 
-    def _radec_to_altaz(self, ra: float, dec: float, obs_time: datetime.datetime) -> Tuple[float, float]:
+    def _radec_to_altaz(self, ra: float, dec: float, obs_time: datetime.datetime) -> tuple[float, float]:
         coord = SkyCoord(ra, dec, unit='deg', frame="icrs", location=self._observer.location, obstime=obs_time)
         coord = coord.altaz
 
         return coord.alt.deg, coord.az.deg
 
-    def point_query_altaz(self, alt: float, az: float) -> Optional[bool]:
+    def point_query_altaz(self, alt: float, az: float) -> bool | None:
         if self._cloud_query_info is None:
             return None
 
@@ -54,7 +53,7 @@ class CoverageQueryExecutor(object):
         else:
             return bool(cloudiness)
 
-    def area_query_radec(self, ra: float, dec: float, radius: float) -> Optional[float]:
+    def area_query_radec(self, ra: float, dec: float, radius: float) -> float | None:
         if self._cloud_query_info is None:
             return None
         cloud_query, obs_time = self._cloud_query_info
@@ -63,7 +62,7 @@ class CoverageQueryExecutor(object):
 
         return self.area_query_altaz(alt, az, radius)
 
-    def area_query_altaz(self, alt: float, az: float, radius: float) -> Optional[float]:
+    def area_query_altaz(self, alt: float, az: float, radius: float) -> float | None:
         if self._cloud_query_info is None:
             return None
         cloud_query, obs_time = self._cloud_query_info
