@@ -8,8 +8,9 @@ from pyobs_cloudcover.measurement_log.logger_strategies.measurement_log import L
 
 
 class Influx(LoggerStrategy):
-    def __init__(self, url: str, bucket: str, org: str, token: str) -> None:
-        self._client = InfluxDBClient(url=url, token=token, org=org)
+    def __init__(self, url: str, bucket: str, org: str, token: str, timeout: float = 10.0) -> None:
+        """``timeout`` in seconds for each write."""
+        self._client = InfluxDBClient(url=url, token=token, org=org, timeout=int(timeout * 1000))
         self._bucket = bucket
         self._org = org
 
