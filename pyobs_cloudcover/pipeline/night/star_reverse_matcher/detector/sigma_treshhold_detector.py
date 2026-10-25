@@ -10,7 +10,7 @@ class SigmaThresholdDetector(StarDetector):
         self._distance = distance
         self._median_limit = median_limit
 
-    def __call__(self, image: npt.NDArray[np.float_]) -> bool:
+    def __call__(self, image: npt.NDArray[np.float64]) -> bool:
         median = np.median(image)
 
         if median > self._median_limit:

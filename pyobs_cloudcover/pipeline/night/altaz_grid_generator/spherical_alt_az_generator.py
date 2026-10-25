@@ -1,9 +1,20 @@
 import functools
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
+import numpy.typing as npt
 from cloudmap_rs import AltAzCoord
-from pyobs.utils.grids import SphericalGrid
+
+
+def fibonacci_sphere(point_number: int) -> Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    """Altitude and azimuth (in rad) of ``point_number`` points evenly distributed over the whole sphere.
+
+    Uses the Fibonacci lattice: equal-area latitude bands, golden-angle azimuth steps.
+    """
+    i = np.arange(point_number) + 0.5
+    alt = np.arcsin(1 - 2 * i / point_number)
+    az = np.mod(np.pi * (1 + np.sqrt(5)) * i, 2 * np.pi)
+    return alt, az
 
 
 class SphericalAltAzGenerator:
@@ -13,8 +24,7 @@ class SphericalAltAzGenerator:
 
     @functools.lru_cache(maxsize=None)
     def __call__(self) -> List[AltAzCoord]:
-        points = np.deg2rad(SphericalGrid.equidistributed(self._point_number))
-        coords = [AltAzCoord(y, x) for x, y in points]
-        filtered_coords = [coord for coord in coords if coord.alt >= np.deg2rad(self._limiting_altitude)]
+        alt, az = fibonacci_sphere(self._point_number)
+        above = alt >= np.deg2rad(self._limiting_altitude)
 
-        return filtered_coords
+        return [AltAzCoord(a, z) for a, z in zip(alt[above], az[above])]

@@ -11,8 +11,8 @@ from pyobs_cloudcover.world_model import WorldModel
 
 
 class PixelCatalog(object):
-    def __init__(self, sao: npt.NDArray[np.int_], alt: npt.NDArray[np.float_], az: npt.NDArray[np.float_], px: npt.NDArray[np.float_], py: npt.NDArray[np.float_],
-                 v_mag: npt.NDArray[np.float_]) -> None:
+    def __init__(self, sao: npt.NDArray[np.int_], alt: npt.NDArray[np.float64], az: npt.NDArray[np.float64], px: npt.NDArray[np.float64], py: npt.NDArray[np.float64],
+                 v_mag: npt.NDArray[np.float64]) -> None:
         self.sao = sao
         self.alt = alt
         self.az = az
@@ -49,7 +49,7 @@ class PixelCatalog(object):
         self._filter(~indices_to_delete)
 
     @staticmethod
-    def _in_neighbourhood(x: float, y: float, px: npt.NDArray[np.float_], py: npt.NDArray[np.float_], d: float) -> npt.NDArray[np.bool_]:
+    def _in_neighbourhood(x: float, y: float, px: npt.NDArray[np.float64], py: npt.NDArray[np.float64], d: float) -> npt.NDArray[np.bool_]:
         in_neighbourhood: npt.NDArray[np.bool_] = np.sqrt(np.square(x - px) + np.square(y - py)) <= d
         return in_neighbourhood
 
@@ -90,7 +90,7 @@ class PixelCatalog(object):
         return PixelCatalog(
             altaz_catalog.sao,
             altaz_catalog.alt, altaz_catalog.az,
-            cast(npt.NDArray[np.float_], px), cast(npt.NDArray[np.float_], py),
+            cast(npt.NDArray[np.float64], px), cast(npt.NDArray[np.float64], py),
             altaz_catalog.v_mag
             )
 

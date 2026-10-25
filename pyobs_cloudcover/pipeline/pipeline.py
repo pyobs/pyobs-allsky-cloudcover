@@ -9,5 +9,5 @@ from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 
 class Pipeline(object, metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def __call__(self, image: npt.NDArray[np.float_], obs_time: datetime.datetime) -> CloudCoverageInfo:
+    def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> CloudCoverageInfo:
         ...
