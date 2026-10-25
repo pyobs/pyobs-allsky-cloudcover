@@ -1,6 +1,7 @@
 import datetime
 
-import influxdb_client
+from influxdb_client.client.influxdb_client import InfluxDBClient
+from influxdb_client.client.write.point import Point
 from influxdb_client.client.write_api import SYNCHRONOUS
 
 from pyobs_cloudcover.measurement_log.logger_strategies.measurement_log import LoggerStrategy
@@ -8,7 +9,7 @@ from pyobs_cloudcover.measurement_log.logger_strategies.measurement_log import L
 
 class Influx(LoggerStrategy):
     def __init__(self, url: str, bucket: str, org: str, token: str) -> None:
-        self._client = influxdb_client.InfluxDBClient(url=url, token=token, org=org)
+        self._client = InfluxDBClient(url=url, token=token, org=org)
         self._bucket = bucket
         self._org = org
 
@@ -21,8 +22,8 @@ class Influx(LoggerStrategy):
     @staticmethod
     def _to_point(
         name: str, measurements: dict[str, float | None], obs_time: datetime.datetime
-    ) -> influxdb_client.Point:
-        data = influxdb_client.Point(name)
+    ) -> Point:
+        data = Point(name)
         data.time(obs_time)
 
         for field_name, field_value in measurements.items():

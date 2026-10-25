@@ -16,7 +16,9 @@ class AltAzMapGenerator:
         self, image_height: int, image_width: int
     ) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64], npt.NDArray[np.bool_]]:
         """Altitude and azimuth (rad) of every pixel, and whether the pixel is on the sky above the altitude limit."""
-        meshed_x, meshed_y = np.meshgrid(np.arange(0, image_width), np.arange(0, image_height))
+        meshed_x, meshed_y = np.meshgrid(
+            np.arange(image_width, dtype=np.float64), np.arange(image_height, dtype=np.float64)
+        )
 
         with np.errstate(invalid="ignore"):
             alt, az = self._model.pix_to_altaz(meshed_x, meshed_y)

@@ -23,7 +23,7 @@ def angle_to_chord(angle: float) -> float:
 
 
 def chord_to_angle(chord: ArrayLike) -> ArrayLike:
-    return 2 * np.arcsin(np.clip(np.asarray(chord) / 2, 0, 1))  # type: ignore[no-any-return]
+    return 2 * np.arcsin(np.clip(np.asarray(chord) / 2, 0, 1))
 
 
 class SkyGrid:

@@ -1,5 +1,3 @@
-from typing import cast
-
 import numpy as np
 from astroplan import Observer
 
@@ -19,4 +17,4 @@ class SunCloudCoverageCalculator(FieldEvaluator):
             np.deg2rad(self._radius)
         )
 
-        return cast(float | None, coverage)
+        return coverage

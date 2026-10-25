@@ -7,4 +7,4 @@ def calc_color_ratio(image: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
     green = image[:, :, 1] + 0.0001
     blue = image[:, :, 2] + 0.0001
 
-    return blue/green + blue/red    # type: ignore
+    return blue/green + blue/red

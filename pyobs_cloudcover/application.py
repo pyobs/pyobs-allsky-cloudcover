@@ -2,6 +2,7 @@ import datetime
 import logging
 from typing import Any
 
+import numpy as np
 from pyobs.events import Event, NewImageEvent
 from pyobs.modules import Module
 
@@ -38,12 +39,12 @@ class Application(Module):
 
         await self.comm.register_event(NewImageEvent, self.process_new_image)
 
-    async def process_new_image(self, event: Event, sender: str) -> None:
+    async def process_new_image(self, event: Event, sender: str) -> bool:
         if not isinstance(event, NewImageEvent):
-            return
+            return False
 
         if sender != self._image_sender:
-            return
+            return False
 
         log.info("Received new image!")
 
@@ -51,10 +52,11 @@ class Application(Module):
 
         obs_time = datetime.datetime.strptime(image.header["DATE-OBS"], "%Y-%m-%dT%H:%M:%S.%f")
 
-        measurement = self._pipeline_controller(image.data, obs_time)
+        measurement = self._pipeline_controller(image.data.astype(np.float64), obs_time)
 
         if measurement is not None:
             self._server.set_measurement(measurement)
             self._measurement_log(measurement)
 
         log.info("Finished measurement!")
+        return True

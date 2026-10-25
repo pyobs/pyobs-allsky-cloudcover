@@ -53,6 +53,11 @@ ignore_missing_imports = true
 strict = true
 disallow_subclassing_any = false
 
+[[tool.mypy.overrides]]
+# influxdb-client ships py.typed but leaves most of Point/WriteApi unannotated
+module = "pyobs_cloudcover.measurement_log.logger_strategies.influx"
+disallow_untyped_calls = false
+
 [tool.pytest.ini_options]
 addopts = "-m 'not integration'"
 asyncio_mode = "strict"
