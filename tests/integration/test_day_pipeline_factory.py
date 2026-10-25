@@ -12,6 +12,13 @@ from pyobs_cloudcover.pipeline.night.pipeline_factory import NightPipelineFactor
 from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
 from pyobs_cloudcover.world_model import SimpleModel
 
+import pytest
+
+pytestmark = pytest.mark.skip(
+    reason="Depended on images and masks from the retired Goettingen ASI178MC camera, which were deleted; "
+    "to be rewritten on simulator output (PLAN.md, Phase 5)."
+)
+
 
 def test_day_pipeline() -> None:
     observer = Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)

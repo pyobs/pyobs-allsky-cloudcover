@@ -66,7 +66,7 @@ pipelines:
         c_y: 5.11194838e+02
 
       # Filepath to the image mask
-      mask_filepath: "data/mask.npy"
+      mask_filepath: ""   # .npy horizon mask with the image's shape; "" = no mask
 
       cloud_map:
         # Under which color ratio a pixel is considered cloudy (blue/red + blue/green)
@@ -104,7 +104,7 @@ pipelines:
 
       preprocessor:
         # Filepath to the image mask
-        mask_filepath: "tests/integration/mask.npy"
+        mask_filepath: ""   # .npy horizon mask with the image's shape; "" = no mask
         # Which image binning should be applied
         bin_size: 2
 

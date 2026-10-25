@@ -17,7 +17,7 @@ class DayPipelineFactory(object):
 
     def __call__(self, options: DayPipelineOptions) -> DayPipeline:
         model = get_object(options.model_options, WorldModel)
-        mask = np.load(options.mask_filepath)
+        mask = np.load(options.mask_filepath) if options.mask_filepath else np.array(True)
         alt_az_generator = AltAzMapGenerator(model, 0)
         cloud_map_generator_factory = CloudMapGeneratorFactory(options.cloud_map)
 
