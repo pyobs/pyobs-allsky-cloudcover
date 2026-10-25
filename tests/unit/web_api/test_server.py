@@ -135,3 +135,16 @@ async def test_server_binds_configured_host(observer: Observer, unused_tcp_port:
                 assert response.status == 200
     finally:
         await server.stop()
+
+
+@pytest.mark.asyncio
+async def test_area_query_units(aiohttp_client, observer: Observer) -> None:  # type: ignore[no-untyped-def]
+    executor = CoverageQueryExecutor(observer=observer)
+    executor.area_query_altaz = Mock(return_value=0.25)  # type: ignore
+    executor.get_obs_time = Mock(return_value=0)
+
+    client = await aiohttp_client(Server(executor)._app)
+    data = await (await client.get("/query/area?alt=90&az=0&radius=10")).json()
+
+    assert data["fraction"] == 0.25
+    assert data["value"] == 25.0  # percent, kept for 1.x clients

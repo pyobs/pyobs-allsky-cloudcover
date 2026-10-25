@@ -85,7 +85,16 @@ Returns the cloud fraction within the requested great circle.
 **Result**:
 
 - ``obs_time`` (float) — observation Unix time of the last analyzed image.
-- ``value`` (float) — cloud fraction in the requested area, in percent.
+- ``fraction`` (float) — cloud fraction in the requested area, 0–1.
+- ``value`` (float) — the same in percent (0–100). Kept for clients written against 1.x; deprecated,
+  use ``fraction``.
+
+All fractions are null when no analysed position falls within the area.
+
+Units
+=====
+Cloud fractions are 0–1 everywhere (InfluxDB fields, ``fraction`` above); the only exception is the
+deprecated ``value`` of ``/query/area``. Angles in requests are degrees; ``obs_time`` is Unix time (UTC).
 
 
 Available classes

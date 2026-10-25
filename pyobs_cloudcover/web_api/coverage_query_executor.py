@@ -63,14 +63,11 @@ class CoverageQueryExecutor:
         return self.area_query_altaz(alt, az, radius)
 
     def area_query_altaz(self, alt: float, az: float, radius: float) -> float | None:
+        """Cloud fraction (0..1) within ``radius`` degrees."""
         if self._cloud_query_info is None:
             return None
         cloud_query, obs_time = self._cloud_query_info
 
         cloudiness = cloud_query.query_radius(np.deg2rad(alt), np.deg2rad(az), np.deg2rad(radius))
 
-        if cloudiness is None:
-            return None
-        else:
-            cloud_fraction = 100.0 * float(cloudiness)
-            return cloud_fraction
+        return cloudiness

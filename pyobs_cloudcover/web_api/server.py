@@ -69,4 +69,11 @@ class Server:
 
         obs_time = self._query_executor.get_obs_time()
 
-        return web.json_response({'value': cover, 'obs_time': obs_time})
+        # 'value' is in percent for compatibility with 1.x clients; 'fraction' is 0..1 like everything else
+        return web.json_response(
+            {
+                "value": None if cover is None else 100.0 * cover,
+                "fraction": cover,
+                "obs_time": obs_time,
+            }
+        )
