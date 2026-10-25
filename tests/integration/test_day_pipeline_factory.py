@@ -1,44 +1,23 @@
-import datetime
+"""The day pipeline built from a config dict, as the module does."""
 
-import astropy.units as u
 import numpy as np
-import pytest
-from astroplan import Observer
 
 from pyobs_cloudcover.pipeline.day.pipeline_factory import DayPipelineFactory
 from pyobs_cloudcover.pipeline.day.pipeline_options import DayPipelineOptions
 
-pytestmark = pytest.mark.skip(
-    reason="Depended on images and masks from the retired Goettingen ASI178MC camera, which were deleted; "
-    "to be rewritten on simulator output (PLAN.md, Phase 5)."
-)
+from .conftest import DAY, SimulatedCamera
 
 
-def test_day_pipeline() -> None:
-    observer = Observer(latitude=51.559299 * u.deg, longitude=9.945472 * u.deg, elevation=201 * u.m)
-    obs_time = datetime.datetime(2024, 3, 9, 1, 48, 48, 297970)
+def test_day_pipeline_from_config(camera: SimulatedCamera) -> None:
+    options = DayPipelineOptions.from_dict({"bin_size": 2, "sun_apparent_size": 5.0})
+    pipeline = DayPipelineFactory(camera.observer, camera.profile)(options)
+    frame, simulated = camera.frame(DAY)
+    result = pipeline(frame)
 
-    image = np.zeros((104, 154)).astype(np.uint16) * 1
-
-    image[0, 0] = 0
-
-    pipeline_kwargs = {
-        "world_model": {
-            "class": "pyobs_cloudcover.world_model.SimpleModel",
-            "a0": 4.81426598e-03,
-            "F": 2.00000000e+00,
-            "R": 1.06352627e+03,
-            "c_x": 7.57115607e+01,
-            "c_y": 5.11194838e+01
-        },
-        "mask_filepath": "tests/integration/small_dummy_mask.npy",
-        "sun_apparent_size": 0.54,
-        "cloud_map": {
-            "threshold": 3.5
-        }
-    }
-
-    pipeline_options = DayPipelineOptions.from_dict(pipeline_kwargs)
-    pipeline_factory = DayPipelineFactory(observer)
-    pipeline = pipeline_factory(pipeline_options)
-    pipeline(image, obs_time)
+    assert result is not None and result.pipeline == "day" and result.value_name == "color_ratio"
+    measured = result.cloud_cover_query.query_radius(np.pi / 2, 0, np.deg2rad(70))
+    assert measured is not None
+    assert abs(measured - simulated.truth.cloud_fraction(20)) < 0.15
+    # the sun is masked
+    sun_alt, sun_az = np.deg2rad(simulated.truth.metadata["sun_alt"]), np.deg2rad(simulated.truth.metadata["sun_az"])
+    assert result.cloud_cover_query.query_radius(sun_alt, sun_az, np.deg2rad(4)) is None
