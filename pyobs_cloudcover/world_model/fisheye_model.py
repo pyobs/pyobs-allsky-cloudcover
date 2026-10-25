@@ -70,17 +70,17 @@ class FisheyeModel(WorldModel):
         if projection == "polynomial":
             # tabulate r(theta) for the inverse; must be monotonic over the mapped range
             self._theta_table = np.linspace(0, self._theta_max, 4001)
-            self._r_table = self._radius(self._theta_table)
+            self._r_table = self.radius(self._theta_table)
             if np.any(np.diff(self._r_table) <= 0):
                 raise ValueError("Polynomial projection must be strictly increasing up to max_zenith_angle")
 
-    def _radius(self, theta: FloatArray) -> FloatArray:
+    def radius(self, theta: FloatArray) -> FloatArray:
         if self.projection == "polynomial":
             return sum(c * theta ** (i + 1) for i, c in enumerate(self.coefficients))  # type: ignore[return-value]
         return self.f * _PROJECTIONS[self.projection][0](theta)
 
-    def _zenith_angle(self, r: FloatArray) -> FloatArray:
-        r_max = self._radius(np.array(self._theta_max))
+    def zenith_angle(self, r: FloatArray) -> FloatArray:
+        r_max = self.radius(np.array(self._theta_max))
         with np.errstate(invalid="ignore"):
             if self.projection == "polynomial":
                 theta = np.interp(r, self._r_table, self._theta_table, right=np.nan)
@@ -92,7 +92,7 @@ class FisheyeModel(WorldModel):
         self, x: FloatArray | float, y: FloatArray | float
     ) -> tuple[FloatArray, FloatArray] | tuple[float, float]:
         dx, dy = np.asarray(x, dtype=np.float64) - self.c_x, np.asarray(y, dtype=np.float64) - self.c_y
-        theta = self._zenith_angle(np.hypot(dx, dy))
+        theta = self.zenith_angle(np.hypot(dx, dy))
         az = np.mod(self.a0 + self.parity * np.arctan2(dy, dx), 2 * np.pi)
         alt = np.pi / 2 - theta
         if np.ndim(alt) == 0:
@@ -103,7 +103,7 @@ class FisheyeModel(WorldModel):
         self, alt: FloatArray | float, az: FloatArray | float
     ) -> tuple[FloatArray, FloatArray] | tuple[float, float]:
         theta = np.pi / 2 - np.asarray(alt, dtype=np.float64)
-        r = np.where(theta <= self._theta_max, self._radius(theta), np.nan)
+        r = np.where(theta <= self._theta_max, self.radius(theta), np.nan)
         phi = self.parity * (np.asarray(az, dtype=np.float64) - self.a0)
         x, y = self.c_x + r * np.cos(phi), self.c_y + r * np.sin(phi)
         if np.ndim(x) == 0:

@@ -18,6 +18,9 @@ dependencies = [
     "opencv-python-headless>=4.10.0.84",
 ]
 
+[project.scripts]
+pyobs-cloudcover-sim = "pyobs_cloudcover.simulation.cli:main"
+
 [dependency-groups]
 dev = [
     "pytest>=8.3.5,<10",
