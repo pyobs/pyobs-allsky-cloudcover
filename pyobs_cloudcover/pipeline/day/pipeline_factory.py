@@ -1,6 +1,5 @@
 import numpy as np
 from astroplan import Observer
-from pyobs.object import get_object
 
 from pyobs_cloudcover.cloud_info_calculator import CloudInfoCalculatorFactory
 from pyobs_cloudcover.pipeline.day.altaz_map_generator import AltAzMapGenerator
@@ -8,7 +7,7 @@ from pyobs_cloudcover.pipeline.day.pipeline import DayPipeline
 from pyobs_cloudcover.pipeline.day.pipeline_options import DayPipelineOptions
 from pyobs_cloudcover.pipeline.day.sun_masker import SunMasker
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_factory import CloudMapGeneratorFactory
-from pyobs_cloudcover.world_model import WorldModel
+from pyobs_cloudcover.world_model.world_model_factory import WorldModelFactory
 
 
 class DayPipelineFactory:
@@ -16,7 +15,7 @@ class DayPipelineFactory:
         self._observer = observer
 
     def __call__(self, options: DayPipelineOptions) -> DayPipeline:
-        model = get_object(options.model_options, WorldModel)
+        model = WorldModelFactory(self._observer)(options.model_options)
         mask = np.load(options.mask_filepath) if options.mask_filepath else np.array(True)
         alt_az_generator = AltAzMapGenerator(model, 0)
         cloud_map_generator_factory = CloudMapGeneratorFactory(options.cloud_map)
