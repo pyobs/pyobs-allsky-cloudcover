@@ -102,6 +102,8 @@ class Simulator:
         faint_star_limit: Synthetic stars fainter than the catalogue are added down to this V magnitude.
         reference_time: Time at which clouds are at their initial position (default: first rendered frame).
         auto_exposure: Shorten the exposure when the sky would saturate (twilight, day, bright moon).
+        moon: False leaves the moon out (a what-if: no disc, no moonlight); the truth then reports it below the
+            horizon.
     """
 
     profile: CameraProfile
@@ -114,6 +116,7 @@ class Simulator:
     faint_star_limit: float = 8.5
     reference_time: datetime.datetime | None = None
     auto_exposure: bool = True
+    moon: bool = True
 
     def __post_init__(self) -> None:
         self._observer = self.site.observer()
@@ -121,7 +124,6 @@ class Simulator:
         self._geometry: _Geometry | None = None
         self._catalog = _load_catalog()
         self._faint = _faint_stars(self.faint_star_limit)
-        self._brightness = SkyBrightness(self.sky)
         hot_rng = np.random.default_rng(zlib.crc32(self.profile.name.encode()))
         n_hot = int(self.profile.hot_pixel_fraction * self.profile.width * self.profile.height)
         self._hot_y = hot_rng.integers(0, self.profile.height, n_hot)
@@ -174,6 +176,11 @@ class Simulator:
         return np.tile(cell, (p.height // 2 + 1, p.width // 2 + 1))[: p.height, : p.width]
 
     @property
+    def _brightness(self) -> SkyBrightness:
+        # follows changes of ``sky`` between frames
+        return SkyBrightness(self.sky)
+
+    @property
     def world_model(self) -> Any:
         return self._model
 
@@ -188,6 +195,8 @@ class Simulator:
         p, geo = self.profile, self.geometry()
         atime = Time(time)
         eph = Ephemeris.compute(self._observer, atime)
+        if not self.moon:
+            eph = dataclasses.replace(eph, moon_alt=-np.pi / 2)
         k = self.sky.extinction
 
         on_sky = geo.in_lens & (geo.alt > 0)

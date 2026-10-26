@@ -22,6 +22,16 @@ From Python::
     frame.write("sim/")              # image + <name>.truth.npz
     frame.truth.cloud_fraction(30)   # true cloudy fraction above 30 deg
 
+As a fake camera, ``--control PORT`` adds a web page (``http://127.0.0.1:PORT/``) to change the sky while it runs:
+cloud cover and thickness, wind, dark-sky brightness, the moon (on/off) and a clock offset in hours (e.g. to see
+twilight or day). A change produces the next frame at once. The same settings can be posted as JSON to
+``/conditions``::
+
+    curl -d '{"cover": 0.8, "moon": false}' -H 'Content-Type: application/json' http://127.0.0.1:18734/conditions
+
+Turning the moon off is a what-if: the frame and its truth have no moon, but the module still computes the real
+moon position from the time and masks it.
+
 
 What is modelled
 ****************

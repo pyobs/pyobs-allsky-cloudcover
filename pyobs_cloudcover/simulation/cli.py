@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import datetime
 import logging
 import time
 from collections.abc import Sequence
 
 from pyobs_cloudcover.simulation.clouds import CloudLayer
+from pyobs_cloudcover.simulation.control import Conditions, Control
 from pyobs_cloudcover.simulation.profile import PRESETS, get_preset
 from pyobs_cloudcover.simulation.render import Simulator
 from pyobs_cloudcover.simulation.scene import Horizon, Site, SkyConditions
@@ -41,6 +43,15 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--horizon", action="store_true", help="Add trees and a building on the horizon")
     p.add_argument("--seed", type=int, default=0)
     p.add_argument("--no-truth", action="store_true", help="Don't write the .truth.npz sidecar files")
+    p.add_argument(
+        "--control",
+        type=int,
+        default=None,
+        metavar="PORT",
+        help="Serve a web page on this port to change clouds, wind, sky brightness, moon and clock while running "
+        "(with --realtime; a change triggers the next frame at once)",
+    )
+    p.add_argument("--control-host", default="127.0.0.1", help="Address of the --control web page")
     return p
 
 
@@ -55,31 +66,65 @@ def main(argv: Sequence[str] | None = None) -> None:
         timezone=args.timezone,
         name="custom",
     )
-    clouds = [CloudLayer(cover=args.cover, optical_depth=args.optical_depth, wind=tuple(args.wind), seed=args.seed)]
     sim = Simulator(
         get_preset(args.preset, args.scale),
         site=site,
-        sky=SkyConditions(zenith_mag=args.sky_mag),
-        clouds=clouds if args.cover > 0 else [],
         horizon=Horizon.trees_and_building(args.seed) if args.horizon else None,
         seed=args.seed,
     )
+    control = Control(
+        Conditions(
+            cover=args.cover,
+            optical_depth=args.optical_depth,
+            wind_east=args.wind[0],
+            wind_north=args.wind[1],
+            sky_mag=args.sky_mag,
+        )
+    )
+    if args.control is not None:
+        control.serve(args.control_host, args.control)
+
     start = args.time or datetime.datetime.now(datetime.UTC)
+    started = time.monotonic()
     for i in range(args.count):
-        t = start + datetime.timedelta(seconds=i * args.cadence)
+        c = control.conditions
+        apply_conditions(sim, c, args.seed)
+        # in real time, frames triggered early by a change keep the clock right
+        elapsed = time.monotonic() - started if args.realtime else i * args.cadence
+        t = start + datetime.timedelta(seconds=elapsed, hours=c.time_offset)
         frame = sim.render(t)
         path = frame.write(args.output, truth=not args.no_truth)
         meta = frame.truth.metadata
+        cloud_fraction = frame.truth.cloud_fraction(30)
+        control.last_frame = {
+            "time": t.isoformat(),
+            "path": str(path),
+            "sun_alt": float(meta["sun_alt"]),
+            "moon_alt": float(meta["moon_alt"]),
+            "exposure": float(meta["exposure"]),
+            "cloud_fraction": float(cloud_fraction),
+        }
         log.info(
             "%s  sun %+.1f  moon %+.1f  exposure %.3gs  cloud fraction (alt>30) %.2f",
             path,
             meta["sun_alt"],
             meta["moon_alt"],
             meta["exposure"],
-            frame.truth.cloud_fraction(30),
+            cloud_fraction,
         )
         if args.realtime and i + 1 < args.count:
-            time.sleep(args.cadence)
+            control.changed.wait(args.cadence)
+            control.changed.clear()
+
+
+def apply_conditions(sim: Simulator, c: Conditions, seed: int) -> None:
+    """Set the simulator's sky, clouds and moon from ``c``. The cloud pattern stays (same seed): cover and
+    thickness changes look like the same clouds growing or thinning; a wind change moves the pattern to where the
+    new wind would have taken it since the first frame."""
+    sim.sky = dataclasses.replace(sim.sky, zenith_mag=c.sky_mag)
+    layer = CloudLayer(cover=c.cover, optical_depth=c.optical_depth, wind=(c.wind_east, c.wind_north), seed=seed)
+    sim.clouds = [layer] if c.cover > 0 and c.optical_depth > 0 else []
+    sim.moon = c.moon
 
 
 if __name__ == "__main__":
