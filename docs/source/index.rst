@@ -155,8 +155,11 @@ result, ``reason``.
 ``/status``
     Frames received/analysed/skipped/without result/failed, last file, ``result_age`` (seconds since the
     observation the API serves), pipeline, ``reason``, last error.
-``/cloud_map.png``, ``/limiting_magnitude.png``, ``/cloud_map.html``
-    Sky maps (north up, east left) for dashboards.
+``/cloud_map.png``, ``/limiting_magnitude.png``, ``/extinction.png``, ``/cloud_map.html``
+    Sky maps (north up, east left) for dashboards. The extinction map (0-3 mag) needs the photometric mode.
+``/image.png``
+    The latest analysed camera image (canonical orientation, debayered, at most 720 px, stretched for display),
+    also when it gave no result.
 
 
 Command-line tools

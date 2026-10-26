@@ -5,12 +5,15 @@ from typing import Any
 import numpy as np
 from aiohttp import web
 
+from pyobs_cloudcover.camera.profile import Frame
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.web_api.coverage_query_executor import CoverageQueryExecutor
-from pyobs_cloudcover.web_api.render import render_cloud_map, render_value_map
+from pyobs_cloudcover.web_api.render import render_cloud_map, render_frame, render_value_map
 
 # limiting magnitudes shown in the PNG map
 LIM_MAG_RANGE = (2.0, 7.0)
+# cloud extinction (mag) shown in the PNG map
+EXTINCTION_RANGE = (0.0, 3.0)
 
 
 class Server:
@@ -23,6 +26,7 @@ class Server:
         self._runner: web.AppRunner | None = None
         self._status: Callable[[], dict[str, Any]] | None = None
         self._images: dict[str, bytes] = {}
+        self._frame: Frame | None = None
         self._app = web.Application()
         self._app.add_routes(
             [
@@ -35,6 +39,8 @@ class Server:
                 web.get("/weather", self._weather),
                 web.get("/cloud_map.png", self._cloud_map_png),
                 web.get("/limiting_magnitude.png", self._lim_mag_png),
+                web.get("/extinction.png", self._extinction_png),
+                web.get("/image.png", self._image_png),
                 web.get("/cloud_map.html", self._cloud_map_html),
             ]
         )
@@ -42,6 +48,11 @@ class Server:
     def set_measurement(self, measurement: CloudCoverageInfo) -> None:
         self._query_executor.set_measurement(measurement)
         self._images.clear()
+
+    def set_frame(self, frame: Frame) -> None:
+        """The latest analysed camera image, served as ``/image.png``."""
+        self._frame = frame
+        self._images.pop("image", None)
 
     def set_status_provider(self, provider: Callable[[], dict[str, Any]]) -> None:
         self._status = provider
@@ -144,6 +155,10 @@ class Server:
         if key not in self._images:
             if key == "cloud_map":
                 self._images[key] = await asyncio.to_thread(render_cloud_map, m.cloud_cover_query)
+            elif key == "extinction":
+                if m.extinction_query is None:
+                    return web.Response(status=404, text="No extinction map (not a photometric night result)")
+                self._images[key] = await asyncio.to_thread(render_value_map, m.extinction_query, *EXTINCTION_RANGE)
             else:
                 if m.value_query is None or m.value_name != "limiting_magnitude":
                     return web.Response(status=404, text="No limiting-magnitude map (not a night result)")
@@ -156,11 +171,22 @@ class Server:
     async def _lim_mag_png(self, _: web.Request) -> web.Response:
         return await self._png("limiting_magnitude")
 
+    async def _extinction_png(self, _: web.Request) -> web.Response:
+        return await self._png("extinction")
+
+    async def _image_png(self, _: web.Request) -> web.Response:
+        if self._frame is None:
+            return web.Response(status=404, text="No image yet")
+        if "image" not in self._images:
+            self._images["image"] = await asyncio.to_thread(render_frame, self._frame)
+        return web.Response(body=self._images["image"], content_type="image/png")
+
     async def _cloud_map_html(self, _: web.Request) -> web.Response:
         page = (
             "<!doctype html><html><head><meta charset='utf-8'><meta http-equiv='refresh' content='60'>"
             "<title>Cloud map</title></head><body style='background:#111;color:#ddd;font-family:sans-serif'>"
-            "<img src='cloud_map.png' alt='cloud map'> <img src='limiting_magnitude.png' alt=''></body></html>"
+            "<img src='cloud_map.png' alt='cloud map'> <img src='limiting_magnitude.png' alt=''> "
+            "<img src='extinction.png' alt=''> <img src='image.png' alt='camera image' width='480'></body></html>"
         )
         return web.Response(text=page, content_type="text/html")
 

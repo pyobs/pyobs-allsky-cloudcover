@@ -136,7 +136,7 @@ class Application(Module):
             log.info("Analysing %s.", filename)
             raw = await self._load(filename, local)
             loop = asyncio.get_running_loop()
-            result = await loop.run_in_executor(self._executor, self._run_pipeline, raw)
+            frame, result = await loop.run_in_executor(self._executor, self._run_pipeline, raw)
         except Exception as e:
             log.exception("Analysing %s failed.", filename)
             self._status.failed += 1
@@ -145,6 +145,7 @@ class Application(Module):
             return False
 
         self._status.last_file = filename
+        self._server.set_frame(frame)
         if result is None:
             reason = getattr(self._pipeline_controller, "last_reason", "") or "no result"
             log.info("No result for %s: %s.", filename, reason)
@@ -166,9 +167,11 @@ class Application(Module):
     def prepare(self, raw: RawImage) -> Frame:
         return self._camera.prepare(raw)
 
-    def _run_pipeline(self, raw: RawImage) -> tuple[CloudCoverageInfo, dict[str, dict[str, float | None]]] | None:
+    def _run_pipeline(
+        self, raw: RawImage
+    ) -> tuple[Frame, tuple[CloudCoverageInfo, dict[str, dict[str, float | None]]] | None]:
         frame = self.prepare(raw)
         measurement = self._pipeline_controller(frame)
         if measurement is None:
-            return None
-        return measurement, self._measurement_log.evaluate(measurement)
+            return frame, None
+        return frame, (measurement, self._measurement_log.evaluate(measurement))

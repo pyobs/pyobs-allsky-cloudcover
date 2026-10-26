@@ -6,6 +6,7 @@ import pytest
 from astroplan import Observer
 from PIL import Image
 
+from pyobs_cloudcover.camera.profile import Frame
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
 from pyobs_cloudcover.sky_query import SkyPixelQuery
@@ -93,6 +94,36 @@ async def test_extinction_route(aiohttp_client, observer: Observer) -> None:  # 
     assert east["value"] == 2.0 and east["sky_brightness"] == 21.3 and east["zero_point"] == 10.0
     west = await (await client.get("/query/extinction?alt=45&az=270&radius=10")).json()
     assert west["value"] == 0.0
+    response = await client.get("/extinction.png")
+    assert response.status == 200 and response.content_type == "image/png"
+    rgb = np.asarray(Image.open(io.BytesIO(await response.read())).convert("RGB")).astype(int)
+    h, w, _ = rgb.shape
+    assert np.abs(rgb[h // 2, w // 4] - rgb[h // 2, 3 * w // 4]).sum() > 100
+
+
+@pytest.mark.asyncio
+async def test_extinction_png_needs_photometry(aiohttp_client, server: Server) -> None:  # type: ignore[no-untyped-def]
+    client = await aiohttp_client(server._app)
+    assert (await client.get("/extinction.png")).status == 404
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("bayer", [None, "RGGB"])
+async def test_image_png(aiohttp_client, server: Server, bayer: str | None) -> None:  # type: ignore[no-untyped-def]
+    client = await aiohttp_client(server._app)
+    assert (await client.get("/image.png")).status == 404
+    data = np.random.default_rng(1).normal(1000, 10, (1200, 1600))
+    data[:, 800:] += 2000  # bright right half
+    server.set_frame(Frame(data, T, bayer=bayer))
+    response = await client.get("/image.png")
+    assert response.status == 200 and response.content_type == "image/png"
+    image = np.asarray(Image.open(io.BytesIO(await response.read())).convert("RGB")).astype(int)
+    # scaled to at most 720 px, aspect kept, stretched from dark to bright
+    assert image.shape[:2] == (540, 720)
+    assert image[:, :300].mean() < 60 and image[:, 420:].mean() > 200
+    # a new measurement doesn't lose the image
+    server.set_measurement(night_result())
+    assert (await client.get("/image.png")).status == 200
 
 
 def test_photometric_measurement_fields() -> None:

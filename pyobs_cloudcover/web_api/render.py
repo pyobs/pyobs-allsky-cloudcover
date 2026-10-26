@@ -3,11 +3,15 @@
 from __future__ import annotations
 
 import io
+from typing import Any
 
+import cv2
 import numpy as np
 import numpy.typing as npt
 from PIL import Image, ImageDraw
 
+from pyobs_cloudcover.camera.bayer import debayer
+from pyobs_cloudcover.camera.profile import Frame
 from pyobs_cloudcover.sky_query import SkyPixelQuery, altaz_to_xyz, angle_to_chord
 
 # dark blue clear sky, white clouds, black where there is no information
@@ -89,6 +93,29 @@ def render_value_map(query: SkyPixelQuery, low: float, high: float, size: int = 
     _decorate(image, size, min_alt)
     draw = ImageDraw.Draw(image)
     draw.text((4, size - 14), f"{low:g} .. {high:g}", fill=(200, 200, 200))
+    out = io.BytesIO()
+    image.save(out, format="PNG")
+    return out.getvalue()
+
+
+def render_frame(frame: Frame, size: int = 720) -> bytes:
+    """The camera image as the pipelines see it (canonical orientation), debayered, scaled to at most ``size``
+    pixels and stretched for display: black at the 1st percentile of each channel, white at the 99.5th percentile,
+    square-root stretch in between."""
+    data: npt.NDArray[Any] = np.asarray(frame.data)
+    if frame.bayer is not None and data.ndim == 2:
+        data = debayer(data, frame.bayer)
+    data = data.astype(np.float32)
+    scale = size / max(data.shape[:2])
+    if scale < 1:
+        data = cv2.resize(data, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    if data.ndim == 2:
+        data = data[..., None]
+    data = data - np.percentile(data, 1, axis=(0, 1))
+    white = float(np.percentile(data, 99.5))
+    stretched = np.sqrt(np.clip(data / white, 0, 1)) if white > 0 else np.zeros_like(data)
+    rgb = (255 * stretched).astype(np.uint8)
+    image = Image.fromarray(rgb[..., 0] if rgb.shape[2] == 1 else rgb)
     out = io.BytesIO()
     image.save(out, format="PNG")
     return out.getvalue()
