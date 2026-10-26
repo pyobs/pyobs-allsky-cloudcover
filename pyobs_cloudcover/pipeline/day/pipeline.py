@@ -33,7 +33,7 @@ class DayPipeline(Pipeline):
         sun_masker: SunMasker,
         coverage_info_calculator: CoverageInfoCalculator,
         bin_size: int = 1,
-        default_bayer: str | None = None,
+        force_bayer: str | None = None,
     ) -> None:
         self._mask = mask
         self._alt_az_generator = alt_az_generator
@@ -41,7 +41,7 @@ class DayPipeline(Pipeline):
         self._sun_masker = sun_masker
         self._coverage_info_calculator = coverage_info_calculator
         self._binner = ImageBinner(bin_size)
-        self._default_bayer = default_bayer
+        self._force_bayer = force_bayer
         self._warned_mono = False
 
         self._grid: SkyGrid | None = None
@@ -50,7 +50,7 @@ class DayPipeline(Pipeline):
     def _rgb(self, frame: Frame) -> npt.NDArray[np.float64] | None:
         if frame.is_rgb:
             return np.asarray(frame.data, dtype=np.float64)
-        pattern = frame.bayer or self._default_bayer
+        pattern = self._force_bayer if self._force_bayer and not frame.is_rgb else frame.bayer
         if pattern is None:
             if not self._warned_mono:
                 self._warned_mono = True

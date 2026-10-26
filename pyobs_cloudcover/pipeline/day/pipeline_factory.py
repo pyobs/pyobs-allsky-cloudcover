@@ -35,5 +35,7 @@ class DayPipelineFactory:
             SunMasker(options.sun_apparent_size, self._observer),
             CloudInfoCalculatorFactory()(),
             bin_size=options.bin_size,
-            default_bayer="RGGB" if options.legacy else None,
+            # 1.x always debayered as RGGB at the array origin, whatever the header said; on the original
+            # camera that was right and its header (BAYERPAT=GBRG, no ROWORDER) was not
+            force_bayer="RGGB" if options.legacy else None,
         )

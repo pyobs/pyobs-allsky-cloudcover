@@ -100,8 +100,8 @@ pipelines:
         # pixels with a colour ratio (blue/red + blue/green, raw colours) below this are cloudy;
         # camera specific, choose it with `pyobs-cloudcover replay`
         threshold: 1.85
-      # radius masked around the sun (degrees)
-      sun_apparent_size: 0.54
+      # radius masked around the sun (degrees): its glare, not just its disc
+      sun_apparent_size: 12.0
 
   night:
     alt_interval:

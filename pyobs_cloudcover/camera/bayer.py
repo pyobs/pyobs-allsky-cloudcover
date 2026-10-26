@@ -79,3 +79,24 @@ def debayer(image: npt.NDArray[Any], pattern: str) -> npt.NDArray[np.float32]:
         raise ValueError(f"Unknown Bayer pattern {pattern}")
     data = image if image.dtype in (np.uint8, np.uint16) else np.clip(image, 0, 65535).astype(np.uint16)
     return np.asarray(cv2.cvtColor(np.ascontiguousarray(data), _CV2_CODES[pattern]), dtype=np.float32)
+
+
+def guess_pattern(
+    images: list[npt.NDArray[Any]], mask: npt.NDArray[np.bool_] | None = None
+) -> tuple[str, dict[str, float]]:
+    """Bayer pattern from daytime images: only the right one makes a clear sky blue.
+
+    Headers can be wrong (e.g. ``BAYERPAT`` given for the other row order without ``ROWORDER``). For every pattern
+    this computes the 90th percentile of blue/red over the sky; with the right one, blue sky stands out (the
+    swapped-colour patterns give red skies, the green-shifted ones grey).
+    """
+    scores: dict[str, float] = {}
+    for pattern in BAYER_PATTERNS:
+        values = []
+        for image in images:
+            rgb = debayer(image, pattern).astype(np.float64)
+            ratio = rgb[..., 2] / np.maximum(rgb[..., 0], 1.0)
+            sel = mask if mask is not None else np.ones(ratio.shape, bool)
+            values.append(ratio[sel][:: max(1, int(sel.sum()) // 200000)])
+        scores[pattern] = float(np.percentile(np.concatenate(values), 90))
+    return max(scores, key=lambda k: scores[k]), scores

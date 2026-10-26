@@ -6,13 +6,15 @@ from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_opt
 
 # blue/red + blue/green below which a pixel is cloudy; camera specific (this suits the simulated presets)
 THRESHOLD_DEFAULT = 1.85
+# radius (deg) masked around the sun
+SUN_MASK_DEFAULT = 12.0
 
 
 class DayPipelineOptions:
     """Options of the day pipeline.
 
     A 1.x config is recognised by ``mask_filepath``; its ``world_model`` and mask are in raw full-resolution
-    pixels and images without a Bayer keyword are debayered as RGGB, as in 1.x. Otherwise the world model and
+    pixels and colour images are debayered as RGGB, as in 1.x (whatever the header says). Otherwise the world model and
     mask come from the camera profile and ``bin_size`` sets the binning of the colour-ratio map.
     """
 
@@ -38,7 +40,8 @@ class DayPipelineOptions:
         return DayPipelineOptions(
             model_options=options.get("world_model") or {},
             mask_filepath=str(options.get("mask_filepath") or ""),
-            sun_apparent_size=float(options.get("sun_apparent_size", 0.54)),
+            # the sun's glare covers far more than its disc (~13 deg on the original 1.x camera)
+            sun_apparent_size=float(options.get("sun_apparent_size", 0.54 if legacy else SUN_MASK_DEFAULT)),
             cloud_map=CloudMapGeneratorOptions.from_dict(
                 options.get("cloud_map", {"threshold": 3.5 if legacy else THRESHOLD_DEFAULT})
             ),

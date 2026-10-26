@@ -121,7 +121,28 @@ def cmd_mask(args: argparse.Namespace) -> int:
         mask = sky_mask_from_day(frames, model, min_alt=args.min_alt)
     np.save(args.output, mask)
     print(f"Wrote {args.output}: {100 * mask.mean():.1f} % of the image is sky. Set camera.mask: {args.output}")
+    _check_bayer(profile, frames, mask)
     return 0
+
+
+def _check_bayer(profile: Any, frames: list[Any], mask: Any) -> None:
+    """Daytime frames show which Bayer pattern is right: only that one makes a clear sky blue."""
+    from pyobs_cloudcover.camera.bayer import guess_pattern
+
+    mosaics = [f.data for f in frames if not f.is_rgb and f.bayer is not None]
+    if not mosaics:
+        return
+    best, scores = guess_pattern(mosaics, mask)
+    used = frames[0].bayer
+    detail = ", ".join(f"{k} {v:.2f}" for k, v in scores.items())
+    if best == used:
+        print(f"Bayer pattern {used} looks right (blue/red of the sky: {detail}).")
+    else:
+        # the frames are canonical; the config wants the pattern of the raw array
+        print(
+            f"WARNING: the sky only looks blue with Bayer pattern {best} (canonical image), not {used} "
+            f"(blue/red: {detail}). Check camera.bayer / the BAYERPAT header (and its ROWORDER)."
+        )
 
 
 def cmd_darks(args: argparse.Namespace) -> int:
@@ -214,7 +235,7 @@ def build_parser() -> argparse.ArgumentParser:
         nargs="+",
         default=None,
         metavar="IMAGE",
-        help="find the lens circle in these (e.g. daytime) images; helps when the horizon is obstructed",
+        help="also try these (e.g. daytime) images for the lens circle and use them if they show it better",
     )
     s.set_defaults(func=cmd_calibrate)
 
