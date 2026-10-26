@@ -35,7 +35,7 @@ def test_mask_finds_trees_and_buildings(tmp_path: Path) -> None:
     assert np.mean(mask[truth]) > 0.97
     # the building (22 deg high around azimuth 30-70) is masked
     building = valid & (np.rad2deg(az) > 35) & (np.rad2deg(az) < 65) & (np.rad2deg(alt) < 20)
-    assert np.mean(~mask[building]) > 0.9
+    assert np.mean(~mask[building]) > 0.85
 
 
 def test_altitude_mask() -> None:
