@@ -2,6 +2,7 @@ import asyncio
 from collections.abc import Callable
 from typing import Any
 
+import numpy as np
 from aiohttp import web
 
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
@@ -31,6 +32,7 @@ class Server:
                 web.get("/query/limiting_magnitude/area", self._lim_mag_area),
                 web.get("/query/extinction", self._extinction),
                 web.get("/status", self._status_route),
+                web.get("/weather", self._weather),
                 web.get("/cloud_map.png", self._cloud_map_png),
                 web.get("/limiting_magnitude.png", self._lim_mag_png),
                 web.get("/cloud_map.html", self._cloud_map_html),
@@ -99,6 +101,37 @@ class Server:
         m = self._query_executor.measurement
         extra = {"sky_brightness": m.sky_brightness, "zero_point": m.zero_point} if m else {}
         return web.json_response({"value": self._query_executor.extinction(alt, az, radius), **extra, **self._common()})
+
+    async def _weather(self, request: web.Request) -> web.Response:
+        """A flat snapshot for weather aggregators (e.g. pyobs-weather's JSON station): ISO time, cloud cover in
+        percent above 30 deg and at the zenith (within 10 deg), and, at night, the zenith sky brightness, mean cloud
+        extinction above 30 deg and zenith limiting magnitude."""
+        m = self._query_executor.measurement
+        if m is None:
+            return web.json_response({"time": None, **self._common()}, status=503)
+        zenith = np.pi / 2
+
+        def percent(radius_deg: float) -> float | None:
+            value = m.cloud_cover_query.query_radius(zenith, 0.0, np.deg2rad(radius_deg))
+            return None if value is None else 100.0 * value
+
+        extinction = m.extinction_query.query_radius(zenith, 0.0, np.deg2rad(60)) if m.extinction_query else None
+        lim_mag = (
+            m.value_query.query_radius(zenith, 0.0, np.deg2rad(10))
+            if m.value_query is not None and m.value_name == "limiting_magnitude"
+            else None
+        )
+        return web.json_response(
+            {
+                "time": m.obs_time.isoformat(),
+                "clouds": percent(60),
+                "clouds_zenith": percent(10),
+                "skymag": m.sky_brightness,
+                "extinction": extinction,
+                "lim_mag": lim_mag,
+                **self._common(),
+            }
+        )
 
     async def _status_route(self, request: web.Request) -> web.Response:
         status = self._status() if self._status is not None else {}

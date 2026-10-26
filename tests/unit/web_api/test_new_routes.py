@@ -108,3 +108,15 @@ def test_photometric_measurement_fields() -> None:
     assert factory({"type": "extinction", "name": "ext", "altitude": 30})(info) == pytest.approx(0.7)
     lim = factory({"type": "limiting_magnitude", "name": "lim", "altitude": 80})(info)
     assert lim is not None and 3.0 <= lim <= 6.0
+
+
+@pytest.mark.asyncio
+async def test_weather_route(aiohttp_client, server: Server, observer: Observer) -> None:  # type: ignore[no-untyped-def]
+    client = await aiohttp_client(server._app)
+    data = await (await client.get("/weather")).json()
+    assert data["time"] == T.isoformat() and data["pipeline"] == "night"
+    assert 0 <= data["clouds"] <= 100 and data["lim_mag"] is not None
+    assert data["skymag"] is None  # no photometric mode in this result
+
+    empty = await aiohttp_client(Server(CoverageQueryExecutor(observer))._app)
+    assert (await empty.get("/weather")).status == 503

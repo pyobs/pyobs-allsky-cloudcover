@@ -148,6 +148,10 @@ result, ``reason``.
 ``/query/extinction?alt=..&az=..[&radius=..]``
     ``value``: cloud extinction (mag) at the closest position, or the mean within ``radius``; also
     ``sky_brightness`` (zenith, mag/arcsec^2) and ``zero_point`` (photometric mode, night only).
+``/weather``
+    A flat snapshot for weather aggregators such as pyobs-weather's JSON station: ``time`` (ISO, UTC),
+    ``clouds`` and ``clouds_zenith`` (percent, above 30 deg and within 10 deg of the zenith), ``skymag``,
+    ``extinction``, ``lim_mag`` (night), ``pipeline``.
 ``/status``
     Frames received/analysed/skipped/without result/failed, last file, ``result_age`` (seconds since the
     observation the API serves), pipeline, ``reason``, last error.
