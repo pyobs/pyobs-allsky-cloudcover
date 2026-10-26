@@ -34,9 +34,10 @@ Night, photometric (default in new-style configs)
     The stars that are detected are also measured. Against a zero point (learnt from frames that look clear,
     or set in the config) and the atmospheric extinction per airmass, each gives the **cloud extinction** in
     front of it in magnitudes; stars that should have been easy to see but weren't give a lower limit. The map
-    of that extinction (cloudy from 0.5 mag) replaces the limiting-magnitude cloud map: it isn't fooled by
-    moonlight or a bright sky, sees thin cloud, and needs no camera-specific threshold. The same zero point gives
-    the zenith **sky brightness** in mag/arcsec^2. Until a zero point is known the limiting magnitude decides.
+    of that extinction (cloudy from 0.5 mag) replaces the limiting-magnitude cloud map wherever stars measure it:
+    there it isn't fooled by moonlight, sees thin cloud, and needs no camera-specific threshold. Elsewhere (under a
+    bright moon, often more than half the sky) and until a zero point is known, the limiting magnitude decides.
+    The same zero point gives the zenith **sky brightness** in mag/arcsec^2.
     Stretched (non-linear) images can't be measured; use ``photometry: {cloud_map: false}`` for them.
 
 Day (sun above -6 deg in the examples)
