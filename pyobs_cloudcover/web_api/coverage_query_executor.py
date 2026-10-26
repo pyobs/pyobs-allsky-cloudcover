@@ -40,6 +40,15 @@ class CoverageQueryExecutor:
             return None
         return m.value_query.query_nearest_coordinate(np.deg2rad(alt), np.deg2rad(az))
 
+    def extinction(self, alt: float, az: float, radius: float | None = None) -> float | None:
+        """Cloud extinction (mag) at the closest position, or the mean within ``radius`` (photometric mode)."""
+        m = self._measurement
+        if m is None or m.extinction_query is None:
+            return None
+        if radius is None:
+            return m.extinction_query.query_nearest_coordinate(np.deg2rad(alt), np.deg2rad(az))
+        return m.extinction_query.query_radius(np.deg2rad(alt), np.deg2rad(az), np.deg2rad(radius))
+
     def limiting_magnitude_area(self, alt: float, az: float, radius: float) -> dict[str, float] | None:
         """Mean, minimum and maximum limiting magnitude within ``radius`` degrees."""
         m = self._measurement

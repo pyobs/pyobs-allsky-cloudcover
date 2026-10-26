@@ -1,7 +1,16 @@
+from dataclasses import dataclass
+
 import numpy as np
 import numpy.typing as npt
 
 from pyobs_cloudcover.pipeline.night.catalog.pixel_catalog import PixelCatalog
+
+
+@dataclass
+class StarMeasurement:
+    signal: npt.NDArray[np.float64]  # background-subtracted aperture sum
+    noise: npt.NDArray[np.float64]  # background noise of that sum
+    background: npt.NDArray[np.float64]  # local background per pixel
 
 
 class ApertureMatcher:
@@ -30,13 +39,25 @@ class ApertureMatcher:
         self._aperture_radius = aperture_radius
         self._annulus = annulus
         self._max_background = max_background
+        self.last: StarMeasurement | None = None
 
     def __call__(
         self, image: npt.NDArray[np.float64], catalog: PixelCatalog, saturation: float | None = None
     ) -> list[bool]:
+        m = self.measure(image, catalog)
+        self.last = m
+        found = m.signal / m.noise > self._snr
+        if saturation is not None:
+            found &= ~(m.background > self._max_background * saturation)
+        found &= np.isfinite(m.background) & np.isfinite(m.noise)
+        return [bool(f) for f in found]
+
+    def measure(self, image: npt.NDArray[np.float64], catalog: PixelCatalog) -> StarMeasurement:
+        """Background-subtracted aperture sum, its background noise and the local background of every star."""
         n = len(catalog.px)
         if n == 0:
-            return []
+            empty = np.zeros(0)
+            return StarMeasurement(empty, empty, empty)
         half = int(np.ceil(self._annulus[1]))
         padded = np.pad(np.asarray(image, dtype=np.float64), half, mode="constant", constant_values=np.nan)
         off = np.arange(-half, half + 1)
@@ -75,9 +96,4 @@ class ApertureMatcher:
         n_ap = aperture.reshape(n, -1).sum(axis=1)
         signal = np.nansum(np.where(aperture, cut - background[:, None, None], 0.0).reshape(n, -1), axis=1)
         noise = np.maximum(sigma, 1e-9) * np.sqrt(n_ap)
-
-        found = signal / noise > self._snr
-        if saturation is not None:
-            found &= ~(background > self._max_background * saturation)
-        found &= np.isfinite(background) & np.isfinite(sigma)
-        return [bool(f) for f in found]
+        return StarMeasurement(signal, noise, background)

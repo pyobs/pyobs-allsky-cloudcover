@@ -78,3 +78,33 @@ async def test_status_and_reason(aiohttp_client, observer: Observer) -> None:  #
     point = await (await client.get("/query/point?alt=90&az=0")).json()
     assert point["value"] is None and "no pipeline" in point["reason"]
     assert (await client.get("/cloud_map.png")).status == 404
+
+
+@pytest.mark.asyncio
+async def test_extinction_route(aiohttp_client, observer: Observer) -> None:  # type: ignore[no-untyped-def]
+    info = night_result()
+    grid = info.cloud_cover_query.grid
+    info.extinction_query = SkyPixelQuery(grid, np.where(np.rad2deg(grid.az) > 180, 0.0, 2.0))
+    info.zero_point, info.sky_brightness = 10.0, 21.3
+    server = Server(CoverageQueryExecutor(observer))
+    server.set_measurement(info)
+    client = await aiohttp_client(server._app)
+    east = await (await client.get("/query/extinction?alt=45&az=90")).json()
+    assert east["value"] == 2.0 and east["sky_brightness"] == 21.3 and east["zero_point"] == 10.0
+    west = await (await client.get("/query/extinction?alt=45&az=270&radius=10")).json()
+    assert west["value"] == 0.0
+
+
+def test_photometric_measurement_fields() -> None:
+    from pyobs_cloudcover.measurement_log.field_evaluators.field_evaluators_factory import FieldEvaluatorFactory
+
+    info = night_result()
+    grid = info.cloud_cover_query.grid
+    info.extinction_query = SkyPixelQuery(grid, np.full(len(grid), 0.7))
+    info.zero_point, info.sky_brightness = 10.0, 21.3
+    factory = FieldEvaluatorFactory(Observer(latitude=0, longitude=0))
+    assert factory({"type": "skymag", "name": "skymag"})(info) == 21.3
+    assert factory({"type": "zero_point", "name": "zp"})(info) == 10.0
+    assert factory({"type": "extinction", "name": "ext", "altitude": 30})(info) == pytest.approx(0.7)
+    lim = factory({"type": "limiting_magnitude", "name": "lim", "altitude": 80})(info)
+    assert lim is not None and 3.0 <= lim <= 6.0

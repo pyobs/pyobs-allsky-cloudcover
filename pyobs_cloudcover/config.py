@@ -40,9 +40,13 @@ class FieldConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    type: Literal["total", "zenith", "change", "sun", "moon"]
+    type: Literal[
+        "total", "zenith", "change", "sun", "moon", "skymag", "zero_point", "extinction", "limiting_magnitude"
+    ]
     name: str
-    altitude: float | None = Field(default=None, description="zenith: lower altitude bound (deg)")
+    altitude: float | None = Field(
+        default=None, description="zenith (required), extinction, limiting_magnitude: lower altitude bound (deg)"
+    )
     radius: float | None = Field(default=None, description="sun/moon: radius around it (deg)")
 
     @model_validator(mode="after")

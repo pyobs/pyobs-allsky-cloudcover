@@ -71,6 +71,13 @@ def otsu_threshold(values: npt.ArrayLike, bins: int = 200) -> float:
     return float(centres[int(np.argmax(w0 * w1 * (m0 - m1) ** 2))])
 
 
+def suggest_zero_point(results: Sequence[ReplayResult]) -> float | None:
+    """The photometric zero point from the clearest frames (the highest values; clouds only lower it)."""
+    zps = [r.info.zero_point for r in results if r.info is not None and r.info.zero_point is not None]
+    zps = [z for z in zps if np.isfinite(z)]
+    return float(np.percentile(zps, 90)) if zps else None
+
+
 @dataclass
 class ThresholdSuggestion:
     pipeline: str

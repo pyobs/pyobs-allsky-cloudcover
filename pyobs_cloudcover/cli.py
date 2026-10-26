@@ -149,7 +149,7 @@ def cmd_hot_pixels(args: argparse.Namespace) -> int:
 
 
 def cmd_replay(args: argparse.Namespace) -> int:
-    from pyobs_cloudcover.calibration.replay import plot, replay, suggest_thresholds, write_csv
+    from pyobs_cloudcover.calibration.replay import plot, replay, suggest_thresholds, suggest_zero_point, write_csv
 
     config = load_config(args.config)
     pattern = args.pattern or (config.get("watch") or {}).get("pattern", "*.fits")
@@ -173,6 +173,9 @@ def cmd_replay(args: argparse.Namespace) -> int:
     for s in suggestions:
         extra = f", agreement {s.agreement:.2f}" if s.agreement is not None else ""
         print(f"suggested {s.pipeline} threshold: {s.threshold:.2f} ({s.method}, {s.frames} frames{extra})")
+    zero_point = suggest_zero_point(results)
+    if zero_point is not None:
+        print(f"photometric zero point: {zero_point:.2f} (pipelines.night.options.photometry.zero_point)")
     if args.plot:
         try:
             plot(results, suggestions, args.plot)

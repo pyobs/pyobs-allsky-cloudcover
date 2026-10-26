@@ -29,6 +29,7 @@ class Server:
                 web.get("/query/area", self._area_query),
                 web.get("/query/limiting_magnitude", self._lim_mag_point),
                 web.get("/query/limiting_magnitude/area", self._lim_mag_area),
+                web.get("/query/extinction", self._extinction),
                 web.get("/status", self._status_route),
                 web.get("/cloud_map.png", self._cloud_map_png),
                 web.get("/limiting_magnitude.png", self._lim_mag_png),
@@ -85,6 +86,19 @@ class Server:
         stats: dict[str, float | None] = {"mean": None, "min": None, "max": None}
         stats.update(self._query_executor.limiting_magnitude_area(alt, az, radius) or {})
         return web.json_response({**stats, **self._common()})
+
+    async def _extinction(self, request: web.Request) -> web.Response:
+        q = request.rel_url.query
+        radius = float(q["radius"]) if "radius" in q else None
+        try:
+            alt, az = self._position(request)
+        except ValueError:
+            if self._query_executor.measurement is None:
+                return web.json_response({"value": None, **self._common()})
+            return web.HTTPBadRequest()
+        m = self._query_executor.measurement
+        extra = {"sky_brightness": m.sky_brightness, "zero_point": m.zero_point} if m else {}
+        return web.json_response({"value": self._query_executor.extinction(alt, az, radius), **extra, **self._common()})
 
     async def _status_route(self, request: web.Request) -> web.Response:
         status = self._status() if self._status is not None else {}

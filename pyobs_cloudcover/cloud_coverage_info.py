@@ -14,6 +14,9 @@ class CloudCoverageInfo:
             (night) or the colour ratio (day).
         value_name: What ``value_query`` holds: ``"limiting_magnitude"`` or ``"color_ratio"``.
         pipeline: Name of the pipeline that produced the result (``"night"``, ``"day"``, ...).
+        extinction_query: Cloud extinction (mag) per position, from the photometric mode.
+        zero_point: Photometric zero point of the image (mag giving 1 ADU/s), if measured.
+        sky_brightness: Sky surface brightness around the zenith (V mag/arcsec^2), if measured.
     """
 
     def __init__(
@@ -24,6 +27,9 @@ class CloudCoverageInfo:
         value_query: SkyPixelQuery | None = None,
         value_name: str = "",
         pipeline: str = "",
+        extinction_query: SkyPixelQuery | None = None,
+        zero_point: float | None = None,
+        sky_brightness: float | None = None,
     ) -> None:
         self.cloud_cover_query = cloud_cover_query
         self.change = change
@@ -31,3 +37,6 @@ class CloudCoverageInfo:
         self.value_query = value_query
         self.value_name = value_name
         self.pipeline = pipeline
+        self.extinction_query = extinction_query
+        self.zero_point = zero_point
+        self.sky_brightness = sky_brightness

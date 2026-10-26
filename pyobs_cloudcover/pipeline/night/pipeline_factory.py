@@ -1,3 +1,4 @@
+import numpy as np
 from astroplan import Observer
 
 from pyobs_cloudcover.camera.profile import CameraProfile
@@ -9,7 +10,8 @@ from pyobs_cloudcover.pipeline.night.lim_magnitude_map_generator.lim_magnitude_m
     LimMagnitudeMapGeneratorFactory,
 )
 from pyobs_cloudcover.pipeline.night.moon_masker import MoonMasker
-from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline
+from pyobs_cloudcover.pipeline.night.photometry import PhotometricCalibrator
+from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline, PhotometrySettings
 from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor_factory import PreprocessorFactory
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher_factory import StarReverseMatcherFactory
@@ -45,6 +47,20 @@ class NightPipelineFactory:
         coverage_info_calculator = CloudInfoCalculatorFactory()()
         moon_masker = MoonMasker(options.moon_apparent_size, self._observer)
 
+        photometry = None
+        ph = options.photometry
+        if ph is not None and ph.get("enabled", True) and options.star_matcher_options.type == "aperture":
+            unknown = set(ph) - {"enabled", "extinction_coefficient", "zero_point", "radius", "cloud_threshold",
+                                 "cloud_map"}
+            if unknown:
+                raise ValueError(f"Unknown photometry option(s): {sorted(unknown)}")
+            photometry = PhotometrySettings(
+                PhotometricCalibrator(float(ph["extinction_coefficient"]), ph["zero_point"]),
+                np.deg2rad(float(ph["radius"])),
+                float(ph["cloud_threshold"]),
+                bool(ph["cloud_map"]),
+            )
+
         return NightPipeline(
             preprocessor,
             catalog_constructor,
@@ -55,4 +71,6 @@ class NightPipelineFactory:
             moon_masker,
             coverage_info_calculator,
             sky_mask=None if options.legacy else self._camera.mask,
+            photometry=photometry,
+            model=model,
         )

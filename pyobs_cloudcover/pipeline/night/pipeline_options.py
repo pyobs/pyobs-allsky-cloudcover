@@ -15,6 +15,18 @@ from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher_o
 DETECTOR_DEFAULTS: dict[str, Any] = {"type": "aperture", "snr": 3.0}
 ESTIMATOR_DEFAULT = "robust"
 THRESHOLD_DEFAULT = 4.6
+# photometric mode (needs the aperture detector): cloud extinction per star and its map, the zero point and the
+# zenith sky brightness. With cloud_map: true (default; benchmarks/photometry.py) the cloud map comes from the
+# extinction instead of the limiting magnitude, with a threshold in magnitudes of extinction, the same for every
+# camera; the limiting-magnitude map is used while no zero point is known.
+PHOTOMETRY_DEFAULTS: dict[str, Any] = {
+    "enabled": True,
+    "extinction_coefficient": 0.2,
+    "zero_point": None,
+    "radius": 7.0,
+    "cloud_threshold": 0.5,
+    "cloud_map": True,
+}
 
 
 class NightPipelineOptions:
@@ -39,6 +51,7 @@ class NightPipelineOptions:
         altaz_grid_options: AltAzGridOptions,
         moon_apparent_size: float,
         legacy: bool = False,
+        photometry: dict[str, Any] | None = None,
     ) -> None:
 
         self.model_options = model_options
@@ -50,6 +63,7 @@ class NightPipelineOptions:
         self.cloud_generator_options = cloud_generator_options
         self.moon_apparent_size = moon_apparent_size
         self.legacy = legacy
+        self.photometry = photometry
 
     @classmethod
     def from_dict(cls, options: dict[str, Any]) -> NightPipelineOptions:
@@ -79,4 +93,5 @@ class NightPipelineOptions:
             AltAzGridOptions.from_dict(options.get("altaz_grid", {})),
             float(options.get("moon_apparent_size", 10.0)),
             legacy,
+            photometry=None if legacy else {**PHOTOMETRY_DEFAULTS, **(options.get("photometry") or {})},
         )
