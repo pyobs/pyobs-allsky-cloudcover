@@ -73,6 +73,7 @@ def summarise(rows: list[dict]) -> dict[str, dict[str, float]]:  # type: ignore[
             "agreement": float(np.mean([r["agreement"] for r in g])),
             "total_error": float(np.mean([r["total_error"] for r in g])),
             "zenith_error": float(np.nanmean([np.nan if r["zenith_error"] is None else r["zenith_error"] for r in g])),
+            "coverage": float(np.mean([r["coverage"] for r in g])),
             "frames": len(g),
         }
         for key, g in sorted(groups.items())
@@ -89,21 +90,25 @@ def report(rows: list[dict], summary: dict[str, dict[str, float]], scale: float)
         "config (``examples/<preset>.yaml``). Scores are on the sky above 30 deg where the result has a value",
         "(moon and sun are masked): *agreement* is the fraction of positions whose cloudy/clear state matches",
         "the ground truth (cloud extinction >= 0.5 mag); the errors are absolute differences of the cloudy",
-        "fraction of the whole sky and of the zenith region (above 80 deg).",
+        "fraction of the whole sky and of the zenith region (above 80 deg); *coverage* is the fraction of the sky",
+        "above 30 deg the result has a value for (the rest is masked: moon, sun). A result that covers little sky",
+        "can score well on what it covers, so always read agreement together with coverage.",
         "",
         "Summary",
         "*******",
         "",
-        f"{'=' * 26} {'=' * 9} {'=' * 11} {'=' * 12} {'=' * 6}",
-        f"{'camera / pipeline':26s} {'agreement':>9s} {'total err':>11s} {'zenith err':>12s} {'frames':>6s}",
-        f"{'=' * 26} {'=' * 9} {'=' * 11} {'=' * 12} {'=' * 6}",
+        f"{'=' * 26} {'=' * 9} {'=' * 11} {'=' * 12} {'=' * 8} {'=' * 6}",
+        f"{'camera / pipeline':26s} {'agreement':>9s} {'total err':>11s} {'zenith err':>12s} {'coverage':>8s} "
+        f"{'frames':>6s}",
+        f"{'=' * 26} {'=' * 9} {'=' * 11} {'=' * 12} {'=' * 8} {'=' * 6}",
     ]
     for key, s in summary.items():
         lines.append(
-            f"{key:26s} {s['agreement']:9.2f} {s['total_error']:11.2f} {s['zenith_error']:12.2f} {s['frames']:6d}"
+            f"{key:26s} {s['agreement']:9.2f} {s['total_error']:11.2f} {s['zenith_error']:12.2f} "
+            f"{s['coverage']:8.2f} {s['frames']:6d}"
         )
     lines += [
-        f"{'=' * 26} {'=' * 9} {'=' * 11} {'=' * 12} {'=' * 6}",
+        f"{'=' * 26} {'=' * 9} {'=' * 11} {'=' * 12} {'=' * 8} {'=' * 6}",
         "",
         "All frames",
         "**********",

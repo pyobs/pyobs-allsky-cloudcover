@@ -26,15 +26,19 @@ PRESETS = ("zwo-asi224mc", "rpi-hq", "zwo-asi178mm")
 CLOUDS = {"clear": (0.0, 3.0), "half": (0.4, 3.0), "overcast": (1.0, 3.0), "cirrus": (0.6, 0.8)}
 
 
-def extinction_scores(info: CloudCoverageInfo, truth: GroundTruth) -> tuple[float, float]:
+def extinction_scores(info: CloudCoverageInfo, truth: GroundTruth) -> tuple[float, float, float]:
+    """Agreement and mean |error| where the extinction is measured, and on what fraction of the sky."""
     q = info.extinction_query
     assert q is not None
     alt, az = np.rad2deg(q.grid.alt), np.rad2deg(q.grid.az)
     ext = q.get_pixels()
-    ok = np.isfinite(ext) & (alt >= 30)
+    above = alt >= 30
+    ok = np.isfinite(ext) & above
+    if not np.any(ok):
+        return float("nan"), float("nan"), 0.0
     true = np.clip(truth.extinction_at(alt[ok], az[ok]), 0, 3)
-    cloudy = ext[ok] >= 0.5
-    return float(np.mean(cloudy == (true >= truth.cloud_threshold))), float(np.mean(np.abs(ext[ok] - true)))
+    agree = float(np.mean((ext[ok] >= 0.5) == (true >= truth.cloud_threshold)))
+    return agree, float(np.mean(np.abs(ext[ok] - true))), float(ok.sum() / above.sum())
 
 
 def main() -> None:
@@ -55,16 +59,30 @@ def main() -> None:
                 for name, (cover, depth) in CLOUDS.items():
                     info, truth = run_scenario(Scenario(preset, sky, cover, depth), config, tmp, args.scale)
                     assert info is not None
-                    # the limiting-magnitude cloud map with the camera's threshold (the default map is photometric)
-                    m = evaluate(info, truth, threshold=options["cloud_map"]["threshold"])
-                    assert m is not None
-                    agree_ext, mae = extinction_scores(info, truth)
+                    # whole sky: the limiting-magnitude map (camera's threshold) and the default photometric map
+                    lim = evaluate(info, truth, threshold=options["cloud_map"]["threshold"])
+                    combined = evaluate(info, truth)
+                    assert lim is not None and combined is not None
+                    there, mae, measured = extinction_scores(info, truth)
                     true_mag = truth.metadata["sky_zenith_mag"]
-                    rows.append((preset, sky, name, m.agreement, agree_ext, mae, info.sky_brightness, true_mag))
+                    rows.append(
+                        (
+                            preset,
+                            sky,
+                            name,
+                            lim.agreement,
+                            combined.agreement,
+                            measured,
+                            there,
+                            mae,
+                            info.sky_brightness,
+                            true_mag,
+                        )
+                    )
                     print(
-                        f"{preset:13s} {sky:12s} {name:8s} lim-mag {m.agreement:.2f}  extinction {agree_ext:.2f}  "
-                        f"|ext err| {mae:.2f} mag  sky {info.sky_brightness or float('nan'):.2f} "
-                        f"(true {true_mag:.2f})",
+                        f"{preset:13s} {sky:12s} {name:8s} lim-mag {lim.agreement:.2f}  photometric "
+                        f"{combined.agreement:.2f}  (measured on {measured:.2f} of the sky, {there:.2f} there, "
+                        f"|ext err| {mae:.2f})  sky {info.sky_brightness or float('nan'):.2f} (true {true_mag:.2f})",
                         flush=True,
                     )
     print()
@@ -73,10 +91,14 @@ def main() -> None:
         by[r[1]].append(r)
         by[r[2]].append(r)
     for key, rs in by.items():
-        sky_err = [abs(r[6] - r[7]) for r in rs if r[6] is not None]
-        lim, ext, err = (np.mean([r[i] for r in rs]) for i in (3, 4, 5))
-        sky = np.mean(sky_err) if sky_err else np.nan
-        print(f"{key:12s} agreement lim-mag {lim:.2f}  extinction {ext:.2f}  |ext err| {err:.2f}  |sky err| {sky:.2f}")
+        lim, comb, measured = (float(np.mean([r[i] for r in rs])) for i in (3, 4, 5))
+        there = float(np.nanmean([r[6] for r in rs]))
+        clear_sky = [abs(r[8] - r[9]) for r in rs if r[2] == "clear" and r[8] is not None]
+        sky = float(np.mean(clear_sky)) if clear_sky else float("nan")
+        print(
+            f"{key:12s} whole sky: lim-mag {lim:.2f}  photometric {comb:.2f}   extinction measured on "
+            f"{measured:.2f} of the sky ({there:.2f} correct there)   |sky err| on clear frames {sky:.2f}"
+        )
 
 
 if __name__ == "__main__":

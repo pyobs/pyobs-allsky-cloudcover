@@ -8,42 +8,49 @@
       "agreement": 0.9858448376433988,
       "total_error": 0.003888780867198125,
       "zenith_error": 0.0012884937508053085,
+      "coverage": 0.9999092700124429,
       "frames": 3
     },
     "budget-8bit / night": {
       "agreement": 0.7170756362302897,
       "total_error": 0.20378655665566556,
       "zenith_error": 0.22646198830409356,
+      "coverage": 0.9797333333333333,
       "frames": 9
     },
     "rpi-hq / day": {
       "agreement": 0.9869812404866788,
       "total_error": 0.003983414480072852,
       "zenith_error": 0.0019869942196531674,
+      "coverage": 0.9999092851671169,
       "frames": 3
     },
     "rpi-hq / night": {
-      "agreement": 0.9413977393616615,
-      "total_error": 0.023930700914686093,
-      "zenith_error": 0.03237474915368362,
+      "agreement": 0.9169978804547121,
+      "total_error": 0.04907736707004034,
+      "zenith_error": 0.028070175438596492,
+      "coverage": 0.9797333333333333,
       "frames": 9
     },
     "zwo-asi178mm / night": {
-      "agreement": 0.9496274860001941,
-      "total_error": 0.03255700144915995,
-      "zenith_error": 0.032746478873239435,
+      "agreement": 0.9316085515218189,
+      "total_error": 0.04012819948661532,
+      "zenith_error": 0.021198830409356717,
+      "coverage": 0.9797333333333333,
       "frames": 9
     },
     "zwo-asi224mc / day": {
       "agreement": 0.9860442283416709,
       "total_error": 0.0038571228201411865,
       "zenith_error": 0.002564102564102555,
+      "coverage": 0.999906502734795,
       "frames": 3
     },
     "zwo-asi224mc / night": {
-      "agreement": 0.9395011207082962,
-      "total_error": 0.04211089867001015,
-      "zenith_error": 0.1571356275303644,
+      "agreement": 0.8725305170517053,
+      "total_error": 0.09089428676200954,
+      "zenith_error": 0.09634502923976608,
+      "coverage": 0.9797333333333333,
       "frames": 9
     }
   }

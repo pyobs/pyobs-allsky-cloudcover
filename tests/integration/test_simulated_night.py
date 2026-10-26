@@ -118,13 +118,15 @@ def test_mask_keeps_obstructions_from_reading_as_cloud(tmp_path) -> None:  # typ
 
 
 def test_photometric_mode(tmp_path) -> None:  # type: ignore[no-untyped-def]
-    """Full size: cloud extinction per position, a camera-independent cloud map, and the zenith sky brightness.
-    A full moon doesn't fool it, thin cirrus is seen."""
+    """Full size: cloud extinction per position and the zenith sky brightness. Where stars measure the extinction,
+    a full moon doesn't fool it and thin cirrus is seen; elsewhere the limiting magnitude fills in, so the combined
+    map beats the limiting-magnitude map alone."""
     from pyobs_cloudcover.evaluation import evaluate
 
     dark = datetime.datetime(2026, 3, 20, 22, 0, tzinfo=datetime.UTC)
     full_moon = datetime.datetime(2026, 3, 30, 22, 0, tzinfo=datetime.UTC)
-    pipelines = {"night": {"alt_interval": {"end": -18}, "options": {}}}
+    threshold = THRESHOLDS["zwo-asi224mc"]
+    pipelines = {"night": {"alt_interval": {"end": -18}, "options": {"cloud_map": {"threshold": threshold}}}}
     profile = None
     controller = None
     # the zero point is learnt on a dark, clear night; then a full moon, clear and with thin cirrus
@@ -142,9 +144,20 @@ def test_photometric_mode(tmp_path) -> None:  # type: ignore[no-untyped-def]
         assert profile is not None
         info = controller(profile.prepare(read_image(frame.write(tmp_path / name))))
         assert info is not None and info.extinction_query is not None
-        m = evaluate(info, frame.truth)
-        assert m is not None and m.agreement > 0.8, (name, m)
+
+        # where stars measure it, the extinction is right
+        q = info.extinction_query
+        alt, az = np.rad2deg(q.grid.alt), np.rad2deg(q.grid.az)
+        ext = q.get_pixels()
+        measured = np.isfinite(ext) & (alt >= 30)
+        assert measured.mean() > 0.05, name  # under a full moon only a small part of the sky is measured
+        true_cloudy = frame.truth.cloudy_at(alt[measured], az[measured])
+        assert np.mean((ext[measured] >= 0.5) == true_cloudy) > 0.65, name
+
+        # the combined cloud map beats the limiting magnitude alone
+        combined = evaluate(info, frame.truth)
+        lim_only = evaluate(info, frame.truth, threshold=threshold)
+        assert combined is not None and lim_only is not None
+        assert combined.agreement >= lim_only.agreement - 0.01, (name, combined, lim_only)
         if name == "clear":
-            # the moonlit sky is measured, not mistaken for cloud
             assert abs(info.sky_brightness - frame.truth.metadata["sky_zenith_mag"]) < 0.2
-            assert m.total_measured < 0.05

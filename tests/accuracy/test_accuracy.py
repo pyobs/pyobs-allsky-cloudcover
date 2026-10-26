@@ -16,6 +16,8 @@ sys.path.insert(0, str(ROOT / "benchmarks"))
 # how much worse than the baseline a camera/pipeline may get before the test fails
 MAX_AGREEMENT_DROP = 0.05
 MAX_TOTAL_ERROR_RISE = 0.05
+# agreement only counts the sky a result covers, so coverage mustn't shrink either
+MAX_COVERAGE_DROP = 0.05
 
 
 @pytest.mark.accuracy
@@ -35,4 +37,6 @@ def test_no_accuracy_regression() -> None:
             problems.append(f"{key}: agreement {now['agreement']:.3f} < baseline {base['agreement']:.3f}")
         if now["total_error"] > base["total_error"] + MAX_TOTAL_ERROR_RISE:
             problems.append(f"{key}: total error {now['total_error']:.3f} > baseline {base['total_error']:.3f}")
+        if now.get("coverage", 1.0) < base.get("coverage", 1.0) - MAX_COVERAGE_DROP:
+            problems.append(f"{key}: coverage {now['coverage']:.3f} < baseline {base['coverage']:.3f}")
     assert not problems, "\n".join(problems)

@@ -59,7 +59,7 @@ class PhotometricCalibrator:
         snr: float = 5.0,
         decay: float = 0.01,
         bright: float = 4.5,
-        usable_snr: float = 15.0,
+        usable_snr: float = 8.0,
         max_jump: float = 0.3,
     ) -> None:
         self._k = extinction_coefficient

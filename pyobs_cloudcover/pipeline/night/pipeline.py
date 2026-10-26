@@ -107,7 +107,9 @@ class NightPipeline(Pipeline):
                 brightness = sky_brightness(preprocessed_image, self._model, zero_point, exposure, mask=mask)
             # without a zero point yet (e.g. the first frames are overcast) the limiting-magnitude map stays
             if p.cloud_map_from_extinction and np.isfinite(zero_point):
-                cloud_map = np.where(np.isnan(ext), np.nan, (ext >= p.cloud_threshold).astype(np.float64))
+                # where no star measures the extinction (e.g. bright moonlight, short exposures), the limiting
+                # magnitude decides
+                cloud_map = np.where(np.isnan(ext), cloud_map, (ext >= p.cloud_threshold).astype(np.float64))
 
         sky_query = self._moon_masker(SkyPixelQuery(grid, cloud_map), obs_time)
         lim_mag_query = self._moon_masker(SkyPixelQuery(grid, lim_mag_map), obs_time)
