@@ -23,15 +23,15 @@
       "frames": 3
     },
     "rpi-hq / night": {
-      "agreement": 0.8936511404473779,
-      "total_error": 0.07623895122845618,
-      "zenith_error": 0.016812865497076016,
+      "agreement": 0.9413977393616615,
+      "total_error": 0.023930700914686093,
+      "zenith_error": 0.03237474915368362,
       "frames": 9
     },
     "zwo-asi178mm / night": {
-      "agreement": 0.9129543454345436,
-      "total_error": 0.06252253025302529,
-      "zenith_error": 0.032309941520467844,
+      "agreement": 0.9496274860001941,
+      "total_error": 0.03255700144915995,
+      "zenith_error": 0.032746478873239435,
       "frames": 9
     },
     "zwo-asi224mc / day": {
@@ -41,9 +41,9 @@
       "frames": 3
     },
     "zwo-asi224mc / night": {
-      "agreement": 0.7980319545287862,
-      "total_error": 0.17299223322332236,
-      "zenith_error": 0.1175438596491228,
+      "agreement": 0.9395011207082962,
+      "total_error": 0.04211089867001015,
+      "zenith_error": 0.1571356275303644,
       "frames": 9
     }
   }

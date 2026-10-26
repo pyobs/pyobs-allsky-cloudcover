@@ -75,6 +75,13 @@ measurement_log:
       - type: "moon"
         name: "moon-coverage"
         radius: 20.0
+    sky:
+      # zenith sky brightness (mag/arcsec^2) and mean cloud extinction (mag), from the photometric mode
+      - type: "skymag"
+        name: "skymag"
+      - type: "extinction"
+        name: "extinction"
+        altitude: 30.0
 
 
 # Analysis pipelines by solar altitude ([start, end) in degrees). Between them (nautical/astronomical
@@ -139,9 +146,21 @@ pipelines:
         # number of consecutive frames a star must be seen in
         integration_length: 1
 
+      # photometric mode: cloud extinction per star (magnitudes), its map and the zenith sky brightness
+      photometry:
+        # use the extinction map as the cloud map (not fooled by moonlight, sees thin cloud); the
+        # limiting magnitude decides until a zero point is known. false for stretched/non-linear images
+        cloud_map: true
+        # extinction (mag) from which a position is cloudy; the same for every camera
+        cloud_threshold: 0.5
+        # the camera's zero point (pyobs-cloudcover replay reports it); learnt from clear frames if not set
+        zero_point:
+        # atmospheric extinction of the site (mag per airmass)
+        extinction_coefficient: 0.2
+
       cloud_map:
-        # points with a limiting magnitude below this are cloudy. Camera specific: choose it with
-        # `pyobs-cloudcover replay` on a few nights of images.
+        # points with a limiting magnitude below this are cloudy (used without a zero point, or with
+        # photometry.cloud_map: false). Camera specific: choose it with `pyobs-cloudcover replay`.
         threshold: 4.6
 
       # radius masked around the moon (degrees)

@@ -30,6 +30,15 @@ Night (sun below -18 deg by default)
     **limiting magnitude**; below a camera-specific threshold the position is cloudy. Stars behind the sky
     mask aren't used; the area around the moon is masked.
 
+Night, photometric (default in new-style configs)
+    The stars that are detected are also measured. Against a zero point (learnt from frames that look clear,
+    or set in the config) and the atmospheric extinction per airmass, each gives the **cloud extinction** in
+    front of it in magnitudes; stars that should have been easy to see but weren't give a lower limit. The map
+    of that extinction (cloudy from 0.5 mag) replaces the limiting-magnitude cloud map: it isn't fooled by
+    moonlight or a bright sky, sees thin cloud, and needs no camera-specific threshold. The same zero point gives
+    the zenith **sky brightness** in mag/arcsec^2. Until a zero point is known the limiting magnitude decides.
+    Stretched (non-linear) images can't be measured; use ``photometry: {cloud_map: false}`` for them.
+
 Day (sun above -6 deg in the examples)
     Clear sky is blue and clouds are white or grey: the colour ratio blue/red + blue/green of the raw colours
     is thresholded; the area around the sun is masked. Needs a colour camera.
@@ -78,7 +87,9 @@ of the simulator. In outline::
 
 The config is validated at startup. Measurement field types: ``total`` (whole sky), ``zenith`` (above
 ``altitude``), ``sun``/``moon`` (within ``radius`` of it) and ``change`` (fraction of positions that changed
-since the previous image). Fractions are 0-1.
+since the previous image). Fractions are 0-1. From the photometric mode (night): ``skymag`` (zenith sky
+brightness, mag/arcsec^2, like pyobs' SKYMAG sensor), ``extinction`` (mean cloud extinction in mag above
+``altitude``), ``zero_point``; and ``limiting_magnitude`` (mean above ``altitude``).
 
 Camera
 ======
@@ -107,7 +118,10 @@ Night pipeline options
 Catalogue, ``filter.alt``, ``filter.v_mag``), ``detector`` (``type: aperture`` with ``snr``, ``search_radius``,
 ``aperture_radius``, ``annulus``, ``max_background``; or ``type: sigma``, the 1.x detector), ``altaz_grid``
 (``point_number``, ``limiting_altitude``), ``lim_mag_map`` (``radius``, ``estimator: robust|border``,
-``integration_length``), ``cloud_map.threshold`` (limiting magnitude), ``moon_apparent_size``.
+``integration_length``), ``cloud_map.threshold`` (limiting magnitude), ``moon_apparent_size``,
+``photometry`` (``enabled``, ``cloud_map`` true/false, ``cloud_threshold`` in mag of extinction (0.5),
+``zero_point`` (from ``pyobs-cloudcover replay``; learnt if not set), ``extinction_coefficient`` (mag per
+airmass, 0.2), ``radius``; needs the aperture detector).
 
 Day pipeline options
 ====================
@@ -130,6 +144,9 @@ result, ``reason``.
     ``value``: limiting magnitude (V) at the closest analysed position (night only).
 ``/query/limiting_magnitude/area?alt=..&az=..&radius=..``
     ``mean``, ``min``, ``max`` of the limiting magnitude within ``radius``.
+``/query/extinction?alt=..&az=..[&radius=..]``
+    ``value``: cloud extinction (mag) at the closest position, or the mean within ``radius``; also
+    ``sky_brightness`` (zenith, mag/arcsec^2) and ``zero_point`` (photometric mode, night only).
 ``/status``
     Frames received/analysed/skipped/without result/failed, last file, ``result_age`` (seconds since the
     observation the API serves), pipeline, ``reason``, last error.

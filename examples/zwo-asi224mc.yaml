@@ -48,6 +48,9 @@ pipelines:
       start: null
       end: -18
     options:
+      # photometric zero point of this camera (pyobs-cloudcover replay reports it)
+      photometry:
+        zero_point: 10.08
       cloud_map:
         threshold: 4.55
   day:

@@ -16,10 +16,10 @@ camera / pipeline          agreement   total err   zenith err frames
 budget-8bit / day               0.99        0.00         0.00      3
 budget-8bit / night             0.72        0.20         0.23      9
 rpi-hq / day                    0.99        0.00         0.00      3
-rpi-hq / night                  0.89        0.08         0.02      9
-zwo-asi178mm / night            0.91        0.06         0.03      9
+rpi-hq / night                  0.94        0.02         0.03      9
+zwo-asi178mm / night            0.95        0.03         0.03      9
 zwo-asi224mc / day              0.99        0.00         0.00      3
-zwo-asi224mc / night            0.80        0.17         0.12      9
+zwo-asi224mc / night            0.94        0.04         0.16      9
 ========================== ========= =========== ============ ======
 
 All frames
@@ -41,35 +41,35 @@ budget-8bit    day             0.0      0.99     0.01     0.00
 budget-8bit    day             0.4      0.97     0.44     0.44
 budget-8bit    day             1.0      1.00     1.00     1.00
 rpi-hq         dark            0.0      1.00     0.00     0.00
-rpi-hq         dark            0.4      0.86     0.35     0.44
-rpi-hq         dark            1.0      0.92     0.92     1.00
+rpi-hq         dark            0.4      0.82     0.55     0.46
+rpi-hq         dark            1.0      0.99     0.99     1.00
 rpi-hq         quarter moon    0.0      1.00     0.00     0.00
-rpi-hq         quarter moon    0.4      0.84     0.46     0.45
-rpi-hq         quarter moon    1.0      0.98     0.98     1.00
-rpi-hq         full moon       0.0      0.74     0.26     0.00
-rpi-hq         full moon       0.4      0.75     0.61     0.43
-rpi-hq         full moon       1.0      0.96     0.96     1.00
+rpi-hq         quarter moon    0.4      0.82     0.27     0.34
+rpi-hq         quarter moon    1.0      1.00     1.00     1.00
+rpi-hq         full moon       0.0      1.00     0.00     0.00
+rpi-hq         full moon       0.4      0.84     0.36     0.32
+rpi-hq         full moon       1.0      1.00     1.00     1.00
 rpi-hq         day             0.0      0.99     0.01     0.00
 rpi-hq         day             0.4      0.97     0.43     0.44
 rpi-hq         day             1.0      1.00     1.00     1.00
 zwo-asi178mm   dark            0.0      1.00     0.00     0.00
-zwo-asi178mm   dark            0.4      0.85     0.33     0.44
-zwo-asi178mm   dark            1.0      0.94     0.94     1.00
+zwo-asi178mm   dark            0.4      0.82     0.58     0.44
+zwo-asi178mm   dark            1.0      1.00     1.00     1.00
 zwo-asi178mm   quarter moon    0.0      1.00     0.00     0.00
-zwo-asi178mm   quarter moon    0.4      0.86     0.45     0.45
-zwo-asi178mm   quarter moon    1.0      0.98     0.98     1.00
-zwo-asi178mm   full moon       0.0      0.82     0.18     0.00
-zwo-asi178mm   full moon       0.4      0.78     0.60     0.43
-zwo-asi178mm   full moon       1.0      0.98     0.98     1.00
-zwo-asi224mc   dark            0.0      1.00     0.00     0.00
-zwo-asi224mc   dark            0.4      0.81     0.28     0.44
-zwo-asi224mc   dark            1.0      0.91     0.91     1.00
-zwo-asi224mc   quarter moon    0.0      0.91     0.09     0.00
-zwo-asi224mc   quarter moon    0.4      0.79     0.51     0.45
-zwo-asi224mc   quarter moon    1.0      0.96     0.96     1.00
-zwo-asi224mc   full moon       0.0      0.34     0.66     0.00
-zwo-asi224mc   full moon       0.4      0.52     0.83     0.43
-zwo-asi224mc   full moon       1.0      0.95     0.95     1.00
+zwo-asi178mm   quarter moon    0.4      0.83     0.26     0.35
+zwo-asi178mm   quarter moon    1.0      1.00     1.00     1.00
+zwo-asi178mm   full moon       0.0      1.00     0.00     0.00
+zwo-asi178mm   full moon       0.4      0.90     0.13     0.20
+zwo-asi178mm   full moon       1.0      1.00     1.00     1.00
+zwo-asi224mc   dark            0.0      0.99     0.01     0.00
+zwo-asi224mc   dark            0.4      0.82     0.59     0.46
+zwo-asi224mc   dark            1.0      1.00     1.00     1.00
+zwo-asi224mc   quarter moon    0.0      0.99     0.01     0.00
+zwo-asi224mc   quarter moon    0.4      0.81     0.13     0.23
+zwo-asi224mc   quarter moon    1.0      1.00     1.00     1.00
+zwo-asi224mc   full moon       0.0      1.00     0.00     0.00
+zwo-asi224mc   full moon       0.4      0.83     0.55     0.42
+zwo-asi224mc   full moon       1.0      1.00     1.00     1.00
 zwo-asi224mc   day             0.0      0.99     0.01     0.00
 zwo-asi224mc   day             0.4      0.97     0.44     0.44
 zwo-asi224mc   day             1.0      1.00     1.00     1.00

@@ -58,6 +58,9 @@ pipelines:
       start: null
       end: -18
     options:
+      # stretched 8-bit images aren't linear, so no photometric cloud map; the limiting magnitude decides
+      photometry:
+        cloud_map: false
       cloud_map:
         threshold: 3.9
   day:

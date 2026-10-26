@@ -31,7 +31,9 @@ def run(preset: str, cover: float, tmp_path, camera: dict | None = None, pipelin
     profile = CameraProfile(camera)
     if pipelines is None:
         threshold = THRESHOLDS[preset]
-        pipelines = {"night": {"alt_interval": {"end": -18}, "options": {"cloud_map": {"threshold": threshold}}}}
+        # the limiting-magnitude cloud map; the photometric one needs full-size images (test_photometric_mode)
+        options = {"cloud_map": {"threshold": threshold}, "photometry": {"cloud_map": False}}
+        pipelines = {"night": {"alt_interval": {"end": -18}, "options": options}}
     controller = PipelineControllerFactory(sim._observer, profile)(pipelines)
     result = controller(profile.prepare(read_image(path)))
     assert result is not None
@@ -101,7 +103,8 @@ def test_mask_keeps_obstructions_from_reading_as_cloud(tmp_path) -> None:  # typ
     mask = sky_mask_from_altitude((h, w), model, 30.0) & (~east | sky_mask_from_altitude((h, w), model, 46.0))
     np.save(tmp_path / "mask.npy", mask)
 
-    pipelines = {"night": {"alt_interval": {"end": -18}, "options": {"cloud_map": {"threshold": 4.8}}}}
+    options = {"cloud_map": {"threshold": 4.8}, "photometry": {"cloud_map": False}}
+    pipelines = {"night": {"alt_interval": {"end": -18}, "options": options}}
     results = {}
     for name, cam in (("without", camera), ("with", {**camera, "mask": str(tmp_path / "mask.npy")})):
         profile = CameraProfile(cam)
@@ -112,3 +115,36 @@ def test_mask_keeps_obstructions_from_reading_as_cloud(tmp_path) -> None:  # typ
         results[name] = result.cloud_cover_query.query_radius(np.deg2rad(37), np.deg2rad(90), np.deg2rad(7))
     assert results["without"] is not None and results["without"] > 0.7  # the wall looks like cloud
     assert results["with"] is None or results["with"] < 0.3  # masked: no stars there, so no claim
+
+
+def test_photometric_mode(tmp_path) -> None:  # type: ignore[no-untyped-def]
+    """Full size: cloud extinction per position, a camera-independent cloud map, and the zenith sky brightness.
+    A full moon doesn't fool it, thin cirrus is seen."""
+    from pyobs_cloudcover.evaluation import evaluate
+
+    dark = datetime.datetime(2026, 3, 20, 22, 0, tzinfo=datetime.UTC)
+    full_moon = datetime.datetime(2026, 3, 30, 22, 0, tzinfo=datetime.UTC)
+    pipelines = {"night": {"alt_interval": {"end": -18}, "options": {}}}
+    profile = None
+    controller = None
+    # the zero point is learnt on a dark, clear night; then a full moon, clear and with thin cirrus
+    scenes = (
+        ("dark", dark, None),
+        ("clear", full_moon, None),
+        ("cirrus", full_moon, CloudLayer(cover=0.6, optical_depth=0.8, seed=3)),
+    )
+    for name, time, layer in scenes:
+        sim = Simulator(get_preset("zwo-asi224mc"), clouds=[layer] if layer else [], seed=3)
+        frame = sim.render(time)
+        if controller is None:
+            profile = CameraProfile({"world_model": sim.world_model.to_config()})
+            controller = PipelineControllerFactory(sim._observer, profile)(pipelines)
+        assert profile is not None
+        info = controller(profile.prepare(read_image(frame.write(tmp_path / name))))
+        assert info is not None and info.extinction_query is not None
+        m = evaluate(info, frame.truth)
+        assert m is not None and m.agreement > 0.8, (name, m)
+        if name == "clear":
+            # the moonlit sky is measured, not mistaken for cloud
+            assert abs(info.sky_brightness - frame.truth.metadata["sky_zenith_mag"]) < 0.2
+            assert m.total_measured < 0.05

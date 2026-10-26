@@ -18,7 +18,7 @@ from pyobs_cloudcover.simulation import CloudLayer, GroundTruth, Simulator, get_
 
 ROOT = Path(__file__).parents[2]
 NIGHT = datetime.datetime(2026, 3, 20, 22, 0, tzinfo=datetime.UTC)
-SCALE = 0.5
+SCALE = 1.0
 
 
 def module_config(preset: str, watch_dir: Path, port: int, name: str) -> dict[str, Any]:
@@ -33,6 +33,8 @@ def module_config(preset: str, watch_dir: Path, port: int, name: str) -> dict[st
         "settle_time": 0.2,
     }
     config["camera"]["world_model"] = Simulator(get_preset(preset, SCALE)).world_model.to_config()
+    # learn the zero point (the first frame is overcast, so the limiting magnitude decides until a clear one)
+    config["pipelines"]["night"]["options"].pop("photometry", None)
     config["measurement_log"]["logger"] = {"type": "memory"}
     config["server"] = {"url": "127.0.0.1", "port": port}
     config["comm"] = {"class": "pyobs.comm.local.LocalComm", "name": name}
