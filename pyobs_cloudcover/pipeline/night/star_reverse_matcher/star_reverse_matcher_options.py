@@ -28,15 +28,16 @@ class StarReverseMatcherOptions:
         if type not in ("sigma", "aperture"):
             raise ValueError(f"Unknown detector type {type}")
         self.type = type
-        self.sigma_threshold = sigma_threshold
-        self.distance = distance
-        self.median_limit = median_limit
-        self.window_size = window_size
-        self.snr = snr
-        self.search_radius = search_radius
-        self.aperture_radius = aperture_radius
+        # float(): YAML reads numbers like 8e3 (no '.' or exponent sign) as strings
+        self.sigma_threshold = float(sigma_threshold)
+        self.distance = float(distance)
+        self.median_limit = None if median_limit is None else float(median_limit)
+        self.window_size = float(window_size)
+        self.snr = float(snr)
+        self.search_radius = float(search_radius)
+        self.aperture_radius = float(aperture_radius)
         self.annulus = (float(annulus[0]), float(annulus[1]))
-        self.max_background = max_background
+        self.max_background = float(max_background)
 
     @classmethod
     def from_dict(cls, options: dict[str, Any]) -> StarReverseMatcherOptions:

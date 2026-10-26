@@ -8,9 +8,9 @@ class CatalogConstructorOptions:
         self, filepath: str = "", alt_filter: float = 20.0, v_mag_filter: float = 7.5, distance_filter: float = 0.0
     ) -> None:
         self.filepath = filepath
-        self.alt_filter = alt_filter
-        self.v_mag_filter = v_mag_filter
-        self.distance_filter = distance_filter
+        self.alt_filter = float(alt_filter)
+        self.v_mag_filter = float(v_mag_filter)
+        self.distance_filter = float(distance_filter)
 
     @classmethod
     def from_dict(cls, options: dict[str, Any]) -> CatalogConstructorOptions:

@@ -8,7 +8,7 @@ class PreprocessorOptions:
 
     def __init__(self, mask_filepath: str = "", bin_size: int = 2, flip_vertical: bool = False) -> None:
         self.mask_file_path = mask_filepath
-        self.bin_size = bin_size
+        self.bin_size = int(bin_size)
         self.flip_vertical = flip_vertical
 
     @classmethod

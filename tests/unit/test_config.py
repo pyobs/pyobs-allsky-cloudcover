@@ -70,3 +70,20 @@ def test_config_errors_are_clear(tmp_path: Path) -> None:
         location = c.pop("location")
         with pytest.raises((ValidationError, ValueError)):
             Application(**c, location=location)
+
+
+def test_numbers_yaml_reads_as_strings() -> None:
+    # regression: the 1.x example's 'median_limit: 8e3' is a string to YAML 1.1 and broke the detector
+    from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
+
+    assert yaml.safe_load("x: 8e3")["x"] == "8e3"
+    options = NightPipelineOptions.from_dict(
+        yaml.safe_load(
+            "preprocessor: {mask_filepath: '', bin_size: 2}\n"
+            "reverse_matcher: {median_limit: 8e3, sigma_threshold: 3e0}\n"
+            "altaz_grid: {point_number: 1e5, limiting_altitude: 30}\n"
+            "cloud_map: {threshold: 5.5}\n"
+        )
+    )
+    assert options.star_matcher_options.median_limit == 8000.0
+    assert options.altaz_grid_options.point_number == 100000

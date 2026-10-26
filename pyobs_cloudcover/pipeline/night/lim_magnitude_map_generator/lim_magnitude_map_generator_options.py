@@ -9,8 +9,8 @@ class LimMagnitudeMapGeneratorOptions:
     def __init__(self, radius: float = 7.0, integration_length: int = 1, estimator: str = "border") -> None:
         if estimator not in ("robust", "border"):
             raise ValueError(f"Unknown estimator {estimator}")
-        self.radius = radius
-        self.integration_length = integration_length
+        self.radius = float(radius)
+        self.integration_length = int(integration_length)
         self.estimator = estimator
 
     @classmethod
