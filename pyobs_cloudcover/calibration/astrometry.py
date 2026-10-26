@@ -319,7 +319,8 @@ def _refine(
         # Only trust the polynomial a little beyond the lowest matched star, and only use a 5th-order term when
         # stars reach low altitudes; otherwise it extrapolates wildly.
         lowest = float(np.rad2deg(alt.min()))
-        max_zenith = min(model.max_zenith_angle, 90 - lowest + 10)
+        # cover at least the altitude the fit is growing to, or stars there could never be matched
+        max_zenith = min(model.max_zenith_angle, 90 - min(lowest, min_alt) + 10)
         powers = (1, 3, 5) if lowest < 25 else (1, 3)
         t = np.linspace(0, np.deg2rad(max_zenith), 200)
         coeffs0 = np.linalg.lstsq(np.column_stack([t**k for k in powers]), model.radius(t), rcond=None)[0]
@@ -384,13 +385,23 @@ def calibrate(
 
     ``polynomial``: also fit a polynomial lens and keep it if it fits clearly better (None), always (True) or
     never (False). ``circle_frames``: images to find the lens circle in instead of the night frames, e.g.
-    daytime frames, where the whole image circle is lit, when trees or buildings hide much of the horizon.
+    daytime frames, where the whole image circle is lit, when trees or buildings hide much of the horizon; the frames
+    giving the more circular edge are used.
     """
     if not frames:
         raise ValueError("No frames")
     images = [luminance(f) for f in frames]
     shape = images[0].shape
-    circle = fit_lens_circle([luminance(f) for f in circle_frames] if circle_frames else images)
+    circle = fit_lens_circle(images)
+    if circle_frames:
+        # whichever frames show the cleaner circle: daytime frames help when obstructions hide the horizon at
+        # night, but outside some lenses it isn't dark by day (scattered light)
+        try:
+            day_circle = fit_lens_circle([luminance(f) for f in circle_frames])
+        except ValueError:
+            day_circle = None
+        if day_circle is not None and day_circle.rms < circle.rms:
+            circle = day_circle
     log.info(
         "Lens circle: centre (%.1f, %.1f), radius %.1f px (edge rms %.2f px)",
         circle.c_x,
@@ -438,9 +449,11 @@ def calibrate(
             model, rms, n = _refine(model, obs, tol, shape, polynomial=False, min_alt=min_alt)
             tol = max(1.5, min(tol0, 4 * rms))
         if polynomial is not False:
+            # start from the named fit, which already reaches low altitudes, on all stars with the generous
+            # tolerance, then tighten (growing outwards again would let the polynomial's extrapolation lose them)
             poly, ptol = model, tol0
-            for min_alt in (60, 45, 30, 20, 10):
-                poly, prms, pn = _refine(poly, obs, ptol, shape, polynomial=True, min_alt=min_alt)
+            for _ in range(4):
+                poly, prms, pn = _refine(poly, obs, ptol, shape, polynomial=True, min_alt=10)
                 ptol = max(1.5, min(tol0, 4 * prms))
             # judge both on the whole sky at the same, generous tolerance
             n_named = sum(len(_match(model, o, tol0, shape)[0]) for o in obs)
