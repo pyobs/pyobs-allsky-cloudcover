@@ -1,110 +1,146 @@
 pyobs-allsky-cloudcover
 ########################
 
-This is a `pyobs <https://www.pyobs.org>`_ module that analyzes allsky images for cloud cover and
-writes the (zenith) cloud fraction and cloud change into InfluxDB. It also runs a small web
-service to query cloudiness at a given celestial position — see `Web service`_ below. Best paired
-with `pyobs-allsky <https://gitlab.gwdg.de/iag/k.schimpf/pyobs-allsky>`_.
+A `pyobs <https://www.pyobs.org>`_ module that estimates cloud cover from all-sky camera images. It works with
+any camera, from a Raspberry Pi HQ camera to a cooled ZWO, mono or colour, at any resolution and bit depth: it
+picks images up from the directory your capture software writes into (or from a pyobs camera module), writes
+cloud fractions to InfluxDB and answers queries over HTTP.
 
-The package is pure Python, packaged with ``uv`` like the rest of the fleet. (Versions before 2.0
-shipped a Rust extension for the neighbour queries; it was replaced by NumPy/SciPy.) There's no
-autoclass reference yet; see `Available classes`_ below for a plain description instead.
+.. toctree::
+   :maxdepth: 1
+
+   calibration
+   simulator
+   accuracy
+   migration
 
 
 How it works
 ************
 
-The module listens for a new image from the configured camera (``image_sender``). When a new
-image arrives, an image-analysis pipeline runs on it, chosen by the sun's altitude at capture
-time (``pipelines.day``/``pipelines.night`` in the config, each with an ``alt_interval``).
-Currently only the **night** pipeline is implemented — it works best after astronomical twilight
-(solar altitude below -18°): it estimates the limiting magnitude at each pixel from the visibility
-of known stars (matched against a bundled catalog), and a pixel counts as cloudy once its limiting
-magnitude falls below a threshold.
+Every new image goes through the **camera profile** (``camera`` section): it is read (FITS, PNG/TIFF/JPEG,
+DNG), dark-subtracted and cleaned of hot pixels, turned into the canonical orientation, and given its Bayer
+pattern, saturation level and an exact UTC timestamp. The **pipeline** for the sun's altitude at that time then
+analyses it on a fixed grid of sky positions:
+
+Night (sun below -18 deg by default)
+    The catalogue stars above the horizon are projected into the image with the **world model** (the lens),
+    and each is tested for a star at its position (aperture photometry against the local background). Around
+    every sky position, the cut between the magnitudes of the seen and unseen stars within 7 deg is the
+    **limiting magnitude**; below a camera-specific threshold the position is cloudy. Stars behind the sky
+    mask aren't used; the area around the moon is masked.
+
+Day (sun above -6 deg in the examples)
+    Clear sky is blue and clouds are white or grey: the colour ratio blue/red + blue/green of the raw colours
+    is thresholded; the area around the sun is masked. Needs a colour camera.
+
+Twilight (in between)
+    Neither method is reliable (a brighter sky looks like cloud to the night method, the sky loses its colour
+    for the day method), so there is no result; ``/status`` says why.
+
+Images are analysed one at a time off the event loop; if the analysis falls behind, only the newest image is
+analysed. Results are queued for InfluxDB and retried if the database is down.
 
 
-Example configuration
-**********************
+Installation and running
+************************
 
-The full config schema is large (per-pipeline world model, catalog, star-matching, and cloud-map
-options) — see `example.yaml
-<https://github.com/pyobs/pyobs-allsky-cloudcover/blob/main/example.yaml>`_ in this repo for a
-complete, commented example rather than a duplicate copy here that can drift out of sync. In
-outline::
+::
+
+    uv venv /opt/pyobs-cloudcover && uv pip install --python /opt/pyobs-cloudcover pyobs-allsky-cloudcover
+    /opt/pyobs-cloudcover/bin/pyobs cloudcover.yaml
+
+``deploy/`` has a systemd unit and a Dockerfile. To set up a camera, see :doc:`calibration`.
+
+
+Configuration
+*************
+
+``example.yaml`` is a commented, generic config; ``examples/`` has complete configs for the camera presets
+of the simulator. In outline::
 
     class: pyobs_cloudcover.application.Application
-
-    image_sender: "allskycam"     # camera module to listen to
-
-    server:                        # the web service, see below
-      url: "localhost"
-      port: 8080
-
-    measurement_log:               # what gets written to InfluxDB, and how
-      logger:
-        type: "influx"
-        url: ""
-        bucket: ""
-        org: ""
-        token: ""
+    watch:            # directory the capture software writes into (and/or image_sender: <camera module>)
+      path: /var/lib/allsky/images
+      pattern: "*.fits"
+    camera:           # Bayer pattern, orientation, timestamps, dark, hot pixels, mask, world model
+      ...
+    server: {url: 0.0.0.0, port: 8080}
+    measurement_log:  # InfluxDB (or memory/none) and which fields to write
+      logger: {type: influx, url: ..., bucket: ..., org: ..., token: ...}
       measurements:
-        cloud_zenith: [...]
-        cloud_total: [...]
-        coverage: [...]
+        cloud_total: [{type: total, name: cloudcover}]
+        cloud_zenith: [{type: zenith, name: cloudcover, altitude: 80}]
+    pipelines:
+      night: {alt_interval: {end: -18}, options: {cloud_map: {threshold: 4.6}}}
+      day: {alt_interval: {start: -6}, options: {cloud_map: {threshold: 1.85}}}
+    location: {latitude: ..., longitude: ..., elevation: ...}
 
-    pipelines:                     # per-solar-altitude image analysis, see "How it works"
-      day: {alt_interval: {...}, options: {...}}
-      night: {alt_interval: {...}, options: {...}}
+The config is validated at startup. Measurement field types: ``total`` (whole sky), ``zenith`` (above
+``altitude``), ``sun``/``moon`` (within ``radius`` of it) and ``change`` (fraction of positions that changed
+since the previous image). Fractions are 0-1.
+
+Camera
+======
+
+``bayer``
+    ``auto`` (``BAYERPAT``/``COLORTYP`` header keywords, honouring ``ROWORDER`` and ``X/YBAYROFF``), ``none``
+    (mono) or the pattern of the stored array's first row (RGGB, BGGR, GRBG, GBRG).
+``orientation``
+    ``flip_x``, ``flip_y``, ``rotate`` (0/90/180/270): raw image to canonical image. Masks and the world model
+    refer to the canonical image.
+``timestamp``
+    ``source`` (``auto``, ``header``, ``filename``, ``mtime``), ``keywords``, ``filename_format`` (strptime),
+    ``timezone`` for timestamps without one, ``offset`` in seconds.
+``saturation`` / ``bit_depth``
+    Saturation level in ADU; guessed from the data if not given (left-shifted 12/14-bit data is recognised).
+``dark``, ``hot_pixels``, ``mask``
+    Files from ``pyobs-cloudcover darks|hot-pixels|mask``.
+``world_model``
+    ``FisheyeModel`` (equidistant, equisolid, stereographic, orthographic or polynomial lens; from
+    ``pyobs-cloudcover calibrate``), ``SimpleModel`` or ``WCSModel`` (a FITS file with a WCS).
+
+Night pipeline options
+======================
+
+``bin_size`` (2; even for colour cameras), ``catalog`` (``filepath`` empty for the bundled Bright Star
+Catalogue, ``filter.alt``, ``filter.v_mag``), ``detector`` (``type: aperture`` with ``snr``, ``search_radius``,
+``aperture_radius``, ``annulus``, ``max_background``; or ``type: sigma``, the 1.x detector), ``altaz_grid``
+(``point_number``, ``limiting_altitude``), ``lim_mag_map`` (``radius``, ``estimator: robust|border``,
+``integration_length``), ``cloud_map.threshold`` (limiting magnitude), ``moon_apparent_size``.
+
+Day pipeline options
+====================
+
+``bin_size`` (2), ``cloud_map.threshold`` (colour ratio), ``sun_apparent_size``.
 
 
 Web service
 ***********
 
-Point query
-=============
-Returns the cloudiness value of the analyzed sky position closest to the requested position.
+All positions are degrees, either ``alt``/``az`` or ``ra``/``dec``. Every query answer has ``obs_time`` (Unix
+time of the image the answer is based on), ``pipeline`` (``night``/``day``) and, if the latest image gave no
+result, ``reason``.
 
-**Route**: ``/query/point?ra=<degrees>&dec=<degrees>`` or ``/query/point?alt=<degrees>&az=<degrees>``
-
-**Example**: ``/query/point?alt=90.0&az=0.0``
-
-**Result**:
-
-- ``obs_time`` (float) — observation Unix time of the last analyzed image.
-- ``value`` (bool) — whether it's cloudy at the requested point.
-
-Area query
-============
-Returns the cloud fraction within the requested great circle.
-
-**Route**: ``/query/area?ra=<degrees>&dec=<degrees>&radius=<degrees>`` or
-``/query/area?alt=<degrees>&az=<degrees>&radius=<degrees>``
-
-**Example**: ``/query/area?alt=90.0&az=0.0&radius=10.0``
-
-**Result**:
-
-- ``obs_time`` (float) — observation Unix time of the last analyzed image.
-- ``fraction`` (float) — cloud fraction in the requested area, 0–1.
-- ``value`` (float) — the same in percent (0–100). Kept for clients written against 1.x; deprecated,
-  use ``fraction``.
-
-All fractions are null when no analysed position falls within the area.
-
-Units
-=====
-Cloud fractions are 0–1 everywhere (InfluxDB fields, ``fraction`` above); the only exception is the
-deprecated ``value`` of ``/query/area``. Angles in requests are degrees; ``obs_time`` is Unix time (UTC).
+``/query/point?alt=..&az=..``
+    ``value``: whether the analysed position closest to the given one is cloudy (null if unknown).
+``/query/area?alt=..&az=..&radius=..``
+    ``fraction``: cloudy fraction (0-1) within ``radius``; ``value``: the same in percent (deprecated).
+``/query/limiting_magnitude?alt=..&az=..``
+    ``value``: limiting magnitude (V) at the closest analysed position (night only).
+``/query/limiting_magnitude/area?alt=..&az=..&radius=..``
+    ``mean``, ``min``, ``max`` of the limiting magnitude within ``radius``.
+``/status``
+    Frames received/analysed/skipped/without result/failed, last file, ``result_age`` (seconds since the
+    observation the API serves), pipeline, ``reason``, last error.
+``/cloud_map.png``, ``/limiting_magnitude.png``, ``/cloud_map.html``
+    Sky maps (north up, east left) for dashboards.
 
 
-Available classes
+Command-line tools
 ******************
 
-``pyobs_cloudcover.application.Application``
-    The module class itself (see above).
-
-``pyobs_cloudcover.world_model.SimpleModel`` / ``pyobs_cloudcover.world_model.WCSModel``
-    The astrometric solution used to map pixels to sky positions — either a fitted analytic model
-    (``a0``, ``F``, ``R``, ``c_x``, ``c_y`` — see `Berdina et al. 2019
-    <https://ui.adsabs.harvard.edu/abs/2019A%26A...626A.105B>`_) or a WCS read from a FITS file.
-    Selected via ``pipelines.<day|night>.options.world_model.class`` in the config.
+``pyobs-cloudcover``
+    ``calibrate``, ``mask``, ``darks``, ``hot-pixels``, ``replay``, ``catalog``: see :doc:`calibration`.
+``pyobs-cloudcover-sim``
+    Simulated all-sky images with ground truth: see :doc:`simulator`.
