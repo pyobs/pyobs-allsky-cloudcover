@@ -1,0 +1,21 @@
+# systemd unit for pyobs-allsky-cloudcover.
+#   sudo cp deploy/pyobs-cloudcover.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now pyobs-cloudcover
+# Assumes the package is installed in /opt/pyobs-cloudcover (uv venv + uv pip install), the config is
+# /etc/pyobs/cloudcover.yaml and the service runs as user 'pyobs' with read access to the watched directory.
+[Unit]
+Description=pyobs all-sky cloud cover
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pyobs
+ExecStart=/opt/pyobs-cloudcover/bin/pyobs /etc/pyobs/cloudcover.yaml
+Restart=on-failure
+RestartSec=10
+# the analysis is single-threaded per image; keep the Pi responsive for the capture software
+Nice=5
+
+[Install]
+WantedBy=multi-user.target
