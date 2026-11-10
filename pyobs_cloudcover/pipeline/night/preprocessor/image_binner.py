@@ -8,7 +8,7 @@ class ImageBinner(object):
     def __init__(self, size: int) -> None:
         self._size = size
 
-    def __call__(self, image: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def __call__(self, image: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         binned_image = copy(image)
 
         shape = (

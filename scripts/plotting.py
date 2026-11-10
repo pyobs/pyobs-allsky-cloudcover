@@ -55,13 +55,13 @@ def main() -> None:
     plt.subplot(221)
     plt.title(good_obs_time.isoformat())
     plt.imshow(PercentileInterval(99)(preprocessor(good_image.data)), cmap="gray")
-    plt.imshow(good_coverage_info.cloud_cover_map, alpha=(good_coverage_info.cloud_cover_map < cutoff).astype(np.float_))
+    plt.imshow(good_coverage_info.cloud_cover_map, alpha=(good_coverage_info.cloud_cover_map < cutoff).astype(np.float64))
     plt.colorbar()
 
     plt.subplot(222)
     plt.title(bad_obs_time.isoformat())
     plt.imshow(PercentileInterval(99)(preprocessor(bad_image.data)), cmap="gray")
-    plt.imshow(bad_coverage_info.cloud_cover_map, alpha=(bad_coverage_info.cloud_cover_map < cutoff).astype(np.float_))
+    plt.imshow(bad_coverage_info.cloud_cover_map, alpha=(bad_coverage_info.cloud_cover_map < cutoff).astype(np.float64))
     plt.colorbar()
 
     plt.subplot(223)
@@ -71,7 +71,7 @@ def main() -> None:
     plt.subplot(224)
     plt.imshow(PercentileInterval(99)(preprocessor(bad_image.data)), cmap="gray")
     plt.imshow(good_coverage_info.cloud_cover_map,
-               alpha=np.logical_xor((good_coverage_info.cloud_cover_map < cutoff), (bad_coverage_info.cloud_cover_map < cutoff)).astype(np.float_))
+               alpha=np.logical_xor((good_coverage_info.cloud_cover_map < cutoff), (bad_coverage_info.cloud_cover_map < cutoff)).astype(np.float64))
 
     plt.show()
 

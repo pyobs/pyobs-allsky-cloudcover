@@ -53,7 +53,7 @@ def main() -> None:
     plt.subplot(122)
     plt.title(obs_times[0].isoformat())
     plt.imshow(PercentileInterval(99)(preprocessor(images[-1].data)), cmap="gray")
-    plt.imshow(cloud_coverage_infos[-1].cloud_cover_map, alpha=(cloud_coverage_infos[-1].cloud_cover_map < cutoff).astype(np.float_))
+    plt.imshow(cloud_coverage_infos[-1].cloud_cover_map, alpha=(cloud_coverage_infos[-1].cloud_cover_map < cutoff).astype(np.float64))
     plt.colorbar()
 
     plt.show()

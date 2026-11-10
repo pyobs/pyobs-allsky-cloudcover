@@ -11,8 +11,8 @@ class HourAngleConverter(object):
     def __init__(self, observer: Observer):
         self._observer = observer
 
-    def __call__(self, ra: Angle, obs_time: datetime.datetime) -> Union[float, npt.NDArray[np.float_]]:
+    def __call__(self, ra: Angle, obs_time: datetime.datetime) -> Union[float, npt.NDArray[np.float64]]:
         lst = self._observer.local_sidereal_time(obs_time)
         self._lst = Angle(lst, unit="hourangle")
 
-        return cast(Union[float, npt.NDArray[np.float_]], (self._lst - ra).rad)
+        return cast(Union[float, npt.NDArray[np.float64]], (self._lst - ra).rad)

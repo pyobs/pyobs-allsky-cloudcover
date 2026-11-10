@@ -28,7 +28,7 @@ class DayPipeline(Pipeline):
         self._sky_query: Optional[SkyPixelQuery] = None
         self._alt_az_mask: Optional[npt.NDArray[np.bool_]] = None
 
-    def __call__(self, image: npt.NDArray[np.float_], obs_time: datetime.datetime) -> CloudCoverageInfo:
+    def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> CloudCoverageInfo:
         debayered_image = debayer_image(image)
         color_ratio_image = calc_color_ratio(debayered_image).flatten()
         cloud_map = self._cloud_map_generator(color_ratio_image)

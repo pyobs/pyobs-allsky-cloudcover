@@ -37,7 +37,7 @@ class NightPipeline(Pipeline):
         self._moon_masker = moon_masker
         self._coverage_info_calculator = coverage_info_calculator
 
-    def __call__(self, image: npt.NDArray[np.float_], obs_time: datetime.datetime) -> CloudCoverageInfo:
+    def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> CloudCoverageInfo:
         preprocessed_image = self._preprocess(image)
         img_height, img_width = preprocessed_image.shape
 

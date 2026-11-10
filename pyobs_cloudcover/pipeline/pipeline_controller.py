@@ -34,7 +34,7 @@ class PipelineController(object):
         if True in overlap:
             raise ValueError("Sun altitude intervals can't overlap!")
 
-    def __call__(self, image: npt.NDArray[np.float_], obs_time: datetime.datetime) -> Optional[CloudCoverageInfo]:
+    def __call__(self, image: npt.NDArray[np.float64], obs_time: datetime.datetime) -> Optional[CloudCoverageInfo]:
         sun_alt = self._observer.sun_altaz(obs_time).alt.deg
 
         for pipeline, alt_interval in zip(self._pipelines, self._sun_alt_intervals):
