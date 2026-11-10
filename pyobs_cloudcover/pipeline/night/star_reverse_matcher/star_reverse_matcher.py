@@ -13,7 +13,7 @@ class StarReverseMatcher(object):
         self._detector = detector
         self._window = window
 
-    def __call__(self, image: npt.NDArray[np.float_], catalog: PixelCatalog) -> List[bool]:
+    def __call__(self, image: npt.NDArray[np.float64], catalog: PixelCatalog) -> List[bool]:
         self._window.set_image(image)
 
         found = [

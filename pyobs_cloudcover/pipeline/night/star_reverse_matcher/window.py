@@ -7,15 +7,15 @@ import numpy.typing as npt
 class ImageWindow(object):
     def __init__(self, h_size: float) -> None:
         self._h_size = h_size
-        self._image: Optional[npt.NDArray[np.float_]] = None
+        self._image: Optional[npt.NDArray[np.float64]] = None
 
     def get_size(self) -> float:
         return self._h_size
 
-    def set_image(self, image: npt.NDArray[np.float_]) -> None:
+    def set_image(self, image: npt.NDArray[np.float64]) -> None:
         self._image = image
 
-    def __call__(self, px: float, py: float) -> npt.NDArray[np.float_]:
+    def __call__(self, px: float, py: float) -> npt.NDArray[np.float64]:
         if self._image is None:
             raise ValueError("Image must be set before calling this method.")
 

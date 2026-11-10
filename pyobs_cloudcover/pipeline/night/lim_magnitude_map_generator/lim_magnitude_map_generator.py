@@ -13,7 +13,7 @@ class LimMagnitudeMapGenerator(object):
         self._radius = radius
         self._integration_frame: deque[Tuple[PixelCatalog, List[bool]]] = deque([], integration_length)
 
-    def __call__(self, catalog: PixelCatalog, matches: List[bool], alt_az_image_list: List[Optional[AltAzCoord]]) -> npt.NDArray[np.float_]:
+    def __call__(self, catalog: PixelCatalog, matches: List[bool], alt_az_image_list: List[Optional[AltAzCoord]]) -> npt.NDArray[np.float64]:
         self._update_integration_frame(catalog, matches)
         integrated_matches = self._get_integrated_frame()
 
@@ -44,7 +44,7 @@ class LimMagnitudeMapGenerator(object):
         return [all(match_dict[sao]) for sao in catalogs[-1].sao]
 
     @staticmethod
-    def _convert_average_to_value(average_map: List[Average]) -> npt.NDArray[np.float_]:
+    def _convert_average_to_value(average_map: List[Average]) -> npt.NDArray[np.float64]:
         return np.array(
             [x.value if x is not None else np.nan for x in average_map]
         )

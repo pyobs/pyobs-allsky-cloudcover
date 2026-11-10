@@ -10,7 +10,7 @@ class Preprocessor(object):
         self._masker = masker
         self._binner = binner
 
-    def __call__(self, image: npt.NDArray[np.float_]) -> npt.NDArray[np.float_]:
+    def __call__(self, image: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
         flipped_image = np.flip(image, axis=0)
         masked_image = self._masker(flipped_image)
         binned_image = self._binner(masked_image)

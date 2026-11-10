@@ -21,8 +21,8 @@ class WCSModel(WorldModel):
 
         self._ha_conv = HourAngleConverter(observer)
 
-    def pix_to_altaz(self, x: Union[npt.NDArray[np.float_], float], y: Union[npt.NDArray[np.float_], float]) -> \
-            Union[Tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]], Tuple[float, float]]:
+    def pix_to_altaz(self, x: Union[npt.NDArray[np.float64], float], y: Union[npt.NDArray[np.float64], float]) -> \
+            Union[Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]], Tuple[float, float]]:
 
         coord = self._wcs.pixel_to_world(x, y)
         ha = self._ha_conv(Angle(coord.ra.deg, unit="deg"), self._config_obs_time)
@@ -31,8 +31,8 @@ class WCSModel(WorldModel):
         coord = coord.transform_to("altaz")
         return coord.alt.rad, coord.az.rad
 
-    def altaz_to_pix(self, alt: Union[npt.NDArray[np.float_], float], az: Union[npt.NDArray[np.float_], float]) -> \
-                Union[Tuple[npt.NDArray[np.float_], npt.NDArray[np.float_]], Tuple[float, float]]:
+    def altaz_to_pix(self, alt: Union[npt.NDArray[np.float64], float], az: Union[npt.NDArray[np.float64], float]) -> \
+                Union[Tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]], Tuple[float, float]]:
 
         coord = SkyCoord(alt=alt * u.rad, az=az * u.rad, frame="altaz",
                          location=self._observer.location, obstime=self._config_obs_time)
