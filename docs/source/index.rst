@@ -157,6 +157,10 @@ result, ``reason``.
     observation the API serves), pipeline, ``reason``, last error.
 ``/cloud_map.png``, ``/limiting_magnitude.png``, ``/extinction.png``, ``/cloud_map.html``
     Sky maps (north up, east left) for dashboards. The extinction map (0-3 mag) needs the photometric mode.
+    When there is no map to show, these return a placeholder image of the same size saying why (also in the
+    ``X-Placeholder`` header): no image yet, camera stopped, analysis failed, or no pipeline for the sun's
+    altitude. For an expected gap (e.g. daylight with only the night pipeline) it names what it is waiting for
+    and the configured sun altitude ("Daytime pipeline is off / Waiting for night: sun below -18°").
 ``/image.png``
     The latest analysed camera image (canonical orientation, debayered, at most 720 px, stretched for display),
     also when it gave no result.

@@ -11,6 +11,14 @@ class Interval:
         self._end = end
 
     @property
+    def start(self) -> float | None:
+        return self._start
+
+    @property
+    def end(self) -> float | None:
+        return self._end
+
+    @property
     def _lower(self) -> float:
         return -math.inf if self._start is None else self._start
 

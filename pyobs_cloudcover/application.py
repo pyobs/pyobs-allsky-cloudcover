@@ -14,9 +14,12 @@ from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.config import MeasurementLogConfig, ServerConfig, validate_pipelines
 from pyobs_cloudcover.ingest.watcher import DirectoryWatcher
 from pyobs_cloudcover.measurement_log.measurment_logger_factory import MeasurementLoggerFactory
+from pyobs_cloudcover.pipeline.intervall import Interval
 from pyobs_cloudcover.pipeline.pipeline_controller_factory import PipelineControllerFactory
+from pyobs_cloudcover.pipeline.schedule import AnalysisSchedule
 from pyobs_cloudcover.status import ModuleStatus
 from pyobs_cloudcover.web_api.server_factory import ServerFactory
+from pyobs_cloudcover.world_model.world_model_factory import WorldModelFactory
 
 log = logging.getLogger(__name__)
 
@@ -55,7 +58,11 @@ class Application(Module):
         self._measurement_log = measurement_logger_factory(log_config)
 
         pipeline_controller_factory = PipelineControllerFactory(self.observer, self._camera)
-        self._pipeline_controller = pipeline_controller_factory(validate_pipelines(pipelines))
+        pipeline_configs = validate_pipelines(pipelines)
+        self._pipeline_controller = pipeline_controller_factory(pipeline_configs)
+        self._server.set_schedule(
+            AnalysisSchedule({n: Interval(**c["alt_interval"]) for n, c in pipeline_configs.items()})
+        )
 
         # the pipelines keep state between frames, so they run one at a time, off the event loop
         self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1, thread_name_prefix="cloudcover")
@@ -64,6 +71,9 @@ class Application(Module):
 
         self._status = ModuleStatus()
         self._server.set_status_provider(self._status.to_dict)
+        if self._camera.config.world_model:
+            # for the north-up image (/sky.png); the night pipeline's per-frame alignment isn't applied there
+            self._server.set_world_model(WorldModelFactory(self.observer)(self._camera.config.world_model))
 
         self._watcher = DirectoryWatcher(watch, self._submit_file) if watch is not None else None
         if self._watcher is not None:

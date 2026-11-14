@@ -8,7 +8,9 @@ from PIL import Image
 
 from pyobs_cloudcover.camera.profile import Frame
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
+from pyobs_cloudcover.pipeline.intervall import Interval
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
+from pyobs_cloudcover.pipeline.schedule import AnalysisSchedule
 from pyobs_cloudcover.sky_query import SkyPixelQuery
 from pyobs_cloudcover.status import ModuleStatus
 from pyobs_cloudcover.web_api.coverage_query_executor import CoverageQueryExecutor
@@ -29,7 +31,7 @@ def night_result() -> CloudCoverageInfo:
 
 @pytest.fixture
 def server(observer: Observer) -> Server:
-    s = Server(CoverageQueryExecutor(observer))
+    s = Server(CoverageQueryExecutor(observer), clock=lambda: T + datetime.timedelta(minutes=1))
     s.set_measurement(night_result())
     return s
 
@@ -70,7 +72,7 @@ async def test_png_maps(aiohttp_client, server: Server) -> None:  # type: ignore
 
 @pytest.mark.asyncio
 async def test_status_and_reason(aiohttp_client, observer: Observer) -> None:  # type: ignore[no-untyped-def]
-    server = Server(CoverageQueryExecutor(observer))
+    server = Server(CoverageQueryExecutor(observer), clock=lambda: T + datetime.timedelta(minutes=1))
     status = ModuleStatus(received=3, without_result=1, last_reason="no pipeline for the sun at -10.0 deg")
     server.set_status_provider(status.to_dict)
     client = await aiohttp_client(server._app)
@@ -78,7 +80,18 @@ async def test_status_and_reason(aiohttp_client, observer: Observer) -> None:  #
     assert data["frames"]["received"] == 3 and data["reason"].startswith("no pipeline")
     point = await (await client.get("/query/point?alt=90&az=0")).json()
     assert point["value"] is None and "no pipeline" in point["reason"]
-    assert (await client.get("/cloud_map.png")).status == 404
+    assert "X-Placeholder" in (await client.get("/cloud_map.png")).headers
+
+
+@pytest.mark.asyncio
+async def test_placeholder_says_what_it_is_waiting_for(aiohttp_client, observer: Observer) -> None:  # type: ignore[no-untyped-def]
+    server = Server(CoverageQueryExecutor(observer), clock=lambda: T + datetime.timedelta(minutes=1))
+    server.set_status_provider(ModuleStatus(last_reason="no pipeline for the sun at 30.0 deg").to_dict)
+    server.set_frame(Frame(np.zeros((100, 100)), T))
+    server.set_schedule(AnalysisSchedule({"night": Interval(None, -18)}))
+    client = await aiohttp_client(server._app)
+    response = await client.get("/cloud_map.png")
+    assert response.headers["X-Placeholder"] == "Daytime pipeline is off"
 
 
 @pytest.mark.asyncio
@@ -87,7 +100,7 @@ async def test_extinction_route(aiohttp_client, observer: Observer) -> None:  # 
     grid = info.cloud_cover_query.grid
     info.extinction_query = SkyPixelQuery(grid, np.where(np.rad2deg(grid.az) > 180, 0.0, 2.0))
     info.zero_point, info.sky_brightness = 10.0, 21.3
-    server = Server(CoverageQueryExecutor(observer))
+    server = Server(CoverageQueryExecutor(observer), clock=lambda: T + datetime.timedelta(minutes=1))
     server.set_measurement(info)
     client = await aiohttp_client(server._app)
     east = await (await client.get("/query/extinction?alt=45&az=90")).json()
@@ -104,14 +117,14 @@ async def test_extinction_route(aiohttp_client, observer: Observer) -> None:  # 
 @pytest.mark.asyncio
 async def test_extinction_png_needs_photometry(aiohttp_client, server: Server) -> None:  # type: ignore[no-untyped-def]
     client = await aiohttp_client(server._app)
-    assert (await client.get("/extinction.png")).status == 404
+    assert "X-Placeholder" in (await client.get("/extinction.png")).headers
 
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("bayer", [None, "RGGB"])
 async def test_image_png(aiohttp_client, server: Server, bayer: str | None) -> None:  # type: ignore[no-untyped-def]
     client = await aiohttp_client(server._app)
-    assert (await client.get("/image.png")).status == 404
+    assert "X-Placeholder" in (await client.get("/image.png")).headers
     data = np.random.default_rng(1).normal(1000, 10, (1200, 1600))
     data[:, 800:] += 2000  # bright right half
     server.set_frame(Frame(data, T, bayer=bayer))
@@ -149,5 +162,16 @@ async def test_weather_route(aiohttp_client, server: Server, observer: Observer)
     assert 0 <= data["clouds"] <= 100 and data["lim_mag"] is not None
     assert data["skymag"] is None  # no photometric mode in this result
 
-    empty = await aiohttp_client(Server(CoverageQueryExecutor(observer))._app)
+    empty_server = Server(CoverageQueryExecutor(observer), clock=lambda: T + datetime.timedelta(minutes=1))
+    empty = await aiohttp_client(empty_server._app)
     assert (await empty.get("/weather")).status == 503
+
+
+@pytest.mark.asyncio
+async def test_images_carry_the_time_of_the_newest_camera_image(aiohttp_client, observer: Observer) -> None:  # type: ignore[no-untyped-def]
+    server = Server(CoverageQueryExecutor(observer), clock=lambda: T + datetime.timedelta(minutes=1))
+    client = await aiohttp_client(server._app)
+    assert "Last-Modified" not in (await client.get("/image.png")).headers  # no image yet
+    server.set_frame(Frame(np.zeros((100, 100)), T))
+    for route in ("/image.png", "/cloud_map.png"):  # a real image and a placeholder
+        assert (await client.get(route)).headers["Last-Modified"] == "Fri, 20 Mar 2026 22:00:00 GMT"

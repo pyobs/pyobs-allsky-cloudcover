@@ -16,6 +16,11 @@ class ServerConfig(BaseModel):
 
     url: str = Field(default="localhost", description="Interface to listen on, e.g. 0.0.0.0 for all")
     port: int = Field(default=8080, ge=0, le=65535)
+    stale_after: float = Field(
+        default=900.0,
+        gt=0,
+        description="Seconds without a new image after which the image routes show a 'no new image' placeholder",
+    )
 
 
 class LoggerConfig(BaseModel):
