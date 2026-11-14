@@ -21,7 +21,9 @@ class ApertureMatcher:
     world-model errors) is taken as the star's centre, and the background-subtracted sum over the pixels within
     ``aperture_radius`` of it must exceed ``snr`` times the background noise of that aperture. Stars whose
     background is above ``max_background`` (a fraction of the saturation level, e.g. moon glare) are not
-    detectable and count as not seen.
+    detectable and count as not seen. ``min_sigma`` floors the per-pixel background noise (ADU of the analysed
+    image): compressed 8-bit images (JPEG) are smoothed so much that the annulus MAD is often 0, which would make
+    any bump a detection.
 
     All radii are in pixels of the analysed (binned) image. Vectorised over all stars.
     """
@@ -33,8 +35,10 @@ class ApertureMatcher:
         aperture_radius: float = 1.5,
         annulus: tuple[float, float] = (4.0, 7.0),
         max_background: float = 0.8,
+        min_sigma: float = 0.0,
     ) -> None:
         self._snr = snr
+        self._min_sigma = max(float(min_sigma), 1e-9)
         self._search_radius = search_radius
         self._aperture_radius = aperture_radius
         self._annulus = annulus
@@ -95,5 +99,5 @@ class ApertureMatcher:
         aperture = np.hypot(ax, ay) <= self._aperture_radius
         n_ap = aperture.reshape(n, -1).sum(axis=1)
         signal = np.nansum(np.where(aperture, cut - background[:, None, None], 0.0).reshape(n, -1), axis=1)
-        noise = np.maximum(sigma, 1e-9) * np.sqrt(n_ap)
+        noise = np.maximum(sigma, self._min_sigma) * np.sqrt(n_ap)
         return StarMeasurement(signal, noise, background)

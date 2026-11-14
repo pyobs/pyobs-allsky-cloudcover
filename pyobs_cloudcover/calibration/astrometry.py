@@ -53,6 +53,18 @@ def luminance(frame: Frame) -> FloatArray:
     return data
 
 
+def value_step(image: FloatArray, sample: int = 200_000) -> float:
+    """Smallest step between distinct pixel values if the image is quantised coarsely (as 8-bit data are), else 0."""
+    flat = np.asarray(image, dtype=np.float64).ravel()
+    if flat.size > sample:
+        flat = flat[:: flat.size // sample]
+    values = np.unique(flat[np.isfinite(flat)])
+    # too few values to tell (a synthetic image) or too many (continuous data): no quantisation
+    if len(values) < 16 or len(values) > 4096:
+        return 0.0
+    return float(np.min(np.diff(values)))
+
+
 def _block_stats(image: FloatArray, block: int) -> tuple[FloatArray, FloatArray]:
     """Median and robust sigma in blocks, interpolated back to full size."""
     h, w = image.shape
@@ -151,12 +163,23 @@ def _fit_circle(xs: FloatArray, ys: FloatArray) -> tuple[float, float, float]:
 
 
 def detect_stars(
-    image: FloatArray, snr: float = 6.0, max_stars: int = 400, mask: npt.NDArray[np.bool_] | None = None
+    image: FloatArray,
+    snr: float = 6.0,
+    max_stars: int = 400,
+    mask: npt.NDArray[np.bool_] | None = None,
+    min_sigma: float | None = None,
 ) -> tuple[FloatArray, FloatArray, FloatArray]:
     """Positions (x, y) and peak SNR of the brightest point sources: local maxima above a robust local background,
-    with sub-pixel centroids."""
+    with sub-pixel centroids.
+
+    ``min_sigma`` floors the local noise estimate. Compressed 8-bit images (JPEG) are so smooth that the robust
+    sigma of most blocks is 0, which would make every bump "significant"; by default the floor is the image's value
+    step (e.g. 1/3 for the mean of three 8-bit channels), or 1e-6 for continuous data.
+    """
     background, sigma = _block_stats(image, 32)
-    sigma = np.maximum(sigma, 1e-6)
+    if min_sigma is None:
+        min_sigma = value_step(image)
+    sigma = np.maximum(sigma, max(min_sigma, 1e-6))
     significance = (ndimage.gaussian_filter(image, 1.0) - background) / sigma
     peaks = (significance == ndimage.maximum_filter(significance, size=7)) & (significance > snr)
     if mask is not None:
