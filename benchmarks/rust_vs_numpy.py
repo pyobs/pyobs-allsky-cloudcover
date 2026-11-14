@@ -1,6 +1,6 @@
 """Benchmark: legacy Rust extension (cloudmap_rs) vs. a NumPy/SciPy re-implementation.
 
-Phase 0 evidence for the Rust-vs-Python decision (see PLAN.md). Needs the legacy extension built
+Evidence for replacing the Rust extension with NumPy. Needs the legacy extension built
 (``maturin develop --release`` on the commit that still has ``src/``) plus scipy.
 
 Two workloads are timed:
