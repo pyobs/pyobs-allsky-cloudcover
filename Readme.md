@@ -23,6 +23,12 @@ Run it with `pyobs config.yaml`; `deploy/` has a systemd unit and a Dockerfile.
 
 ## Setting up a camera
 
+Zenith-centred fisheyes use a `FisheyeModel`; wide-angle or tilted cameras without a lens circle (e.g. a Raspberry
+Pi Camera Module 3 Wide) use a `PointedModel` from `pyobs-cloudcover calibrate --pointed`. Cameras that get
+bumped can be followed per frame with `pipelines.night.options.align` (see
+[examples/rpi-cm3-wide-indi-allsky.yaml](examples/rpi-cm3-wide-indi-allsky.yaml), which also shows how to feed
+it from indi-allsky's raw exports).
+
 `pyobs-cloudcover calibrate | mask | darks | hot-pixels | replay | catalog` fit the lens, build the sky mask and
 hot-pixel map and help choose thresholds from your own images: see
 [docs/source/calibration.rst](docs/source/calibration.rst). Start from [example.yaml](example.yaml) or one of

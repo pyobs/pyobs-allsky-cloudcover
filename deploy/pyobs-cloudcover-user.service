@@ -1,0 +1,22 @@
+# systemd *user* unit, for a Pi where indi-allsky runs as user services of 'pi' (loginctl enable-linger pi):
+#   mkdir -p ~/.config/systemd/user && cp deploy/pyobs-cloudcover-user.service ~/.config/systemd/user/pyobs-cloudcover.service
+#   systemctl --user daemon-reload && systemctl --user enable --now pyobs-cloudcover
+# Assumes the repo in ~/pyobs-allsky-cloudcover (uv sync --no-dev) and the config in ~/cloudcover/config.yaml.
+# Log: ~/cloudcover/cloudcover.log (user journald may not be persistent); rotate it with logrotate, e.g.
+#   /home/pi/cloudcover/cloudcover.log { su pi pi; weekly; rotate 4; compress; missingok; notifempty }
+[Unit]
+Description=pyobs all-sky cloud cover
+After=indi-allsky.service
+
+[Service]
+Type=simple
+WorkingDirectory=%h/cloudcover
+ExecStart=%h/pyobs-allsky-cloudcover/.venv/bin/pyobs --log-file %h/cloudcover/cloudcover.log %h/cloudcover/config.yaml
+Restart=on-failure
+RestartSec=30
+# a 4608x2592 frame peaks at ~1.2 GB; keep the capture software responsive
+Nice=10
+MemoryMax=2G
+
+[Install]
+WantedBy=default.target

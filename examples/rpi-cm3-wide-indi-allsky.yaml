@@ -1,0 +1,111 @@
+# Raspberry Pi Camera Module 3 Wide (IMX708, ~102 x 67 deg, not a fisheye) looking roughly at the zenith,
+# captured by indi-allsky (libcamera, JPEG). indi-allsky does the imaging; this module only analyses its
+# "Export RAW" copies: the frame before stretching and labels (IMAGE_EXPORT_RAW: jpg), night only when
+# DAYTIME_CAPTURE_SAVE is off. Each export is deleted once analysed, so the folder doesn't grow.
+#
+# This is the ROTSE weather mast at SAAO (Cape Town), set up 2026-11-13. World model from
+#   pyobs-cloudcover calibrate config.yaml --pointed --min-sigma 1 <3 clear night frames, hours apart>
+# Small later moves of the camera (it was moved by ~0.5 deg on 2026-11-11) are followed by `align`.
+class: pyobs_cloudcover.application.Application
+
+watch:
+  # indi-allsky writes export/ccd_<uuid>/<YYYYMMDD>/night/<DD_HH>/raw_ccd1_<YYYYMMDD_HHMMSS>.jpg
+  path: /var/www/html/allsky/images/export
+  pattern: raw_ccd1_*.jpg
+  recursive: true
+  poll_interval: 10
+  after: delete
+
+camera:
+  # JPEG: already debayered RGB
+  bayer: none
+  timestamp:
+    source: filename
+    # local time of the exposure start
+    filename_format: raw_ccd1_%Y%m%d_%H%M%S.jpg
+    timezone: Africa/Johannesburg
+    # half the 45 s night exposure
+    offset: 22.5
+  world_model:
+    class: pyobs_cloudcover.world_model.PointedModel
+    c_x: 2290.81
+    c_y: 1295.69
+    f: 1950.42
+    rotation: 1.69775
+    tilt_x: 0.025352
+    tilt_y: 0.02328
+    k1: 0.285627
+    k2: 0.202425
+    parity: 1
+    max_field_angle: 80.0
+
+pipelines:
+  # Day (optional): colour ratio B/G + B/R per pixel. Needs FIXED white balance by day: with auto WB the frame
+  # median ratio is always ~2.0 (overcast, broken or clear), so a uniform clear sky reads as cloud. Here indi-allsky's
+  # day Extra Options get `--awbgains 1.13,1.45`; clear sky then reads ~3.3-5.3, grey cloud ~1.8, hence 2.8.
+  # Needs DAYTIME_CAPTURE_SAVE on in indi-allsky (else no day exports). On this camera (NoIR, behind a dome) internal
+  # reflections and sun glare made the day results unreliable, so it is switched off there; drop this block for a
+  # night-only setup.
+  day:
+    alt_interval:
+      start: -6
+      end:
+    options:
+      bin_size: 2
+      cloud_map:
+        threshold: 2.8
+      sun_apparent_size: 12.0
+  night:
+    alt_interval:
+      start:
+      end: -18
+    options:
+      bin_size: 2
+      catalog:
+        filepath: ""
+        filter:
+          alt: 30.0
+          v_mag: 7.0
+          distance: 0.0
+      detector:
+        type: aperture
+        snr: 3.0
+        search_radius: 2.0
+        max_background: 0.8
+        # JPEG compression flattens the sky noise to ~0 in most places; without a floor every bump is a "star".
+        # 1.0 (binned ADU): 2-5 % false detections off-star, 80-90 % of V<6 stars found on clear nights.
+        min_sigma: 1.0
+      # follow small moves of the camera (bumps, flexure): fits a small sky rotation per frame
+      align:
+        enabled: true
+        min_sigma: 1.0
+      altaz_grid:
+        point_number: 100000
+        limiting_altitude: 30
+      lim_mag_map:
+        radius: 7.0
+        estimator: robust
+        integration_length: 1
+      # stretched/compressed 8-bit images aren't linear: no photometric mode, the limiting magnitude decides
+      photometry:
+        cloud_map: false
+      cloud_map:
+        # Otsu on two nights (2026-11-11/12, 12/13): 4.7-5.0; clear frames read ~6.1-6.4 (light-polluted site)
+        threshold: 5.0
+      moon_apparent_size: 10.0
+
+measurement_log:
+  logger:
+    type: none
+  measurements: {}
+
+server:
+  url: 0.0.0.0
+  port: 8083
+
+timezone: Africa/Johannesburg
+location:
+  # SAAO Cape Town (test site); H.E.S.S. site for ROTSE in Namibia
+  latitude: -33.9347
+  longitude: 18.4776
+  elevation: 15.0
