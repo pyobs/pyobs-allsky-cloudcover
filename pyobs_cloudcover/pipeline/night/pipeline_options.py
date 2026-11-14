@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from pyobs_cloudcover.pipeline.night.aligner import AlignOptions
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_grid_options import AltAzGridOptions
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_options import CatalogConstructorOptions
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_options import CloudMapGeneratorOptions
@@ -52,6 +53,7 @@ class NightPipelineOptions:
         moon_apparent_size: float,
         legacy: bool = False,
         photometry: dict[str, Any] | None = None,
+        align: AlignOptions | None = None,
     ) -> None:
 
         self.model_options = model_options
@@ -64,6 +66,7 @@ class NightPipelineOptions:
         self.moon_apparent_size = moon_apparent_size
         self.legacy = legacy
         self.photometry = photometry
+        self.align = align or AlignOptions()
 
     @classmethod
     def from_dict(cls, options: dict[str, Any]) -> NightPipelineOptions:
@@ -94,4 +97,5 @@ class NightPipelineOptions:
             float(options.get("moon_apparent_size", 10.0)),
             legacy,
             photometry=None if legacy else {**PHOTOMETRY_DEFAULTS, **(options.get("photometry") or {})},
+            align=AlignOptions() if legacy else AlignOptions.from_dict(options.get("align")),
         )

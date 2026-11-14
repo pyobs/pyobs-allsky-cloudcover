@@ -6,6 +6,7 @@ import numpy.typing as npt
 from pyobs_cloudcover.camera.profile import Frame
 from pyobs_cloudcover.cloud_coverage_info import CloudCoverageInfo
 from pyobs_cloudcover.cloud_info_calculator import CoverageInfoCalculator
+from pyobs_cloudcover.pipeline.night.aligner import PointingAligner
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.spherical_alt_az_generator import SphericalAltAzGenerator
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor import CatalogConstructor
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator import CloudMapGenerator
@@ -19,7 +20,7 @@ from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor import Preprocess
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.aperture_matcher import ApertureMatcher
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher import StarReverseMatcher
 from pyobs_cloudcover.pipeline.pipeline import Pipeline
-from pyobs_cloudcover.sky_query import SkyPixelQuery
+from pyobs_cloudcover.sky_query import SkyGrid, SkyPixelQuery
 from pyobs_cloudcover.world_model.world_model import WorldModel
 
 
@@ -45,10 +46,12 @@ class NightPipeline(Pipeline):
         sky_mask: npt.NDArray[np.bool_] | None = None,
         photometry: PhotometrySettings | None = None,
         model: WorldModel | None = None,
+        aligner: PointingAligner | None = None,
     ) -> None:
         """``sky_mask``: full-resolution canonical mask (True = sky); stars outside it are ignored.
         ``photometry``: also measure cloud extinction per star (needs the aperture detector); ``model`` (in binned
-        pixels) is needed for the sky brightness."""
+        pixels) is needed for the sky brightness. ``aligner``: corrects the (shared) world model for small camera
+        moves before each frame is analysed."""
 
         self._preprocess = preprocess
         self._catalog_constructor = catalog_constructor
@@ -61,6 +64,7 @@ class NightPipeline(Pipeline):
         self._sky_mask = sky_mask
         self._photometry = photometry
         self._model = model
+        self._aligner = aligner
         self._binned_mask: npt.NDArray[np.bool_] | None = None
 
     def _mask(self) -> npt.NDArray[np.bool_] | None:
@@ -69,13 +73,23 @@ class NightPipeline(Pipeline):
             self._binned_mask = ImageBinner(self._preprocess.bin_size)(self._sky_mask.astype(np.float64)) >= 0.5
         return self._binned_mask
 
+    def _in_image(self, grid: SkyGrid, height: int, width: int) -> npt.NDArray[np.bool_]:
+        """Grid positions that land inside the (binned) image."""
+        assert self._model is not None
+        with np.errstate(invalid="ignore"):
+            x, y = (np.asarray(v, dtype=np.float64) for v in self._model.altaz_to_pix(grid.alt, grid.az))
+            inside: npt.NDArray[np.bool_] = np.isfinite(x) & (x >= 0) & (x <= width - 1) & (y >= 0) & (y <= height - 1)
+        return inside
+
     def __call__(self, frame: Frame) -> CloudCoverageInfo:
         obs_time = frame.obs_time
         preprocessed_image = self._preprocess(frame)
         img_height, img_width = preprocessed_image.shape
 
-        catalog = self._catalog_constructor(obs_time, img_height, img_width)
         mask = self._mask()
+        if self._aligner is not None:
+            self._aligner(preprocessed_image, obs_time, mask)
+        catalog = self._catalog_constructor(obs_time, img_height, img_width)
         if mask is not None:
             catalog.filter_mask(mask)
         matches = self._star_reverse_matcher(preprocessed_image, catalog, frame.saturation)
@@ -83,6 +97,9 @@ class NightPipeline(Pipeline):
         grid = self._alt_az_list_generator()
 
         lim_mag_map = self._lim_magnitude_map_generator(catalog, matches, grid)
+        if self._model is not None:
+            # positions the camera doesn't see are unknown, not cloudy (cameras that don't cover the whole sky)
+            lim_mag_map = np.where(self._in_image(grid, img_height, img_width), lim_mag_map, np.nan)
         cloud_map = self._cloud_map_generator(lim_mag_map)
 
         extinction_query, zero_point, brightness = None, None, None

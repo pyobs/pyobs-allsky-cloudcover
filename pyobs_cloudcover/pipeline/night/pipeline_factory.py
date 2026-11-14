@@ -3,6 +3,7 @@ from astroplan import Observer
 
 from pyobs_cloudcover.camera.profile import CameraProfile
 from pyobs_cloudcover.cloud_info_calculator import CloudInfoCalculatorFactory
+from pyobs_cloudcover.pipeline.night.aligner import PointingAligner
 from pyobs_cloudcover.pipeline.night.altaz_grid_generator.altaz_map_generator_factory import AltAzMapGeneratorFactory
 from pyobs_cloudcover.pipeline.night.catalog.catalog_constructor_factory import CatalogConstructorFactory
 from pyobs_cloudcover.pipeline.night.cloud_map_generator.cloud_map_generator_factory import CloudMapGeneratorFactory
@@ -15,7 +16,7 @@ from pyobs_cloudcover.pipeline.night.pipeline import NightPipeline, PhotometrySe
 from pyobs_cloudcover.pipeline.night.pipeline_options import NightPipelineOptions
 from pyobs_cloudcover.pipeline.night.preprocessor.preprocessor_factory import PreprocessorFactory
 from pyobs_cloudcover.pipeline.night.star_reverse_matcher.star_reverse_matcher_factory import StarReverseMatcherFactory
-from pyobs_cloudcover.world_model import ScaledModel, WorldModel
+from pyobs_cloudcover.world_model import AlignedModel, ScaledModel, WorldModel
 from pyobs_cloudcover.world_model.world_model_factory import WorldModelFactory
 
 
@@ -33,7 +34,11 @@ class NightPipelineFactory:
         config = options.model_options or self._camera.config.world_model
         if not config:
             raise ValueError("No world model: set camera.world_model (or pipelines.night.options.world_model)")
-        return ScaledModel(world_model_factory(config), options.preprocessor_options.bin_size)
+        model: WorldModel = ScaledModel(world_model_factory(config), options.preprocessor_options.bin_size)
+        if options.align.enabled:
+            # corrected per frame by the PointingAligner; the catalogue projects through the same object
+            model = AlignedModel(model)
+        return model
 
     def __call__(self, options: NightPipelineOptions) -> NightPipeline:
         model = self.world_model(options)
@@ -73,4 +78,5 @@ class NightPipelineFactory:
             sky_mask=None if options.legacy else self._camera.mask,
             photometry=photometry,
             model=model,
+            aligner=PointingAligner(model, self._observer, options.align) if isinstance(model, AlignedModel) else None,
         )

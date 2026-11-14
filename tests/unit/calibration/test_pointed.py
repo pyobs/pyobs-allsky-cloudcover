@@ -1,4 +1,4 @@
-"""Pointed (non-fisheye) camera: calibration from stars."""
+"""Pointed (non-fisheye) camera: calibration from stars, and per-frame alignment after a bump."""
 
 from __future__ import annotations
 
@@ -12,7 +12,8 @@ from astropy import units as u
 from pyobs_cloudcover.calibration.astrometry import catalog_altaz, detect_stars, value_step
 from pyobs_cloudcover.calibration.pointed import calibrate_pointed
 from pyobs_cloudcover.camera.profile import Frame
-from pyobs_cloudcover.world_model import PointedModel
+from pyobs_cloudcover.pipeline.night.aligner import AlignOptions, PointingAligner
+from pyobs_cloudcover.world_model import AlignedModel, PointedModel
 
 OBSERVER = Observer(latitude=-33.93 * u.deg, longitude=18.48 * u.deg, elevation=15 * u.m)
 TIME = datetime.datetime(2026, 11, 13, 1, 30, tzinfo=datetime.UTC)
@@ -25,7 +26,7 @@ def truth() -> PointedModel:
                         k1=0.28, k2=0.2)
 
 
-def render(model: PointedModel, time: datetime.datetime, seed: int = 1) -> np.ndarray:
+def render(model: AlignedModel | PointedModel, time: datetime.datetime, seed: int = 1) -> np.ndarray:
     """8-bit-like star field: background 60, stars as Gaussians, rounded (quantised) like a JPEG."""
     rng = np.random.default_rng(seed)
     alt, az, mag = catalog_altaz(OBSERVER, time, 5.0, 5.0)
@@ -63,3 +64,30 @@ def test_calibrate_recovers_the_camera() -> None:
     alt, az = model.pix_to_altaz(xx, yy)
     x2, y2 = result.model.altaz_to_pix(alt, az)
     assert np.nanmax(np.hypot(x2 - xx, y2 - yy)) < 1.5
+
+
+def test_aligner_recovers_a_bump() -> None:
+    camera = AlignedModel(truth(), (np.deg2rad(0.05), np.deg2rad(-0.1), np.deg2rad(-0.55)))  # the moved camera
+    image = render(camera, TIME)
+    model = AlignedModel(truth())
+    aligner = PointingAligner(model, OBSERVER, AlignOptions(enabled=True, min_sigma=1.0))
+    assert aligner(image, TIME, None)
+    np.testing.assert_allclose(np.rad2deg(model.angles), np.rad2deg(camera.angles), atol=0.03)
+    # and then tracks: the next frame refines without a grid search
+    assert aligner(render(camera, TIME + datetime.timedelta(minutes=5), seed=2), TIME + datetime.timedelta(minutes=5),
+                   None)
+    np.testing.assert_allclose(np.rad2deg(model.angles), np.rad2deg(camera.angles), atol=0.03)
+
+
+def test_aligner_keeps_the_correction_when_cloudy() -> None:
+    model = AlignedModel(truth(), (0.0, 0.0, 0.01))
+    aligner = PointingAligner(model, OBSERVER, AlignOptions(enabled=True, min_sigma=1.0))
+    assert not aligner(np.full((H, W), 60.0), TIME, None)
+    assert model.angles == (0.0, 0.0, 0.01)
+
+
+def test_align_options() -> None:
+    o = AlignOptions.from_dict({"enabled": True, "max_offset": "3", "min_stars": 10})
+    assert o.enabled and o.max_offset == 3.0 and o.min_stars == 10
+    with pytest.raises(ValueError):
+        AlignOptions.from_dict({"nope": 1})
