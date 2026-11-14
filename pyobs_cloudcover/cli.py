@@ -65,6 +65,8 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
     camera.pop("world_model", None)
     profile = CameraProfile(camera)
     frames = [profile.prepare(read_image(p)) for p in expand(args.images)]
+    if args.pointed:
+        return _calibrate_pointed(args, config, profile, frames)
     circle = [profile.prepare(read_image(p)) for p in expand(args.circle_from)] if args.circle_from else None
     result = calibrate(frames, observer_from(config), polynomial=args.polynomial, circle_frames=circle)
     print(
@@ -82,6 +84,31 @@ def cmd_calibrate(args: argparse.Namespace) -> int:
             "(orientation, Bayer pattern, timestamps).",
             file=sys.stderr,
         )
+        return 0 if args.force else 2
+    return 0
+
+
+def _calibrate_pointed(args: argparse.Namespace, config: dict[str, Any], profile: Any, frames: list[Any]) -> int:
+    from pyobs_cloudcover.calibration.pointed import calibrate_pointed
+
+    result = calibrate_pointed(
+        frames,
+        observer_from(config),
+        hfov=args.hfov,
+        max_tilt=args.max_tilt,
+        mask=profile.mask,
+        min_sigma=args.min_sigma,
+    )
+    alt, az = result.model.axis_altaz
+    print(
+        f"# pointed camera: axis alt {np.rad2deg(alt):.2f} az {np.rad2deg(az):.2f} deg, f {result.model.f:.1f} px, "
+        f"rms {result.rms:.2f} px over {result.matched} stars, {100 * result.match_fraction:.0f} % of bright stars "
+        f"matched ({100 * result.baseline_fraction:.0f} % at wrong rolls)"
+    )
+    print(yaml.safe_dump({"world_model": _plain(result.config())}, sort_keys=False))
+    print("# small later moves of the camera: enable pipelines.night.options.align")
+    if not result.trustworthy:
+        print("# NOT TRUSTWORTHY: too few stars matched.", file=sys.stderr)
         return 0 if args.force else 2
     return 0
 
@@ -230,6 +257,20 @@ def build_parser() -> argparse.ArgumentParser:
         help="force (or forbid) a polynomial lens; default: use it if it fits clearly better",
     )
     s.add_argument("--force", action="store_true", help="exit 0 even if the fit isn't trustworthy")
+    s.add_argument(
+        "--pointed",
+        action="store_true",
+        help="camera without a lens circle and/or not looking at the zenith (wide-angle lens, tilted camera): "
+        "fit a PointedModel instead of a FisheyeModel",
+    )
+    s.add_argument("--hfov", type=float, default=100.0, help="--pointed: rough horizontal field of view (deg)")
+    s.add_argument("--max-tilt", type=float, default=20.0, help="--pointed: largest axis tilt from the zenith (deg)")
+    s.add_argument(
+        "--min-sigma",
+        type=float,
+        default=None,
+        help="noise floor of the star detection (ADU); default: the image's value step. Use ~1 for JPEGs",
+    )
     s.add_argument(
         "--circle-from",
         nargs="+",

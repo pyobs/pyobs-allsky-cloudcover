@@ -4,6 +4,7 @@ import pyobs.object
 from astroplan import Observer
 
 from pyobs_cloudcover.world_model.fisheye_model import FisheyeModel
+from pyobs_cloudcover.world_model.pointed_model import PointedModel
 from pyobs_cloudcover.world_model.simple_model import SimpleModel
 from pyobs_cloudcover.world_model.wcs_model_loader import WCSModelLoader
 from pyobs_cloudcover.world_model.world_model import WorldModel
@@ -20,6 +21,9 @@ class WorldModelFactory:
         if world_model_config["class"] == "pyobs_cloudcover.world_model.FisheyeModel":
             fisheye: FisheyeModel = pyobs.object.get_object(world_model_config, FisheyeModel)
             return fisheye
+        if world_model_config["class"] == "pyobs_cloudcover.world_model.PointedModel":
+            pointed: PointedModel = pyobs.object.get_object(world_model_config, PointedModel)
+            return pointed
         if world_model_config['class'] == 'pyobs_cloudcover.world_model.WCSModel':
             wcs_model_loader = WCSModelLoader(world_model_config["file_path"])
             return wcs_model_loader()

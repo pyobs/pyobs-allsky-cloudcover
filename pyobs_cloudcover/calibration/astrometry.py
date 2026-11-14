@@ -29,6 +29,7 @@ from scipy.spatial import cKDTree
 from pyobs_cloudcover.camera.profile import Frame
 from pyobs_cloudcover.data import bundled_catalog_path
 from pyobs_cloudcover.world_model.fisheye_model import FisheyeModel
+from pyobs_cloudcover.world_model.world_model import WorldModel
 
 log = logging.getLogger(__name__)
 
@@ -293,7 +294,7 @@ def _vote(
 
 
 def _match(
-    model: FisheyeModel, o: Observation, tol: float, shape: tuple[int, int]
+    model: WorldModel, o: Observation, tol: float, shape: tuple[int, int]
 ) -> tuple[npt.NDArray[np.intp], npt.NDArray[np.intp], int]:
     """Catalogue stars (indices) matched to detections (indices) within ``tol`` px, and how many catalogue stars
     fell inside the image."""
